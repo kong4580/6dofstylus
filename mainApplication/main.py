@@ -40,20 +40,6 @@ def callback(samplingRate,gui):
 
 def openGUI(samplingRate = 0.005):
     
-    # # init window
-    # print("Init GUI window ... ",end="")
-    # window = Fl_Window(800,600,"UI")
-    # print("Done !")
-    
-    # # init openGl window
-    # print("Init openGl window ... ",end="")
-    # opengl = OpenGLWindow(0,0,600,600,'opengl')
-    # print("Done !")
-    
-    # # init output widget
-    
-    # storage = createOutputWidget(opengl)
-    
     # open GUI window
     gui.window.show()
     
@@ -82,11 +68,11 @@ if __name__ == '__main__':
     
     # init serial
     print("Init Stylus Serial ... ",end="")
-    
     srec = StylusReciever(baudrate = 9600,port = port,timeout = serialTimeOut) 
     print("Done !")
     
     # init GUI
     gui = Gui()
+    
     # run GUI
     openGUI(samplingRate)
