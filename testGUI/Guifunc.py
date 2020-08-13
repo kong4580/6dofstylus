@@ -19,7 +19,8 @@ def sliderScaleCB(opengl,widget,v):
     else:
         opengl.readScaleZ(size)
     opengl.redraw()
-def InitGL(): 
+def InitGL():
+    glutInit(sys.argv) #add
     glClearColor(0.0, 0.0, 0.0, 0.0)
     glClearDepth(1.0) 
     glDepthFunc(GL_LESS)
