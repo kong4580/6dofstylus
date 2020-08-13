@@ -161,7 +161,7 @@ class StylusReciever():
         
 
 if __name__ == '__main__':
-    port = '/dev/pts/2' # ubuntu port
+    port = '/dev/pts/4' # ubuntu port
     # port = '/dev/ttyUSB0' # arduino port
     
     stylus = Stylus() # init stylus

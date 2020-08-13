@@ -11,9 +11,10 @@ from functools import partial
 
 from StylusReciever import StylusReciever
 from Stylus import Stylus
-from Guifunc import updateUI, OpenGLWindow, createOutputWidget
+# from Guifunc import updateUI, OpenGLWindow, createOutputWidget
+from GUI import Gui
 
-def callback(samplingRate,opengl,storage):
+def callback(samplingRate,gui):
 
 
     # if recieve serial messages
@@ -26,38 +27,38 @@ def callback(samplingRate,opengl,storage):
             jointStates,buttonStates = srec.readCommand(command,rawData)
             pose = stylus.getEndTransforms(jointStates)
             # update gui
-            updateUI(pose,opengl,storage,buttonStates,scale=20)
+            gui.updateUI(pose,buttonStates,scale=20)
         
         # update button state command    
         if command == 0xFE:
             # get button states
             pass
         
-    uiCallback = partial(callback,samplingRate,opengl,storage)
+    uiCallback = partial(callback,samplingRate,gui)
     Fl_repeat_timeout(samplingRate,uiCallback)
     
 
 def openGUI(samplingRate = 0.005):
     
-    # init window
-    print("Init GUI window ... ",end="")
-    window = Fl_Window(800,600,"UI")
-    print("Done !")
+    # # init window
+    # print("Init GUI window ... ",end="")
+    # window = Fl_Window(800,600,"UI")
+    # print("Done !")
     
-    # init openGl window
-    print("Init openGl window ... ",end="")
-    opengl = OpenGLWindow(0,0,600,600,'opengl')
-    print("Done !")
+    # # init openGl window
+    # print("Init openGl window ... ",end="")
+    # opengl = OpenGLWindow(0,0,600,600,'opengl')
+    # print("Done !")
     
-    # init output widget
+    # # init output widget
     
-    storage = createOutputWidget(opengl)
+    # storage = createOutputWidget(opengl)
     
     # open GUI window
-    window.show()
+    gui.window.show()
     
     # run callback function
-    uiCallback = partial(callback,samplingRate,opengl,storage)
+    uiCallback = partial(callback,samplingRate,gui)
     Fl_add_timeout(samplingRate,uiCallback)
     
     # open application
@@ -67,8 +68,8 @@ def openGUI(samplingRate = 0.005):
 if __name__ == '__main__':
     
     # declare port
-    # port = '/dev/pts/4' # ubuntu port
-    port = '/dev/ttyUSB0' # arduino port
+    port = '/dev/pts/4' # ubuntu port
+    # port = '/dev/ttyUSB0' # arduino port
     
     # declare constants
     samplingRate = 0.005
@@ -85,5 +86,7 @@ if __name__ == '__main__':
     srec = StylusReciever(baudrate = 9600,port = port,timeout = serialTimeOut) 
     print("Done !")
     
+    # init GUI
+    gui = Gui()
     # run GUI
     openGUI(samplingRate)
