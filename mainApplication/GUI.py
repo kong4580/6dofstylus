@@ -8,7 +8,7 @@ import math
 from drawFunc import *
 from functools import partial
 from OpenGLWindow import OpenGLWindow
-
+from Model import Model
 class Gui():
     def __init__(self):
         self.__initWindow(size=(800,600),name="UI")
@@ -83,13 +83,16 @@ class Gui():
         self.openglWindow.redraw()
         self.__updateSlider(cvtedPose)
     
-    def addModel(self):
-        # add 3D model
-        pass
-    
-    def addBackdrop(self):
-        # add addBackdrop
-        pass
+    def addModel(self,name,drawFunction = None,position=(0,0,0),rotation=(0,0,0)):
+        print("Add model name",name)
+        self.openglWindow.addModel(name,drawFunction,position,rotation)
+        print("Done!")
+        
+    def moveModel(self,name,pose):
+        cvtedPose = self.__cvtPose(pose,20)
+        position = (cvtedPose[0],cvtedPose[1],cvtedPose[2])
+        rotation = (cvtedPose[3],cvtedPose[4],cvtedPose[5])
+        self.openglWindow.moveModel(name,position,rotation)
     
     
     

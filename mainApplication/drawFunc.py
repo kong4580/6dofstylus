@@ -76,3 +76,6 @@ def Grid():
         glVertex3f(10, 0, i) 
         glVertex3f(-10, 0, i)
     glEnd()
+    
+def drawTeapot():
+    glutWireTeapot(2)

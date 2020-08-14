@@ -13,7 +13,7 @@ from StylusReciever import StylusReciever
 from Stylus import Stylus
 # from Guifunc import updateUI, OpenGLWindow, createOutputWidget
 from GUI import Gui
-
+import drawFunc
 def callback(samplingRate,gui):
 
 
@@ -27,8 +27,10 @@ def callback(samplingRate,gui):
             jointStates,buttonStates = srec.readCommand(command,rawData)
             pose = stylus.getEndTransforms(jointStates)
             # update gui
+            
+            gui.moveModel('teapot',pose)
             gui.updateUI(pose,buttonStates,scale=20)
-        
+            
         # update button state command    
         if command == 0xFE:
             # get button states
@@ -40,6 +42,8 @@ def callback(samplingRate,gui):
 
 def openGUI(samplingRate = 0.005):
     
+    # add model
+    gui.addModel('teapot',drawFunc.drawTeapot)
     # open GUI window
     gui.window.show()
     
