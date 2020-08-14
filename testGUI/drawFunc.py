@@ -76,3 +76,7 @@ def Grid():
         glVertex3f(10, 0, i) 
         glVertex3f(-10, 0, i)
     glEnd()
+def teapotModel(size):
+    glBegin()
+    glutWireTeapot(size)
+    glEnd()
