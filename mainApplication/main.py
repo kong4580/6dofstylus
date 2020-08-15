@@ -14,6 +14,7 @@ from Stylus import Stylus
 # from Guifunc import updateUI, OpenGLWindow, createOutputWidget
 from GUI import Gui
 import drawFunc
+from Model import Model,OBJ
 def callback(samplingRate,gui):
 
 
@@ -27,7 +28,7 @@ def callback(samplingRate,gui):
             jointStates,buttonStates = srec.readCommand(command,rawData)
             pose = stylus.getEndTransforms(jointStates)
             # update gui
-            
+            print("pose",pose)
             gui.moveModel('teapot',pose)
             gui.updateUI(pose,buttonStates,scale=20)
             
@@ -43,7 +44,8 @@ def callback(samplingRate,gui):
 def openGUI(samplingRate = 0.005):
     
     # add model
-    gui.addModel('teapot',drawFunc.drawTeapot)
+    bunny = OBJ('./teapot.obj')
+    gui.addModel('teapot',bunny.initOBJ,obj=bunny)
     # open GUI window
     gui.window.show()
     
@@ -58,7 +60,7 @@ def openGUI(samplingRate = 0.005):
 if __name__ == '__main__':
     
     # declare port
-    port = '/dev/pts/4' # ubuntu port
+    port = '/dev/pts/2' # ubuntu port
     # port = '/dev/ttyUSB0' # arduino port
     
     # declare constants

@@ -1,6 +1,7 @@
 from OpenGL.GL import *
 from OpenGL.GLUT import *
 from OpenGL.GLU import *
+import time
 def point():
     glEnable(GL_POINT_SMOOTH)
     glPointSize(20)
@@ -70,6 +71,7 @@ def DrawCube():
     glEnd()
 def Grid():
     glBegin(GL_LINES)
+    glColor3f(1, 1, 1)
     for i in range(-10,10,1):
         glVertex3f(i, 0, 10)
         glVertex3f(i, 0, -10)
@@ -78,4 +80,7 @@ def Grid():
     glEnd()
     
 def drawTeapot():
+    start = time.time()
     glutWireTeapot(2)
+    end = time.time()
+    print("time =",end - start)

@@ -8,6 +8,7 @@ import math
 import drawFunc
 from functools import partial
 from Model import Model
+
 class OpenGLWindow(Fl_Gl_Window):
     def __init__(self, xpos, ypos, width, height, label):
         Fl_Gl_Window.__init__(self, xpos, ypos, width, height, label)
@@ -15,6 +16,7 @@ class OpenGLWindow(Fl_Gl_Window):
         self.pose = [0,0,0,0,0,0,0,0,0]
         self.modelDicts = {'model':[],
                            'movepose':[],
+                           'isModelInit':[],
                            'modelNum':0}
         self.models = []
         
@@ -53,7 +55,7 @@ class OpenGLWindow(Fl_Gl_Window):
             self.__initGL()
             firstTime = False # ondraw is called all the time
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-        
+
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
         glFrustum(-1, 1, -1, 1, 1, 100)
@@ -65,23 +67,29 @@ class OpenGLWindow(Fl_Gl_Window):
         # glTranslatef(0,0,0)
         gluLookAt(0, 0, 10, 0, 0, 0, 0, 1, 0)
         
-        self.grid.createModel()
+        # self.grid.createModel()
         
-        self.cursor.createModel(position=(self.pose[1],self.pose[2],self.pose[0]),rotation=(self.pose[5],self.pose[3],self.pose[4]),showFrame=True)
+        # self.cursor.createModel(position=(self.pose[1],self.pose[2],self.pose[0]),rotation=(self.pose[5],self.pose[3],self.pose[4]),showFrame=True)
         
-        self.origin.createModel(position=(self.pose[6],self.pose[7],self.pose[8]))
+        self.origin.createModel(position=(self.pose[6],self.pose[7],self.pose[8]),showFrame=True)
         
         if self.modelDicts['modelNum'] > 0:
             for idx in range(self.modelDicts['modelNum']):
                 model = self.modelDicts['model'][idx]
                 movePose = self.modelDicts['movepose'][idx]
-                print(movePose)
+                if self.modelDicts['isModelInit'][idx] == 0:
+                    model.obj.initOBJ()
+                    model.createOBB()
+                    model.obb.current_point = model.obb.points
+                    self.modelDicts['isModelInit'][idx] = 1
                 model.createModel(position = movePose[0],rotation = movePose[1], showFrame=True)
                 
-    def addModel(self,name,drawFunction=None,position=(0,0,0),rotation=(0,0,0)):
-        model = Model(name,drawFunction,position,rotation)
+                
+    def addModel(self,name,drawFunction=None,position=(0,0,0),rotation=(0,0,0),obj=None):
+        model = Model(name,drawFunction,position,rotation,obj=obj)
         self.modelDicts['model'].append(model)
         self.modelDicts['movepose'].append([(position[0],position[1],position[2]),(rotation[0],rotation[1],rotation[2])])
+        self.modelDicts['isModelInit'].append(0)
         self.modelDicts['modelNum'] = len(self.modelDicts['model'])
         
     def moveModel(self,name,position,rotation):

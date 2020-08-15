@@ -45,8 +45,8 @@ class Gui():
         for n in range(3):
             slider = Fl_Hor_Value_Slider(655, y, 145,25,name_Scale[n])
             y = y + 25
-            slider.minimum(-100)
-            slider.maximum(100)
+            slider.minimum(-500)
+            slider.maximum(500)
             slider.value(0)
             slider.align(FL_ALIGN_LEFT)
             sldCallback = partial(Gui.__sliderScaleCB,self.openglWindow)
@@ -83,9 +83,9 @@ class Gui():
         self.openglWindow.redraw()
         self.__updateSlider(cvtedPose)
     
-    def addModel(self,name,drawFunction = None,position=(0,0,0),rotation=(0,0,0)):
+    def addModel(self,name,drawFunction = None,position=(0,0,0),rotation=(0,0,0),obj=None):
         print("Add model name",name)
-        self.openglWindow.addModel(name,drawFunction,position,rotation)
+        self.openglWindow.addModel(name,drawFunction,position,rotation,obj=obj)
         print("Done!")
         
     def moveModel(self,name,pose):
