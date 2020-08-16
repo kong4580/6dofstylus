@@ -29,7 +29,7 @@ def callback(samplingRate,gui):
             pose = stylus.getEndTransforms(jointStates)
             # update gui
             print("pose",pose)
-            gui.moveModel('teapot',pose)
+            gui.moveModel('teapot',[0,0,0,0,-30,-30])
             gui.updateUI(pose,buttonStates,scale=20)
             
         # update button state command    
@@ -60,7 +60,7 @@ def openGUI(samplingRate = 0.005):
 if __name__ == '__main__':
     
     # declare port
-    port = '/dev/pts/2' # ubuntu port
+    port = '/dev/pts/4' # ubuntu port
     # port = '/dev/ttyUSB0' # arduino port
     
     # declare constants

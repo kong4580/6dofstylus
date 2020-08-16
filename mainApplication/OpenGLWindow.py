@@ -69,7 +69,7 @@ class OpenGLWindow(Fl_Gl_Window):
         
         # self.grid.createModel()
         
-        # self.cursor.createModel(position=(self.pose[1],self.pose[2],self.pose[0]),rotation=(self.pose[5],self.pose[3],self.pose[4]),showFrame=True)
+        self.cursor.createModel(position=(self.pose[1],self.pose[2],self.pose[0]),rotation=(self.pose[5],self.pose[3],self.pose[4]),showFrame=True)
         
         self.origin.createModel(position=(self.pose[6],self.pose[7],self.pose[8]),showFrame=True)
         
@@ -81,6 +81,8 @@ class OpenGLWindow(Fl_Gl_Window):
                     model.obj.initOBJ()
                     model.createOBB()
                     model.obb.current_point = model.obb.points
+                    model.obb.current_centroid = model.obb.centroid
+                    model.obb.current_rotation = (glGetFloatv(GL_MODELVIEW_MATRIX).T[0:3,0:3],model.obb.rotation)
                     self.modelDicts['isModelInit'][idx] = 1
                 model.createModel(position = movePose[0],rotation = movePose[1], showFrame=True)
                 

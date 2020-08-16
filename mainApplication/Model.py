@@ -7,6 +7,7 @@ import sys
 from math import sqrt
 from drawFunc import *
 import time
+import numpy as np
 class Model():
     def __init__(self,name,drawFunction = None,position=(0,0,0),rotation=(0,0,0),obj=None):
         self.name = name
@@ -15,6 +16,7 @@ class Model():
         self.drawFunction = drawFunction
         self.obj = obj
         self.obb = None
+        self.isSelect = False
         
     def createModel(self,position=(0,0,0),rotation=(0,0,0),showFrame=False):
         
@@ -38,10 +40,14 @@ class Model():
                 glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
                 glCallList(self.obb.gl_list)
                 
+                self.obb.current_rotation = np.dot(glGetFloatv(GL_MODELVIEW_MATRIX).T[0:3,0:3],self.obb.rotation)
                 for idx in range(len(self.obb.points)):
-                    self.obb.current_point[idx] = dot(glGetFloatv(GL_MODELVIEW_MATRIX).T[0:3,0:3],self.obb.points[idx])
+                    self.obb.current_point[idx] = dot(self.obb.current_rotation,self.obb.points[idx])
+                self.obb.current_centroid = dot(self.obb.current_rotation,self.obb.centroid)
                 print(self.obb.current_point)
-                print(glGetFloatv(GL_MODELVIEW_MATRIX).T)
+                print(self.obb.extents)
+                print(np.linalg.norm(self.obb.current_point[0]-self.obb.current_point[3]))
+                print(self.isInside(np.array([1,-2,3])))
             else:
                 self.drawFunction()
                 
@@ -53,14 +59,30 @@ class Model():
             # glPopMatrix()
         else:
             print("No model draw function")
-            
+    
     def __updatePosition(self,position=(0,0,0),rotation=(0,0,0)):
         self.centerPosition = position
         self.rotation = rotation
 
     def getName(self):
         return self.name
-
+    
+    def isInside(self,point):
+        centroidToPoint = point - self.obb.current_centroid
+        
+        pX = np.absolute(dot(centroidToPoint,self.obb.current_rotation[:,0]))
+        pY = np.absolute(dot(centroidToPoint,self.obb.current_rotation[:,1]))
+        pZ = np.absolute(dot(centroidToPoint,self.obb.current_rotation[:,2]))
+        
+        xLength = self.obb.extents[0]*2
+        yLength = self.obb.extents[1]*2
+        zLength = self.obb.extents[2]*2
+        
+        if 2*pX <= xLength and 2*pY <= yLength and 2*pZ <= zLength:
+            return True
+        else:
+            return False
+        
     def createOBB(self):
         indices = []
         for face in self.obj.faces:
@@ -208,6 +230,9 @@ class OBB:
         self.max = None
         self.gl_list=None
         self.current_point = None
+        self.current_centroid = None
+        self.current_rotation = None
+        
     def transform(self, point):
         return dot(array(point), self.rotation)
 
