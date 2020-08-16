@@ -40,14 +40,18 @@ class Model():
                 glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
                 glCallList(self.obb.gl_list)
                 
-                self.obb.current_rotation = np.dot(glGetFloatv(GL_MODELVIEW_MATRIX).T[0:3,0:3],self.obb.rotation)
+                self.obb.current_homo = np.dot(glGetFloatv(GL_MODELVIEW_MATRIX).T,self.obb.homo)
                 for idx in range(len(self.obb.points)):
-                    self.obb.current_point[idx] = dot(self.obb.current_rotation,self.obb.points[idx])
-                self.obb.current_centroid = dot(self.obb.current_rotation,self.obb.centroid)
-                print(self.obb.current_point)
-                print(self.obb.extents)
-                print(np.linalg.norm(self.obb.current_point[0]-self.obb.current_point[3]))
-                print(self.isInside(np.array([1,-2,3])))
+                    
+                    pointIdx = np.append(self.obb.points[idx],1)
+                    print(pointIdx)
+                    self.obb.current_point[idx] = dot(self.obb.current_homo,pointIdx.T)[0:3]
+                obbCentroid = np.append(self.obb.centroid,1)
+                self.obb.current_centroid = dot(self.obb.current_homo,obbCentroid)[0:3]
+                # print(self.obb.current_point)
+                # print(self.obb.extents)
+                # print(np.linalg.norm(self.obb.current_point[0]-self.obb.current_point[3]))
+                # print(self.isInside(np.array([1,-2,3])))
             else:
                 self.drawFunction()
                 
@@ -67,12 +71,12 @@ class Model():
     def getName(self):
         return self.name
     
-    def isInside(self,point):
+    def isPointInside(self,point):
         centroidToPoint = point - self.obb.current_centroid
         
-        pX = np.absolute(dot(centroidToPoint,self.obb.current_rotation[:,0]))
-        pY = np.absolute(dot(centroidToPoint,self.obb.current_rotation[:,1]))
-        pZ = np.absolute(dot(centroidToPoint,self.obb.current_rotation[:,2]))
+        pX = np.absolute(dot(centroidToPoint,self.obb.current_homo[0:3,0]))
+        pY = np.absolute(dot(centroidToPoint,self.obb.current_homo[0:3,1]))
+        pZ = np.absolute(dot(centroidToPoint,self.obb.current_homo[0:3,2]))
         
         xLength = self.obb.extents[0]*2
         yLength = self.obb.extents[1]*2
@@ -228,10 +232,11 @@ class OBB:
         self.rotation = None
         self.min = None
         self.max = None
+        
         self.gl_list=None
         self.current_point = None
         self.current_centroid = None
-        self.current_rotation = None
+        self.current_homo = None
         
     def transform(self, point):
         return dot(array(point), self.rotation)
@@ -273,7 +278,14 @@ class OBB:
             # leftmost, bottommost, closest,v7
             self.transform((self.min[0], self.min[1], self.max[2])),
         ]
-
+        
+    @property
+    def homo(self):
+        homo = np.eye(4)
+        homo[0:3,0:3] = self.rotation
+        homo[0:3,3] = np.array([0,0,0]).T
+        print(homo)
+        return homo
     @classmethod
     def build_from_covariance_matrix(cls, covariance_matrix, points):
         if not isinstance(points, ndarray):

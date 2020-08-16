@@ -29,7 +29,7 @@ def callback(samplingRate,gui):
             pose = stylus.getEndTransforms(jointStates)
             # update gui
             print("pose",pose)
-            gui.moveModel('teapot',[0,0,0,0,-30,-30])
+            gui.moveModel('teapot',[0,0,0,-10,0,0])
             gui.updateUI(pose,buttonStates,scale=20)
             
         # update button state command    

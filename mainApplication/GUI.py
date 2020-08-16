@@ -61,7 +61,7 @@ class Gui():
             a=float("{:.2f}".format(pos[i]))
             self.outputWidgetStorage[i].value(str(a))
     
-    def __cvtPose(self,pose,scale):
+    def __cvtPose(self,pose,scale,offset=True):
         newPose = pose.copy()
         real = [0]*9
         
@@ -71,10 +71,10 @@ class Gui():
                 real[i+3] = ((newPose[i])*360)/(2*math.pi)
             else:
                 real[i-3] = newPose[i]/scale
-                
-        real[0] -= self.cfg["homeCfg"][0]
-        real[1] -= self.cfg["homeCfg"][1]
-        real[2] -= self.cfg["homeCfg"][2]
+        if offset:
+            real[0] -= self.cfg["homeCfg"][0]
+            real[1] -= self.cfg["homeCfg"][1]
+            real[2] -= self.cfg["homeCfg"][2]
         return real
     
     def updateUI(self,pose,buttonStates,scale=20):
@@ -89,7 +89,7 @@ class Gui():
         print("Done!")
         
     def moveModel(self,name,pose):
-        cvtedPose = self.__cvtPose(pose,20)
+        cvtedPose = self.__cvtPose(pose,scale=1,offset=False)
         position = (cvtedPose[0],cvtedPose[1],cvtedPose[2])
         rotation = (cvtedPose[3],cvtedPose[4],cvtedPose[5])
         self.openglWindow.moveModel(name,position,rotation)

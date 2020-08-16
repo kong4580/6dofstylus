@@ -8,7 +8,7 @@ import math
 import drawFunc
 from functools import partial
 from Model import Model
-
+import numpy as np
 class OpenGLWindow(Fl_Gl_Window):
     def __init__(self, xpos, ypos, width, height, label):
         Fl_Gl_Window.__init__(self, xpos, ypos, width, height, label)
@@ -82,10 +82,11 @@ class OpenGLWindow(Fl_Gl_Window):
                     model.createOBB()
                     model.obb.current_point = model.obb.points
                     model.obb.current_centroid = model.obb.centroid
-                    model.obb.current_rotation = (glGetFloatv(GL_MODELVIEW_MATRIX).T[0:3,0:3],model.obb.rotation)
+                    model.obb.current_homo = np.dot(glGetFloatv(GL_MODELVIEW_MATRIX).T,model.obb.homo)
+                    
                     self.modelDicts['isModelInit'][idx] = 1
                 model.createModel(position = movePose[0],rotation = movePose[1], showFrame=True)
-                
+                print(model.isPointInside(self.cursor.centerPosition))
                 
     def addModel(self,name,drawFunction=None,position=(0,0,0),rotation=(0,0,0),obj=None):
         model = Model(name,drawFunction,position,rotation,obj=obj)
