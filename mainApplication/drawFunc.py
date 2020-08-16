@@ -4,9 +4,9 @@ from OpenGL.GLU import *
 import time
 def point():
     glEnable(GL_POINT_SMOOTH)
-    glPointSize(20)
+    glPointSize(5)
     glBegin(GL_POINTS)
-    glColor3f(1, 1, 1)
+    glColor3f(1, 0, 1)
     glVertex3f(0, 0, 0)
     glEnd()
 def coordinate():

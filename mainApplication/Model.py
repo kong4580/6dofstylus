@@ -8,6 +8,9 @@ from math import sqrt
 from drawFunc import *
 import time
 import numpy as np
+from scipy.spatial import ConvexHull
+
+
 class Model():
     def __init__(self,name,drawFunction = None,position=(0,0,0),rotation=(0,0,0),obj=None):
         self.name = name
@@ -17,12 +20,14 @@ class Model():
         self.obj = obj
         self.obb = None
         self.isSelect = False
+        self.realPose = None
         
-    def createModel(self,position=(0,0,0),rotation=(0,0,0),showFrame=False):
+    def drawModel(self,position=(0,0,0),rotation=(0,0,0),showFrame=False):
         
         if self.drawFunction != None:
             self.__updatePosition(position,rotation)
             # if self.obj == None:
+            glMatrixMode(GL_MODELVIEW)
             glPushMatrix()
             glLoadIdentity()
             
@@ -32,26 +37,35 @@ class Model():
             glRotatef(self.rotation[2],1,0,0) #x#y
             glTranslatef(-self.centerPosition[0],-self.centerPosition[1],-self.centerPosition[2])
             glTranslatef(self.centerPosition[0],self.centerPosition[1],self.centerPosition[2])
+            self.realPose = glGetFloatv(GL_MODELVIEW_MATRIX).T[0:3,3].T
+            
             if self.obj!=None:
+                if self.obb.show:
+                    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+                    glCallList(self.obb.gl_list)
                 glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
                 
                 glCallList(self.obj.gl_list)
-                
-                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
-                glCallList(self.obb.gl_list)
-                
-                self.obb.current_homo = np.dot(glGetFloatv(GL_MODELVIEW_MATRIX).T,self.obb.homo)
+
+                # self.obb.current_homo = np.dot(glGetFloatv(GL_MODELVIEW_MATRIX).T,self.obb.homo)
+                self.obb.current_homo = glGetFloatv(GL_MODELVIEW_MATRIX).T
+                # print("ahomo",self.obb.current_homo)
+                # print("before",self.name,self.obb.current_point)
                 for idx in range(len(self.obb.points)):
                     
-                    pointIdx = np.append(self.obb.points[idx],1)
-                    print(pointIdx)
-                    self.obb.current_point[idx] = dot(self.obb.current_homo,pointIdx.T)[0:3]
+                    pointIdx = np.append(self.obb.points[idx].copy(),1)
+                    
+                    self.obb.current_point[idx] = dot(self.obb.current_homo.copy(),pointIdx.T)[0:3]
+                # print("after",self.obb.current_point)
                 obbCentroid = np.append(self.obb.centroid,1)
                 self.obb.current_centroid = dot(self.obb.current_homo,obbCentroid)[0:3]
-                # print(self.obb.current_point)
-                # print(self.obb.extents)
-                # print(np.linalg.norm(self.obb.current_point[0]-self.obb.current_point[3]))
-                # print(self.isInside(np.array([1,-2,3])))
+                
+                for idx in range(len(self.obj.vertices)):
+                    verIdx = np.append(self.obj.vertices[idx].copy(),1)
+            
+                    
+                    self.obj.current_vertices[idx] = dot(glGetFloatv(GL_MODELVIEW_MATRIX).T,verIdx.T)[0:3]
+                    
             else:
                 self.drawFunction()
                 
@@ -71,23 +85,32 @@ class Model():
     def getName(self):
         return self.name
     
-    def isPointInside(self,point):
+    def isPointInsideOBB(self,point):
+        
         centroidToPoint = point - self.obb.current_centroid
         
         pX = np.absolute(dot(centroidToPoint,self.obb.current_homo[0:3,0]))
         pY = np.absolute(dot(centroidToPoint,self.obb.current_homo[0:3,1]))
         pZ = np.absolute(dot(centroidToPoint,self.obb.current_homo[0:3,2]))
         
-        xLength = self.obb.extents[0]*2
-        yLength = self.obb.extents[1]*2
-        zLength = self.obb.extents[2]*2
+        xLength = self.obb.xLength
+        yLength = self.obb.yLength
+        zLength = self.obb.zLength
         
         if 2*pX <= xLength and 2*pY <= yLength and 2*pZ <= zLength:
             return True
         else:
             return False
+    def isPointInsideConvexHull(self,point):
         
-    def createOBB(self):
+        hull = ConvexHull(self.obj.current_vertices,incremental = True)
+        new_hull = ConvexHull(np.concatenate((hull.points, [point])))
+        
+        if np.array_equal(new_hull.vertices, hull.vertices): 
+            return True
+        return False
+    
+    def createOBB(self,showOBB=False):
         indices = []
         for face in self.obj.faces:
             indices.append(face[0][0] - 1)
@@ -95,6 +118,7 @@ class Model():
             indices.append(face[0][2] - 1)
         self.obb = OBB.build_from_triangles(self.obj.vertices, indices)
         self.obb.gl_list = glGenLists(1)
+        self.obb.show = showOBB
         glNewList(self.obb.gl_list, GL_COMPILE)
         glBegin(GL_LINES)
         glColor3fv((1, 0, 0))
@@ -141,12 +165,12 @@ class Model():
         glEndList()
         
 class OBJ():
-    def __init__(self, filename, swap_yz=False):
+    def __init__(self, filename, swap_yz=False,scale=1):
         self.vertices = []
         self.normals = []
         self.texcoords = []
         self.faces = []
-        
+        self.current_vertices = []
 
         material = None
         start = time.time()
@@ -158,8 +182,9 @@ class OBJ():
                 continue
             if values[0] == 'v':
                 v = list(map(float, values[1:4]))
-                # for i in range(len(v)):
-                #     v[i] = v[i]*10
+                if scale!=1:
+                    for i in range(len(v)):
+                        v[i] = v[i]*scale
                 if swap_yz:
                     v = v[0], v[2], v[1]
                 self.vertices.append(v)
@@ -237,10 +262,18 @@ class OBB:
         self.current_point = None
         self.current_centroid = None
         self.current_homo = None
-        
+        self.show=False
     def transform(self, point):
         return dot(array(point), self.rotation)
-
+    @property
+    def xLength(self):
+        return np.linalg.norm(self.points[5]-self.points[6])
+    @property
+    def yLength(self):
+        return np.linalg.norm(self.points[5]-self.points[0])
+    @property
+    def zLength(self):
+        return np.linalg.norm(self.points[5]-self.points[4])
     @property
     def centroid(self):
         return self.transform((self.min + self.max) / 2.0)
@@ -283,8 +316,8 @@ class OBB:
     def homo(self):
         homo = np.eye(4)
         homo[0:3,0:3] = self.rotation
-        homo[0:3,3] = np.array([0,0,0]).T
-        print(homo)
+        homo[0:3,3] = self.centroid.T
+        
         return homo
     @classmethod
     def build_from_covariance_matrix(cls, covariance_matrix, points):

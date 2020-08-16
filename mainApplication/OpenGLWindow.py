@@ -20,7 +20,7 @@ class OpenGLWindow(Fl_Gl_Window):
                            'modelNum':0}
         self.models = []
         
-        self.cursor = Model("cursor",drawFunc.DrawCube)
+        self.cursor = Model("cursor",drawFunc.point)
         self.grid = Model("grid",drawFunc.Grid)
         self.origin = Model("origin",drawFunc.point)
         
@@ -43,50 +43,57 @@ class OpenGLWindow(Fl_Gl_Window):
         
     def readPose(self,pose):
         self.pose = pose
+        
     def readScaleX(self,scaleX):
         self.scaleX = scaleX
+        
     def readScaleY(self,scaleY):
         self.scaleY = scaleY
+        
     def readScaleZ(self,scaleZ):
         self.scaleZ = scaleZ
+        
     def draw(self):
+        
         firstTime = True
         if (firstTime):
             self.__initGL()
-            firstTime = False # ondraw is called all the time
+            firstTime = False 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-
+        
+        # set camera view
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
         glFrustum(-1, 1, -1, 1, 1, 100)
         glTranslatef(self.scaleY,self.scaleZ,self.scaleX)
-        
-        # DrawCube()
         glMatrixMode(GL_MODELVIEW)
         glLoadIdentity()
-        # glTranslatef(0,0,0)
         gluLookAt(0, 0, 10, 0, 0, 0, 0, 1, 0)
         
-        # self.grid.createModel()
-        
-        self.cursor.createModel(position=(self.pose[1],self.pose[2],self.pose[0]),rotation=(self.pose[5],self.pose[3],self.pose[4]),showFrame=True)
-        
-        self.origin.createModel(position=(self.pose[6],self.pose[7],self.pose[8]),showFrame=True)
-        
+        # draw grid
+        self.grid.drawModel()
+        # draw cursor
+        self.cursor.drawModel(position=(self.pose[1],self.pose[2],self.pose[0]),rotation=(self.pose[5],self.pose[3],self.pose[4]),showFrame=True)
+        # draw origin
+        self.origin.drawModel(position=(self.pose[6],self.pose[7],self.pose[8]),showFrame=True)
+        # draw model
         if self.modelDicts['modelNum'] > 0:
             for idx in range(self.modelDicts['modelNum']):
                 model = self.modelDicts['model'][idx]
                 movePose = self.modelDicts['movepose'][idx]
                 if self.modelDicts['isModelInit'][idx] == 0:
                     model.obj.initOBJ()
-                    model.createOBB()
+                    model.obj.current_vertices = model.obj.vertices.copy()
+                    model.createOBB(showOBB=False)
                     model.obb.current_point = model.obb.points
                     model.obb.current_centroid = model.obb.centroid
                     model.obb.current_homo = np.dot(glGetFloatv(GL_MODELVIEW_MATRIX).T,model.obb.homo)
                     
                     self.modelDicts['isModelInit'][idx] = 1
-                model.createModel(position = movePose[0],rotation = movePose[1], showFrame=True)
-                print(model.isPointInside(self.cursor.centerPosition))
+                model.drawModel(position = movePose[0],rotation = movePose[1], showFrame=False)
+                
+                print("Is cursor in model OBB :",model.isPointInsideOBB(self.cursor.centerPosition))
+                print("Is cursor in model convex :",model.isPointInsideConvexHull(self.cursor.centerPosition))
                 
     def addModel(self,name,drawFunction=None,position=(0,0,0),rotation=(0,0,0),obj=None):
         model = Model(name,drawFunction,position,rotation,obj=obj)

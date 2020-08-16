@@ -77,12 +77,12 @@ class Gui():
             real[2] -= self.cfg["homeCfg"][2]
         return real
     
-    def updateUI(self,pose,buttonStates,scale=20):
-        cvtedPose = self.__cvtPose(pose,scale)
+    def updateUI(self,cursorPose,buttonStates,scale=20):
+        cvtedPose = self.__cvtPose(cursorPose,scale)
         self.openglWindow.readPose(cvtedPose)
         self.openglWindow.redraw()
         self.__updateSlider(cvtedPose)
-    
+        
     def addModel(self,name,drawFunction = None,position=(0,0,0),rotation=(0,0,0),obj=None):
         print("Add model name",name)
         self.openglWindow.addModel(name,drawFunction,position,rotation,obj=obj)
@@ -93,6 +93,7 @@ class Gui():
         position = (cvtedPose[0],cvtedPose[1],cvtedPose[2])
         rotation = (cvtedPose[3],cvtedPose[4],cvtedPose[5])
         self.openglWindow.moveModel(name,position,rotation)
+    
     
     
     

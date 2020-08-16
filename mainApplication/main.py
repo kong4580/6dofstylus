@@ -29,7 +29,7 @@ def callback(samplingRate,gui):
             pose = stylus.getEndTransforms(jointStates)
             # update gui
             print("pose",pose)
-            gui.moveModel('teapot',[0,0,0,-10,0,0])
+            gui.moveModel('teapot',[0,0,0,0.5,-1,0])
             gui.updateUI(pose,buttonStates,scale=20)
             
         # update button state command    
@@ -44,7 +44,7 @@ def callback(samplingRate,gui):
 def openGUI(samplingRate = 0.005):
     
     # add model
-    bunny = OBJ('./teapot.obj')
+    bunny = OBJ('./bunny.obj',scale=10)
     gui.addModel('teapot',bunny.initOBJ,obj=bunny)
     # open GUI window
     gui.window.show()
