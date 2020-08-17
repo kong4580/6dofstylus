@@ -92,8 +92,8 @@ class OpenGLWindow(Fl_Gl_Window):
                     self.modelDicts['isModelInit'][idx] = 1
                 model.drawModel(position = movePose[0],rotation = movePose[1], showFrame=False)
                 
-                print("Is cursor in model OBB :",model.isPointInsideOBB(self.cursor.centerPosition))
-                print("Is cursor in model convex :",model.isPointInsideConvexHull(self.cursor.centerPosition))
+                # print("Is cursor in model OBB :",model.isPointInsideOBB(self.cursor.centerPosition))
+                # print("Is cursor in model convex :",model.isPointInsideConvexHull(self.cursor.centerPosition))
                 
     def addModel(self,name,drawFunction=None,position=(0,0,0),rotation=(0,0,0),obj=None):
         model = Model(name,drawFunction,position,rotation,obj=obj)

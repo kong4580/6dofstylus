@@ -28,8 +28,8 @@ def callback(samplingRate,gui):
             jointStates,buttonStates = srec.readCommand(command,rawData)
             pose = stylus.getEndTransforms(jointStates)
             # update gui
-            print("pose",pose)
-            gui.moveModel('teapot',[0,0,0,0.5,-1,0])
+            # print("pose",pose)
+            gui.moveModel('teapot',[0,0,0,0,0,0])
             gui.updateUI(pose,buttonStates,scale=20)
             
         # update button state command    
@@ -44,8 +44,10 @@ def callback(samplingRate,gui):
 def openGUI(samplingRate = 0.005):
     
     # add model
-    bunny = OBJ('./bunny.obj',scale=10)
+    bunny = OBJ('./teapot.obj',scale=1)
     gui.addModel('teapot',bunny.initOBJ,obj=bunny)
+    gui.moveModel('teapot',[0,0,0,5,-1,0])
+    
     # open GUI window
     gui.window.show()
     
@@ -60,12 +62,12 @@ def openGUI(samplingRate = 0.005):
 if __name__ == '__main__':
     
     # declare port
-    port = '/dev/pts/4' # ubuntu port
+    port = '/dev/pts/1' # ubuntu port
     # port = '/dev/ttyUSB0' # arduino port
     
     # declare constants
     samplingRate = 0.005
-    serialTimeOut = samplingRate
+    serialTimeOut = 0.005
     
     # init stylus
     print("Init Stylus ... ",end="")

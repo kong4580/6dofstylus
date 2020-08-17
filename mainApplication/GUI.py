@@ -82,7 +82,13 @@ class Gui():
         self.openglWindow.readPose(cvtedPose)
         self.openglWindow.redraw()
         self.__updateSlider(cvtedPose)
-        
+        # check any model is selected when mouse clicked
+        if buttonStates[0] == 1 and buttonStates[1] == 0:
+            print("left click!")
+            selectedModel = self.selectModel()
+            for model in selectedModel:
+                print("selectModel = ",model.name)
+                
     def addModel(self,name,drawFunction = None,position=(0,0,0),rotation=(0,0,0),obj=None):
         print("Add model name",name)
         self.openglWindow.addModel(name,drawFunction,position,rotation,obj=obj)
@@ -94,6 +100,12 @@ class Gui():
         rotation = (cvtedPose[3],cvtedPose[4],cvtedPose[5])
         self.openglWindow.moveModel(name,position,rotation)
     
+    def selectModel(self):
+        selectModel = []
+        for model in self.openglWindow.modelDicts['model']:
+            if model.isPointInsideConvexHull(self.openglWindow.cursor.centerPosition):
+                selectModel.append(model)
+        return selectModel
     
     
     
