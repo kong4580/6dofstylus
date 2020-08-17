@@ -88,7 +88,8 @@ class Gui():
             selectedModel = self.selectModel()
             for model in selectedModel:
                 print("selectModel = ",model.name)
-                
+        else:
+            self.releaseModel()
     def addModel(self,name,drawFunction = None,position=(0,0,0),rotation=(0,0,0),obj=None):
         print("Add model name",name)
         self.openglWindow.addModel(name,drawFunction,position,rotation,obj=obj)
@@ -104,9 +105,17 @@ class Gui():
         selectModel = []
         for model in self.openglWindow.modelDicts['model']:
             if model.isPointInsideConvexHull(self.openglWindow.cursor.centerPosition):
+                model.isSelected = True
                 selectModel.append(model)
         return selectModel
     
+    def releaseModel(self):
+        
+        for model in self.openglWindow.modelDicts['model']:
+            
+            model.isSelected = False
+                
+        
     
     
     # Callback

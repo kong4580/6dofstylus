@@ -5,7 +5,7 @@ from OpenGL.GLU import *
 from fltk import *
 import sys
 from math import sqrt
-from drawFunc import *
+import drawFunc 
 import time
 import numpy as np
 from scipy.spatial import ConvexHull
@@ -19,7 +19,7 @@ class Model():
         self.drawFunction = drawFunction
         self.obj = obj
         self.obb = None
-        self.isSelect = False
+        self.isSelected = False
         self.realPose = None
         
     def drawModel(self,position=(0,0,0),rotation=(0,0,0),showFrame=False):
@@ -45,6 +45,11 @@ class Model():
                     glCallList(self.obb.gl_list)
                 glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
                 
+                if self.isSelected:
+                    glColor3fv(drawFunc.SkyColorVector)
+                else:
+                    glColor3fv(drawFunc.WhiteColorVector)
+                    
                 glCallList(self.obj.gl_list)
 
                 # self.obb.current_homo = np.dot(glGetFloatv(GL_MODELVIEW_MATRIX).T,self.obb.homo)
@@ -70,7 +75,7 @@ class Model():
                 self.drawFunction()
                 
             if showFrame:
-                coordinate()
+                drawFunc.coordinate()
             
             # if self.obj == None:
             glPopMatrix()
@@ -230,7 +235,7 @@ class OBJ():
             vertices, normals, texcoords, material = vertices
             
             glBegin(GL_TRIANGLES)
-            glColor3fv((1, 1, 1))
+            
             
             for i in range(len(vertices)):
                 if normals[i] > 0:

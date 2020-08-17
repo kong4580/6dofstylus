@@ -2,11 +2,25 @@ from OpenGL.GL import *
 from OpenGL.GLUT import *
 from OpenGL.GLU import *
 import time
+
+RedColorVector = (1,0,0)
+GreenColorVector = (0,1,0)
+BlueColorVector = (0,0,1)
+YellowColorVector = (1,1,0)
+SkyColorVector = (0,1,1)
+MagentaColorVector = (1,0,1)
+WhiteColorVector = (1,1,1)
+BlackColorVector = (0,0,0)
+
+
+
+
+
 def point():
     glEnable(GL_POINT_SMOOTH)
     glPointSize(5)
     glBegin(GL_POINTS)
-    glColor3f(1, 0, 1)
+    glColor3fv(MagentaColorVector)
     glVertex3f(0, 0, 0)
     glEnd()
 def coordinate():
