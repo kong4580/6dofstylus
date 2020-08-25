@@ -14,9 +14,11 @@ class Gui():
         self.__initWindow(size=(800,600),name="UI")
         self.__initOpenglWindow(size=(0,0,600,600),name="opengl")
         self.__initOutputWidgetStorage()
-        self.cfg={"homeCfg":(5.231761051519499,-0.2290998697402224,-1.8696414028770085)}
-        self.model=None
+        self.cfg={"homeCfg":(4.414345955229341, -0.149030062525528, 0.14167233917409802)}
+        # self.cfg={"homeCfg":(62.12967368476012, -2.1534393682392787, -38.25570393372104)}
         
+        self.model=None
+        self.cursorSpeed = 0.05
     def __initWindow(self,size=(800,600),name="UI"):
         print("Init GUI window ... ",end="")
         self.window = Fl_Window(size[0],size[1],name)
@@ -45,12 +47,21 @@ class Gui():
         for n in range(3):
             slider = Fl_Hor_Value_Slider(655, y, 145,25,name_Scale[n])
             y = y + 25
-            slider.minimum(-500)
-            slider.maximum(500)
+            slider.minimum(-200)
+            slider.maximum(100)
             slider.value(0)
             slider.align(FL_ALIGN_LEFT)
             sldCallback = partial(Gui.__sliderScaleCB,self.openglWindow)
             slider.callback(sldCallback, n)
+        
+        slider = Fl_Hor_Value_Slider(655, y, 145,25,'mouseSpeed')
+        slider.minimum(0)
+        slider.maximum(10)
+        slider.value(5)
+        slider.align(FL_ALIGN_LEFT)
+        sldCallback = partial(Gui.__sliderMouseCB,self)
+        slider.callback(sldCallback, 4)
+        
         self.openglWindow.readScaleX(-10)
         self.openglWindow.readScaleY(0)
         self.openglWindow.readScaleZ(0)
@@ -70,15 +81,17 @@ class Gui():
             if i <3:
                 real[i+3] = ((newPose[i])*360)/(2*math.pi)
             else:
-                real[i-3] = newPose[i]/scale
+                real[i-3] = newPose[i]*scale
+        # print(real)
         if offset:
             real[0] -= self.cfg["homeCfg"][0]
             real[1] -= self.cfg["homeCfg"][1]
             real[2] -= self.cfg["homeCfg"][2]
+            
         return real
     
     def updateUI(self,cursorPose,buttonStates,scale=20):
-        cvtedPose = self.__cvtPose(cursorPose,scale)
+        cvtedPose = self.__cvtPose(cursorPose,self.cursorSpeed)
         self.openglWindow.readPose(cvtedPose)
         self.openglWindow.redraw()
         self.__updateSlider(cvtedPose)
@@ -87,19 +100,26 @@ class Gui():
             print("left click!")
             selectedModel = self.selectModel()
             for model in selectedModel:
+                # self.moveModel(model.name,position = self.openglWindow.cursor.centerPosition,rotation = self.openglWindow.cursor.rotation)
                 print("selectModel = ",model.name)
-        else:
+        elif buttonStates[0] == 0 and buttonStates[1] == 1:
+            print("releaseModel")
             self.releaseModel()
+            
     def addModel(self,name,drawFunction = None,position=(0,0,0),rotation=(0,0,0),obj=None):
         print("Add model name",name)
         self.openglWindow.addModel(name,drawFunction,position,rotation,obj=obj)
         print("Done!")
         
-    def moveModel(self,name,pose):
-        cvtedPose = self.__cvtPose(pose,scale=1,offset=False)
-        position = (cvtedPose[0],cvtedPose[1],cvtedPose[2])
-        rotation = (cvtedPose[3],cvtedPose[4],cvtedPose[5])
-        self.openglWindow.moveModel(name,position,rotation)
+    def moveModel(self,name,pose=None,position=None,rotation=None):
+        if pose!=None:
+            cvtedPose = self.__cvtPose(pose,scale=1,offset=False)
+            position = (cvtedPose[0],cvtedPose[1],cvtedPose[2])
+            rotation = (cvtedPose[3],cvtedPose[4],cvtedPose[5])
+            self.openglWindow.moveModel(name,position,rotation)
+        elif position != None and rotation != None:
+            self.openglWindow.moveModel(name,position,rotation)
+            
     
     def selectModel(self):
         selectModel = []
@@ -115,7 +135,8 @@ class Gui():
             
             model.isSelected = False
                 
-        
+    def setMouseSpeed(self,speed):
+        self.cursorSpeed = speed
     
     
     # Callback
@@ -131,3 +152,10 @@ class Gui():
         else:
             opengl.readScaleZ(size)
         opengl.redraw()
+    
+    @staticmethod
+    def __sliderMouseCB(GUI,widget,v):
+        mouseSpeed = widget.value()/100
+        GUI.setMouseSpeed(mouseSpeed)
+    
+    

@@ -21,7 +21,9 @@ class Model():
         self.obb = None
         self.isSelected = False
         self.realPose = None
-        
+        self.cursorPose = None
+        self.currentRotation = None
+        self.show = True
     def drawModel(self,position=(0,0,0),rotation=(0,0,0),showFrame=False):
         
         if self.drawFunction != None:
@@ -40,18 +42,21 @@ class Model():
             self.realPose = glGetFloatv(GL_MODELVIEW_MATRIX).T[0:3,3].T
             
             if self.obj!=None:
-                if self.obb.show:
-                    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
-                    glCallList(self.obb.gl_list)
-                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
-                
-                if self.isSelected:
-                    glColor3fv(drawFunc.SkyColorVector)
-                else:
-                    glColor3fv(drawFunc.WhiteColorVector)
+                if self.show:
+                    if self.obb.show:
+                        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+                        glCallList(self.obb.gl_list)
+                    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
                     
-                glCallList(self.obj.gl_list)
-
+                    if self.isSelected:
+                        glColor3fv(drawFunc.SkyColorVector)
+                    else:
+                        glColor3fv(drawFunc.WhiteColorVector)
+                    
+                    glCallList(self.obj.gl_list)
+                    # glColor3fv(drawFunc.MagentaColorVector)
+                    
+                    # glCallList(self.obj.shadow_gl_list)
                 # self.obb.current_homo = np.dot(glGetFloatv(GL_MODELVIEW_MATRIX).T,self.obb.homo)
                 self.obb.current_homo = glGetFloatv(GL_MODELVIEW_MATRIX).T
                 # print("ahomo",self.obb.current_homo)
@@ -72,10 +77,11 @@ class Model():
                     self.obj.current_vertices[idx] = dot(glGetFloatv(GL_MODELVIEW_MATRIX).T,verIdx.T)[0:3]
                     
             else:
-                self.drawFunction()
-                
+                if self.show:
+                    self.drawFunction()
             if showFrame:
                 drawFunc.coordinate()
+            
             
             # if self.obj == None:
             glPopMatrix()
@@ -168,6 +174,27 @@ class Model():
         input_vertex(self.obb.max[0], self.obb.max[1], self.obb.min[2])
         glEnd()
         glEndList()
+    
+    def initModel(self,matrixView):
+        self.obj.initOBJ()
+        self.obj.current_vertices = self.obj.vertices.copy()
+        self.obj.createShadow()
+        self.createOBB(showOBB=False)
+        self.obb.current_point = self.obb.points
+        self.obb.current_centroid = self.obb.centroid
+        self.obb.current_homo = np.dot(matrixView,self.obb.homo)
+    
+    def followCursor(self,cursor):
+        if self.cursorPose == None:
+            self.cursorPose = cursor.rotation
+            self.currentRotation = self.rotation
+            
+        deltaRot = np.asarray(list(cursor.rotation)) - np.asarray(list(self.cursorPose))
+        newRotation = self.currentRotation
+        
+        if deltaRot[0]**2+deltaRot[1]**2+deltaRot[2]**2 >=0.1: 
+            newRotation = self.currentRotation + deltaRot
+        return cursor.centerPosition,newRotation
         
 class OBJ():
     def __init__(self, filename, swap_yz=False,scale=1):
@@ -228,7 +255,7 @@ class OBJ():
     def initOBJ(self):
         self.gl_list = glGenLists(1)
         glNewList(self.gl_list, GL_COMPILE)
-        glEnable(GL_TEXTURE_2D)
+        # glEnable(GL_TEXTURE_2D)
         glFrontFace(GL_CCW)
         start = time.time()
         for vertices in self.faces:
@@ -243,13 +270,46 @@ class OBJ():
                 if texcoords[i] > 0:
                     glTexCoord2fv(self.texcoords[texcoords[i] - 1])
                 glVertex3fv(self.vertices[vertices[i] - 1])
+                
             glEnd()
         end = time.time()
-        glDisable(GL_TEXTURE_2D)
+        # glDisable(GL_TEXTURE_2D)
         glEndList()
         # print("time =",end-start)
         
-        
+    def createShadow(self):
+        self.shadow_gl_list = glGenLists(1)
+        glNewList(self.shadow_gl_list, GL_COMPILE)
+        # glEnable(GL_TEXTURE_2D)
+        glFrontFace(GL_CCW)
+        for vertices in self.faces:
+            vertices, normals, texcoords, material = vertices
+            
+            glBegin(GL_TRIANGLES)
+            
+            
+            for i in range(len(vertices)):
+                Px = self.current_vertices[vertices[i] - 1][0]
+                Py = self.current_vertices[vertices[i] - 1][1]
+                Pz = self.current_vertices[vertices[i] - 1][2]
+                Lx = 0
+                Ly = 0
+                Lz = 10
+                nx = 0
+                ny = 0
+                nz = 1
+                d = -10
+                planeLength = 30
+                if(nx*(Px-Lx)+ny*(Py-Ly)+nz*(Pz-Lz) != 0):
+                    tParameter = .999*(d-nx*Lx-ny*Ly-nz*Lz)/(nx*(Px-Lx)+ny*(Py-Ly)+nz*(Pz-Lz))#there was a float error here that was fixed with using 1.* (...)making the whole expression as a float
+                    Sx = (Px-Lx)*tParameter + Lx
+                    Sy = (Py-Ly)*tParameter + Ly
+                    Sz = (Pz-Lz)*tParameter + Lz
+                    glVertex3fv([Sx,Sy,Sz])
+                
+            glEnd()
+        # glDisable(GL_TEXTURE_2D)
+        glEndList()
 from numpy import ndarray, array, asarray, dot, cross, cov, array, finfo, min as npmin, max as npmax
 from numpy.linalg import eigh, norm
 

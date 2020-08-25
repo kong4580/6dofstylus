@@ -1,5 +1,5 @@
 import serial
-ser = serial.Serial('/dev/pts/2')
+ser = serial.Serial('/dev/pts/4')
 print(ser.name)
 start = [0xFE,0xFF]
 command = [0xFF]

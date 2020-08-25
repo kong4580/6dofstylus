@@ -15,9 +15,10 @@ from Stylus import Stylus
 from GUI import Gui
 import drawFunc
 from Model import Model,OBJ
+count=0
 def callback(samplingRate,gui):
 
-
+    global count
     # if recieve serial messages
     if srec.isActivate():
         command,rawData = srec.recieve()
@@ -29,8 +30,13 @@ def callback(samplingRate,gui):
             pose = stylus.getEndTransforms(jointStates)
             # update gui
             # print("pose",pose)
-            gui.moveModel('teapot',[0,0,0,0,0,0])
+            # gui.moveModel('teapot',[0,0,0,1,0,0])
+            if count == 3:
+                pose[0] = pose[0]+0.7
+                pose[4] = pose[4]-10
             gui.updateUI(pose,buttonStates,scale=20)
+            count+=1
+            
             
         # update button state command    
         if command == 0xFE:
@@ -46,7 +52,7 @@ def openGUI(samplingRate = 0.005):
     # add model
     bunny = OBJ('./teapot.obj',scale=1)
     gui.addModel('teapot',bunny.initOBJ,obj=bunny)
-    gui.moveModel('teapot',[0,0,0,5,-1,0])
+    gui.moveModel('teapot',position = (5,0,0),rotation = (90,0,0))
     
     # open GUI window
     gui.window.show()
@@ -62,8 +68,8 @@ def openGUI(samplingRate = 0.005):
 if __name__ == '__main__':
     
     # declare port
-    port = '/dev/pts/1' # ubuntu port
-    # port = '/dev/ttyUSB0' # arduino port
+    # port = '/dev/pts/3' # ubuntu port
+    port = '/dev/ttyUSB0' # arduino port
     
     # declare constants
     samplingRate = 0.005

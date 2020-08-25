@@ -27,21 +27,21 @@ def coordinate():
     glColor3f(0.0,1.0,0.0) # green y
     glBegin(GL_LINES)
     # x aix
-    glVertex3f(-4.0, 0.0, 0.0)
+    glVertex3f(0, 0.0, 0.0)
     glVertex3f(4.0, 0.0, 0.0)
     glEnd()
     
     # y 
     glColor3f(0.0,0.0,1.0) # blue z
     glBegin(GL_LINES)
-    glVertex3f(0.0, -4.0, 0.0)
+    glVertex3f(0.0, 0, 0.0)
     glVertex3f(0.0, 4.0, 0.0)
     glEnd()
  
     # z 
     glColor3f(1.0,0.0,0.0) # red x
     glBegin(GL_LINES)
-    glVertex3f(0.0, 0.0 ,-4.0 )
+    glVertex3f(0.0, 0.0 ,0 )
     glVertex3f(0.0, 0.0 ,4.0 )
     glEnd()
 def DrawCube():

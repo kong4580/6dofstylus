@@ -9,7 +9,7 @@ class Stylus():
         self.a3 = 0
         self.l1 = 0
         self.l2 = 110
-        self.le = -48.5
+        self.le = 0
         self.dh = np.matrix([[0 ,self.a1, self.l1, pi/2],
                              [pi/2, 0, self.a2, 0],
                              [0, 0, self.a3, pi/2],
@@ -83,12 +83,14 @@ class Stylus():
         q= np.array(q)
         # offsetQ = np.array([2*pi,-pi,-pi,2*pi,-pi/2,-pi])
         # q = q+offsetQ
+        
         q[0] = pi - q[0]
         q[1] = q[1] - pi
         q[2] = q[2] - pi
         q[3] = pi - q[3]
         q[4] = q[4] - pi/2
         q[5] = q[5] - pi
+        
         fk = self.forwardKinematics(q.tolist())[-1,:,:]
         # offsetZ = 56.5
         offsetZ = 0
