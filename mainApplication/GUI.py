@@ -14,8 +14,8 @@ class Gui():
         self.__initWindow(size=(800,600),name="UI")
         self.__initOpenglWindow(size=(0,0,600,600),name="opengl")
         self.__initOutputWidgetStorage()
-        self.cfg={"homeCfg":(4.414345955229341, -0.149030062525528, 0.14167233917409802)}
-        # self.cfg={"homeCfg":(62.12967368476012, -2.1534393682392787, -38.25570393372104)}
+        self.cfg={"homeCfg":(5.194169164344988, -0.10359455682344783, 0.25777250727066775)}
+        # self.cfg={"homeCfg":(0, 0, 0)}
         
         self.model=None
         self.cursorSpeed = 0.05

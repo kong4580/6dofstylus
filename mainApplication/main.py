@@ -27,6 +27,7 @@ def callback(samplingRate,gui):
         if command == 0xFF:
             # get joint states and button states
             jointStates,buttonStates = srec.readCommand(command,rawData)
+            # print(jointStates)
             pose = stylus.getEndTransforms(jointStates)
             # update gui
             # print("pose",pose)

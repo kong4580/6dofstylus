@@ -32,11 +32,14 @@ class Model():
             glMatrixMode(GL_MODELVIEW)
             glPushMatrix()
             glLoadIdentity()
-            
+            # if self.currentRotation!= None:
+            #     self.rotation = self.currentRotation
             glTranslatef(self.centerPosition[0],self.centerPosition[1],self.centerPosition[2])
+            
             glRotatef(self.rotation[0],0,1,0) #y#z
-            glRotatef(self.rotation[1],0,0,1) #z#x
             glRotatef(self.rotation[2],1,0,0) #x#y
+            
+            glRotatef(self.rotation[1],0,0,1) #z#x
             glTranslatef(-self.centerPosition[0],-self.centerPosition[1],-self.centerPosition[2])
             glTranslatef(self.centerPosition[0],self.centerPosition[1],self.centerPosition[2])
             self.realPose = glGetFloatv(GL_MODELVIEW_MATRIX).T[0:3,3].T
@@ -116,7 +119,7 @@ class Model():
         
         hull = ConvexHull(self.obj.current_vertices,incremental = True)
         new_hull = ConvexHull(np.concatenate((hull.points, [point])))
-        
+        print(len(new_hull.vertices),len(hull.vertices))
         if np.array_equal(new_hull.vertices, hull.vertices): 
             return True
         return False

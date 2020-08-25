@@ -206,6 +206,7 @@ class OpenGLWindow(Fl_Gl_Window):
                     
                     
                     targetPosition,targetRotation = model.followCursor(self.cursor)
+                    print(model.centerPosition)
                     # model.drawModel(position = targetPosition,rotation = targetRotation,showFrame=True)
                     # model.cursorPose = tuple(np.asarray(list(self.cursor.rotation))+ deltaRot)
                     
