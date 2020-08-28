@@ -9,6 +9,8 @@ from drawFunc import *
 from functools import partial
 from OpenGLWindow import OpenGLWindow
 from Model import Model
+from scipy.spatial.transform import Rotation as R
+import numpy as np
 class Gui():
     def __init__(self):
         self.__initWindow(size=(800,600),name="UI")
@@ -75,6 +77,35 @@ class Gui():
     def __cvtPose(self,pose,scale,offset=True):
         newPose = pose.copy()
         real = [0]*9
+        oldHomo = np.eye(4)
+        
+        
+        
+        # robotToOpenGlRotm = R.from_matrix([[0,0,-1],
+        #                                    [-1,0,0],
+        #                                    [0,1,0]])
+        transform = np.array([[0,0,-1,0],
+                              [-1,0,0,0],
+                              [0,1,0,0],
+                              [0,0,0,1]])
+        stylusRotm = R.from_euler('xyz', newPose[0:3])
+        # print(stylusRotm.as_matrix())
+        # newRotm = R.from_matrix(np.dot(robotToOpenGlRotm.as_matrix(),stylusRotm.as_matrix()) )
+        # newPose[0] = newRotm.as_euler('xyz')[0]
+        # newPose[1] = newRotm.as_euler('xyz')[1]
+        # newPose[2] = newRotm.as_euler('xyz')[2]
+        oldHomo[0:3,0:3] = stylusRotm.as_matrix()
+        oldHomo[0,3] = newPose[3]
+        oldHomo[1,3] = newPose[4]
+        oldHomo[2,3] = newPose[5]
+        newHomo = np.dot(transform,oldHomo)
+        newRotm = R.from_matrix(newHomo[0:3,0:3])
+        newPose[0]=newRotm.as_euler('xyz')[0]
+        newPose[1]=newRotm.as_euler('xyz')[1]
+        newPose[2]=newRotm.as_euler('xyz')[2]
+        newPose[3] = newHomo[0,3]
+        newPose[4] = newHomo[1,3]
+        newPose[5] = newHomo[2,3]
         
         for i in range(len(newPose)):
             
@@ -87,7 +118,9 @@ class Gui():
             real[0] -= self.cfg["homeCfg"][0]
             real[1] -= self.cfg["homeCfg"][1]
             real[2] -= self.cfg["homeCfg"][2]
-            
+        
+        
+        
         return real
     
     def updateUI(self,cursorPose,buttonStates,scale=20):

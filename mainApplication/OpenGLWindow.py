@@ -174,7 +174,9 @@ class OpenGLWindow(Fl_Gl_Window):
         #     self.cursor.obb.current_centroid = self.cursor.obb.centroid
         #     self.cursor.obb.current_homo = np.dot(glGetFloatv(GL_MODELVIEW_MATRIX).T,self.cursor.obb.homo)
         #     self.initCursor = True
-        self.cursor.drawModel(position=(self.pose[1],self.pose[2],self.pose[0]),rotation=(self.pose[5],self.pose[3],self.pose[4]),showFrame=True)
+        # self.cursor.drawModel(position=(self.pose[1],self.pose[2],self.pose[0]),rotation=(self.pose[5],self.pose[3],self.pose[4]),showFrame=True)
+        self.cursor.drawModel(position=(self.pose[0],self.pose[1],self.pose[2]),rotation=(self.pose[3],self.pose[4],self.pose[5]),showFrame=True)
+        
         # draw origin
         self.origin.drawModel(position=(self.pose[6],self.pose[7],self.pose[8]),showFrame=True)
         # draw model

@@ -103,6 +103,7 @@ class Stylus():
         offsetZ = 0
         x,y,z = fk[0,3],fk[1,3],fk[2,3]+offsetZ
         r = R.from_matrix(fk[0:3,0:3])
+        print(r.as_matrix())
         rx = r.as_euler('xyz')[0]
         ry = r.as_euler('xyz')[1]
         rz = r.as_euler('xyz')[2]

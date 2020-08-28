@@ -36,10 +36,14 @@ class Model():
             #     self.rotation = self.currentRotation
             glTranslatef(self.centerPosition[0],self.centerPosition[1],self.centerPosition[2])
             
-            glRotatef(self.rotation[0],0,1,0) #y#z
-            glRotatef(self.rotation[2],1,0,0) #x#y
+            # glRotatef(self.rotation[0],0,1,0) #y#z
+            # glRotatef(self.rotation[2],1,0,0) #x#y
             
-            glRotatef(self.rotation[1],0,0,1) #z#x
+            # glRotatef(self.rotation[1],0,0,1) #z#x
+            glRotatef(self.rotation[0],1,0,0) #y#z
+            glRotatef(self.rotation[1],0,1,0) #x#y
+            
+            glRotatef(self.rotation[2],0,0,1) #z#x
             glTranslatef(-self.centerPosition[0],-self.centerPosition[1],-self.centerPosition[2])
             glTranslatef(self.centerPosition[0],self.centerPosition[1],self.centerPosition[2])
             self.realPose = glGetFloatv(GL_MODELVIEW_MATRIX).T[0:3,3].T
