@@ -19,29 +19,27 @@ from scipy.spatial.transform import Rotation as R
 class OpenGLWindow(fltk.Fl_Gl_Window):
     def __init__(self, xpos, ypos, width, height, label):
         fltk.Fl_Gl_Window.__init__(self, xpos, ypos, width, height, label)
-        # glColor3f(1.0, 1.0, 1.0)
+        
         self.cursorTransform = np.eye(4)
         self.pose = [0,0,0,0,0,0,0,0,0]
         self.modelDicts = {'model':[],
                            'movepose':[],
                            'isModelInit':[],
                            'modelNum':0}
-        self.nameNumber = 0
         
         
         self.cursor = Model('cursor',drawFunc.point)
-        
         self.grid = Model("grid",drawFunc.Grid)
         self.origin = Model("origin",drawFunc.point)
         
+        self.nameNumber = 0
         self.backdropImageFile = Image.open( "backdropImg/backdrop_0.jpg" )
-        
-        self.showModel= True
-        
         self.imageObj  = self.backdropImageFile.tobytes("raw", "RGBX", 0, -1)
         
         self.texid = None
         self.snapMode = False
+        self.showModel= True
+        self.resetModelTransform = False
         
     def __initGL(self): 
         GLUT.glutInit(sys.argv) #add
@@ -52,7 +50,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         GL.glShadeModel(GL.GL_SMOOTH)   
         GL.glMatrixMode(GL.GL_PROJECTION)
         GL.glLoadIdentity()
-        # GL.gluPerspective(45.0, float(Width)/float(Height), 0.1, 100.0)
+        
         GL.glMatrixMode(GL.GL_MODELVIEW)
         # initialize texture mapping
         GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT,1)
@@ -130,6 +128,9 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
                     model.cursorM = None
                     model.cursorPose = None
                     
+                    if self.resetModelTransform:
+                        model.currentM = np.eye(4)
+                        
                     targetPosition,targetRotation,newM = model.centerPosition,model.rotation,model.currentM
                     
                 # model.drawModel(position = targetPosition,rotation = targetRotation,showFrame=False)
@@ -156,7 +157,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         yMousePosition = fltk.Fl.event_y()
         
         if event == fltk.FL_PUSH and fltk.Fl.event_button() == 1: #push left mouse button handle
-            print(xMousePosition,yMousePosition)
+            print("mouse position:",xMousePosition,yMousePosition)
             return 1
         
         elif event == fltk. FL_KEYUP: #keyboard handle
@@ -168,7 +169,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
                 print("set Snapmode",self.snapMode)
                 
             if fltk.Fl.event_key() == ord(' ') and self.snapMode:
-                backdropName = "backdrop_" + str(self.nameNumber)
+                backdropName = "backdropImg/backdrop_" + str(self.nameNumber)
                 self.snap(backdropName)
                 self.nameNumber = self.nameNumber + 1
                 
@@ -178,8 +179,9 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
             if fltk.Fl.event_key() == ord('q'):
                 self.showModel = not self.showModel
                 
-            if fltk.Fl.event_key() == ord('t'):
-                self.rotateMode = False
+            if fltk.Fl.event_key() == ord('m'):
+                self.resetModelTransform = True
+                
                 
             fltk.Fl_check()
             return 1

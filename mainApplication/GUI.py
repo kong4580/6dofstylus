@@ -114,8 +114,8 @@ class Gui():
         
         # check any model is selected when mouse clicked
         if buttonStates[0] == 1 and buttonStates[1] == 0:
-            print("start",cvtedPose)
-            self.start = cvtedPose
+            
+            
             print("left click!")
             selectedModel = self.selectModel()
             for model in selectedModel:
