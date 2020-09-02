@@ -35,7 +35,7 @@ def callback(samplingRate,gui):
             # if count == 3:
             #     pose[0] = pose[0]+0.7
             #     pose[4] = pose[4]-10
-            gui.updateUI(pose[1],buttonStates,scale=20,m=pose[0])
+            gui.updateUI(pose[1],buttonStates,scale=20,cursorTransform=pose[0])
             count+=1
             
             

@@ -1,33 +1,32 @@
-from OpenGL.GL import *
-from OpenGL.GLUT import *
-from OpenGL.GLU import *
+
 # from PIL.Image import *
-from fltk import *
+# from fltk import *
 import sys
-import math
-from drawFunc import *
 from functools import partial
-from OpenGLWindow import OpenGLWindow
-from Model import Model
+
+import fltk
+import math
 from scipy.spatial.transform import Rotation as R
 import numpy as np
+
+from drawFunc import *
+from OpenGLWindow import OpenGLWindow
+from Model import Model
+
+
 class Gui():
     def __init__(self):
         self.__initWindow(size=(800,600),name="UI")
         self.__initOpenglWindow(size=(0,0,600,600),name="opengl")
         self.__initOutputWidgetStorage()
-        # self.cfg={"homeCfg":(5.194169164344988, -0.10359455682344783, 0.25777250727066775)}
-        # self.cfg={"homeCfg":(-6.515568371390718, 0.2299748354401926, 0.7399340133222424)}
         
         self.cfg={"homeCfg":(5.23747141, -0.01606842, -0.3270202)}
-        
-        # self.cfg={"homeCfg":(0, 0, 0)}
-        
-        self.model=None
+
         self.cursorSpeed = 0.05
+        
     def __initWindow(self,size=(800,600),name="UI"):
         print("Init GUI window ... ",end="")
-        self.window = Fl_Window(size[0],size[1],name)
+        self.window = fltk.Fl_Window(size[0],size[1],name)
         print("Done !")
         
     def __initOpenglWindow(self,size=(0,0,600,600),name="opengl"):
@@ -43,28 +42,28 @@ class Gui():
         name=["TransX", "TransY", "TransZ", "RotX", "RotY", "RotZ","OriX","OriY","OriZ"]
         y=0
         for n in range(6):
-            output = Fl_Output(660,y,60,25,name[n])
+            output = fltk.Fl_Output(660,y,60,25,name[n])
             y = y + 25
-            output.align(FL_ALIGN_LEFT)
+            output.align(fltk.FL_ALIGN_LEFT)
             output.value("0")
             storage_area.append(output)
         y=150
         name_Scale = ["ScaleX","ScaleY","ScaleZ"]
         for n in range(3):
-            slider = Fl_Hor_Value_Slider(655, y, 145,25,name_Scale[n])
+            slider = fltk.Fl_Hor_Value_Slider(655, y, 145,25,name_Scale[n])
             y = y + 25
             slider.minimum(-50)
             slider.maximum(100)
             slider.value(0)
-            slider.align(FL_ALIGN_LEFT)
+            slider.align(fltk.FL_ALIGN_LEFT)
             sldCallback = partial(Gui.__sliderScaleCB,self.openglWindow)
             slider.callback(sldCallback, n)
         
-        slider = Fl_Hor_Value_Slider(655, y, 145,25,'mouseSpeed')
+        slider = fltk.Fl_Hor_Value_Slider(655, y, 145,25,'mouseSpeed')
         slider.minimum(0)
         slider.maximum(10)
         slider.value(5)
-        slider.align(FL_ALIGN_LEFT)
+        slider.align(fltk.FL_ALIGN_LEFT)
         sldCallback = partial(Gui.__sliderMouseCB,self)
         slider.callback(sldCallback, 4)
         
@@ -81,36 +80,7 @@ class Gui():
     def __cvtPose(self,pose,scale,offset=True):
         newPose = pose.copy()
         real = [0]*9
-        # oldHomo = np.eye(4)
         
-        
-        
-        # # robotToOpenGlRotm = R.from_matrix([[0,0,-1],
-        # #                                    [-1,0,0],
-        # #                                    [0,1,0]])
-        # transform = np.array([[0,0,1,0],
-        #                       [1,0,0,0],
-        #                       [0,1,0,0],
-        #                       [0,0,0,1]])
-        # stylusRotm = R.from_euler('xyz', newPose[0:3])
-        # # print(stylusRotm.as_matrix())
-        # # newRotm = R.from_matrix(np.dot(robotToOpenGlRotm.as_matrix(),stylusRotm.as_matrix()) )
-        # # newPose[0] = newRotm.as_euler('xyz')[0]
-        # # newPose[1] = newRotm.as_euler('xyz')[1]
-        # # newPose[2] = newRotm.as_euler('xyz')[2]
-        # oldHomo[0:3,0:3] = stylusRotm.as_matrix()
-        # oldHomo[0,3] = newPose[3]
-        # oldHomo[1,3] = newPose[4]
-        # oldHomo[2,3] = newPose[5]
-        # newHomo = np.dot(np.linalg.inv(transform),oldHomo)
-        # newRotm = R.from_matrix(newHomo[0:3,0:3])
-        # newPose[0]=newRotm.as_euler('xyz')[0]
-        # newPose[1]=newRotm.as_euler('xyz')[1]
-        # newPose[2]=newRotm.as_euler('xyz')[2]
-        # newPose[3] = newHomo[0,3]
-        # newPose[4] = newHomo[1,3]
-        # newPose[5] = newHomo[2,3]
-        # # print(newPose[0],newPose[1],newPose[2])
         for i in range(len(newPose)):
             
             if i <3:
@@ -127,34 +97,31 @@ class Gui():
         
         return real
     
-    def updateUI(self,cursorPose,buttonStates,scale=20,m=None):
+    def updateUI(self,cursorPose,buttonStates,scale=20,cursorTransform=None):
         cvtedPose = self.__cvtPose(cursorPose,self.cursorSpeed)
         self.openglWindow.readPose(cvtedPose)
-        m[0:3,3] = m[0:3,3].copy() *0.05
+        cursorTransform[0:3,3] = cursorTransform[0:3,3].copy() * self.cursorSpeed
         # print(m[0:3,3].copy())
-        m[0,3] -= self.cfg["homeCfg"][0]
-        m[1,3] -= self.cfg["homeCfg"][1]
+        cursorTransform[0,3] -= self.cfg["homeCfg"][0]
+        cursorTransform[1,3] -= self.cfg["homeCfg"][1]
         
-        m[2,3] -= self.cfg["homeCfg"][2]
+        cursorTransform[2,3] -= self.cfg["homeCfg"][2]
         
-        self.openglWindow.m = m
+        self.openglWindow.cursorTransform = cursorTransform
         
         self.openglWindow.redraw()
         self.__updateSlider(cvtedPose)
-        # check any model is selected when mouse clicked
         
+        # check any model is selected when mouse clicked
         if buttonStates[0] == 1 and buttonStates[1] == 0:
             print("start",cvtedPose)
             self.start = cvtedPose
             print("left click!")
             selectedModel = self.selectModel()
             for model in selectedModel:
-                # self.moveModel(model.name,position = self.openglWindow.cursor.centerPosition,rotation = self.openglWindow.cursor.rotation)
                 print("selectModel = ",model.name)
-        elif buttonStates[0] == 0 and buttonStates[1] == 1:
-            print("current",cvtedPose)
-            print("diff",cvtedPose[3]-self.start[3],cvtedPose[4]-self.start[4],cvtedPose[5]-self.start[5])
-            
+                
+        elif buttonStates[0] == 0 and buttonStates[1] == 1:      
             print("releaseModel")
             self.releaseModel()
             
@@ -184,7 +151,6 @@ class Gui():
     def releaseModel(self):
         
         for model in self.openglWindow.modelDicts['model']:
-            
             model.isSelected = False
                 
     def setMouseSpeed(self,speed):
