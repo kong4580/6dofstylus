@@ -12,7 +12,7 @@ from scipy.spatial import ConvexHull
 
 
 class Model():
-    def __init__(self,name,drawFunction = None,position=(0,0,0),rotation=(0,0,0),obj=None):
+    def __init__(self,name,drawFunction = None,position=(0,0,0),rotation=(0,0,0),obj=None,m =np.eye(4)):
         self.name = name
         self.centerPosition = position
         self.rotation = rotation
@@ -24,29 +24,135 @@ class Model():
         self.cursorPose = None
         self.currentRotation = None
         self.show = True
+        self.cursorM = None
+        self.currentM = m
+        self.startclickM = None
+    def drawMatrixModel(self, matrix, showFrame=True, enableLight = True):
+        
+        
+        glMatrixMode(GL_MODELVIEW)
+        glPushMatrix()
+        glLoadIdentity()
+        
+        # matrix[0:3,3] = matrix[0:3,3]/8
+        # matrix[0:3,3] = np.array([0,0,0]).T
+        if self.name == 'cursor':
+            
+            transform = np.array([[0,1,0,0],
+                                [0,0,1,0],
+                                [1,0,0,0],
+                                [0,0,0,1]])
+        else:
+            transform = np.eye(4)
+            # print("\n matrix : \n",matrix)
+        nmatrix = np.dot(transform,matrix)
+        glLoadMatrixf(nmatrix.T)
+        self.currentM = glGetFloatv(GL_MODELVIEW_MATRIX).T
+        self.centerPosition = self.currentM[0:3,3]
+        
+        if self.obj!=None:
+            if self.show:
+                if self.obb.show:
+                    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+                    glCallList(self.obb.gl_list)
+                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
+                
+                if self.isSelected:
+                    glColor3fv(drawFunc.SkyColorVector)
+                else:
+                    glColor3fv(drawFunc.WhiteColorVector)
+                
+                if not enableLight:
+                    glDisable(GL_LIGHTING)
+                glCallList(self.obj.gl_list)
+                if not enableLight:
+                    glEnable(GL_LIGHTING)
+                # glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
+                
+                # glColor3fv(drawFunc.MagentaColorVector)
+                # drawFunc.coordinate()
+                # print(nmatrix)
+                
+                # glCallList(self.obj.shadow_gl_list)
+            # self.obb.current_homo = np.dot(glGetFloatv(GL_MODELVIEW_MATRIX).T,self.obb.homo)
+            self.obb.current_homo = self.currentM
+            # print("ahomo",self.obb.current_homo)
+            # print("before",self.name,self.obb.current_point)
+            for idx in range(len(self.obb.points)):
+                
+                pointIdx = np.append(self.obb.points[idx].copy(),1)
+                
+                self.obb.current_point[idx] = dot(self.obb.current_homo.copy(),pointIdx.T)[0:3]
+            # print("after",self.obb.current_point)
+            obbCentroid = np.append(self.obb.current_centroid,1)
+            self.obb.current_centroid = dot(self.obb.current_homo,obbCentroid)[0:3]
+            
+            for idx in range(len(self.obj.vertices)):
+                verIdx = np.append(self.obj.vertices[idx].copy(),1)
+        
+                
+                self.obj.current_vertices[idx] = dot(glGetFloatv(GL_MODELVIEW_MATRIX).T,verIdx.T)[0:3]
+            # self.centerPosition -=self.obb.current_centroid
+                
+        else:
+            if self.show:
+                self.drawFunction()
+                glDisable(GL_LIGHTING)
+                drawFunc.coordinate()
+                glEnable(GL_LIGHTING)
+        
+        if showFrame:
+            drawFunc.coordinate()
+                
+                
+                
+        
+        glPopMatrix()
+        
+        
+        
     def drawModel(self,position=(0,0,0),rotation=(0,0,0),showFrame=False):
         
         if self.drawFunction != None:
             self.__updatePosition(position,rotation)
+            # print("cen",self.centerPosition)
             # if self.obj == None:
+            
+            
             glMatrixMode(GL_MODELVIEW)
             glPushMatrix()
             glLoadIdentity()
-            # if self.currentRotation!= None:
-            #     self.rotation = self.currentRotation
+            
             glTranslatef(self.centerPosition[0],self.centerPosition[1],self.centerPosition[2])
             
-            # glRotatef(self.rotation[0],0,1,0) #y#z
-            # glRotatef(self.rotation[2],1,0,0) #x#y
+            # if self.name == 'cursor':
+            #     glRotatef(self.rotation[0],0,1,0) #y#z
+            #     glRotatef(self.rotation[2],1,0,0) #x#y
+                
+            #     glRotatef(self.rotation[1],0,0,1) #z#x
+            # else:
+            #     # glTranslatef(self.centerPosition[0],self.centerPosition[1],self.centerPosition[2])
+                
+            #     glRotatef(self.rotation[0],1,0,0) #y#z
             
-            # glRotatef(self.rotation[1],0,0,1) #z#x
+            #     glRotatef(self.rotation[1],0,1,0) #x#y
+            #     glRotatef(self.rotation[2],0,0,1) #z#
+            # glTranslatef(-self.centerPosition[0],-self.centerPosition[1],-self.centerPosition[2])
             glRotatef(self.rotation[0],1,0,0) #y#z
+            glRotatef(self.rotation[2],0,0,1) #z#x
             glRotatef(self.rotation[1],0,1,0) #x#y
             
-            glRotatef(self.rotation[2],0,0,1) #z#x
+            # glRotatef(self.rotation[0],1,0,0) #y#z
+            
+            # glRotatef(self.rotation[1],0,1,0) #x#y
+            # glRotatef(self.rotation[2],0,0,1) #z#x
+            
             glTranslatef(-self.centerPosition[0],-self.centerPosition[1],-self.centerPosition[2])
             glTranslatef(self.centerPosition[0],self.centerPosition[1],self.centerPosition[2])
-            self.realPose = glGetFloatv(GL_MODELVIEW_MATRIX).T[0:3,3].T
+            
+            # drawFunc.coordinate()
+            
+            # self.realPose = glGetFloatv(GL_MODELVIEW_MATRIX).T[0:3,3].T
             
             if self.obj!=None:
                 if self.show:
@@ -74,7 +180,7 @@ class Model():
                     
                     self.obb.current_point[idx] = dot(self.obb.current_homo.copy(),pointIdx.T)[0:3]
                 # print("after",self.obb.current_point)
-                obbCentroid = np.append(self.obb.centroid,1)
+                obbCentroid = np.append(self.obb.current_centroid,1)
                 self.obb.current_centroid = dot(self.obb.current_homo,obbCentroid)[0:3]
                 
                 for idx in range(len(self.obj.vertices)):
@@ -82,13 +188,14 @@ class Model():
             
                     
                     self.obj.current_vertices[idx] = dot(glGetFloatv(GL_MODELVIEW_MATRIX).T,verIdx.T)[0:3]
+                # self.centerPosition -=self.obb.current_centroid
                     
             else:
                 if self.show:
                     self.drawFunction()
+            
             if showFrame:
                 drawFunc.coordinate()
-            
             
             # if self.obj == None:
             glPopMatrix()
@@ -98,6 +205,10 @@ class Model():
     
     def __updatePosition(self,position=(0,0,0),rotation=(0,0,0)):
         self.centerPosition = position
+        # if self.obj != None:
+        #     # print(self.name)
+        #     self.centerPosition -=self.obb.current_centroid
+            
         self.rotation = rotation
 
     def getName(self):
@@ -190,18 +301,37 @@ class Model():
         self.obb.current_point = self.obb.points
         self.obb.current_centroid = self.obb.centroid
         self.obb.current_homo = np.dot(matrixView,self.obb.homo)
-    
+        if self.obj != None:
+            # print(self.name)
+            self.centerPosition -=self.obb.current_centroid
+        
     def followCursor(self,cursor):
-        if self.cursorPose == None:
+        if self.cursorPose == None or type(self.cursorM) == type(None):
             self.cursorPose = cursor.rotation
             self.currentRotation = self.rotation
             
+            self.cursorM = cursor.currentM.copy()
+            self.startclickM = self.currentM.copy()
+            
+        deltaM = np.dot(cursor.currentM,np.linalg.inv(self.cursorM))
+        newM = np.eye(4)
+        
+        # self.startclickM[0:3] = cursor.currentM[0:3]
+        
+        newM = np.dot(deltaM,self.startclickM)
+        # newM2[0:3,0:3] = np.dot()
+        print(newM)
+        # newM[0:3,3] = cursor.currentM[0:3,3]
         deltaRot = np.asarray(list(cursor.rotation)) - np.asarray(list(self.cursorPose))
         newRotation = self.currentRotation
         
         if deltaRot[0]**2+deltaRot[1]**2+deltaRot[2]**2 >=0.1: 
             newRotation = self.currentRotation + deltaRot
-        return cursor.centerPosition,newRotation
+        # if sizeX<=0.9 or sizeY<=0.9 or sizeZ <=0.9:
+        #     newM = np.dot(self.currentM,  deltaM)
+        return cursor.centerPosition,newRotation,newM
+        # return (0,0,0),newRotation
+        
         
 class OBJ():
     def __init__(self, filename, swap_yz=False,scale=1):
@@ -263,6 +393,8 @@ class OBJ():
         self.gl_list = glGenLists(1)
         glNewList(self.gl_list, GL_COMPILE)
         # glEnable(GL_TEXTURE_2D)
+        # glEnable(GL_CULL_FACE)
+        # glCullFace(GL_BACK)
         glFrontFace(GL_CCW)
         start = time.time()
         for vertices in self.faces:
@@ -281,6 +413,7 @@ class OBJ():
             glEnd()
         end = time.time()
         # glDisable(GL_TEXTURE_2D)
+        
         glEndList()
         # print("time =",end-start)
         
@@ -389,6 +522,7 @@ class OBB:
         homo = np.eye(4)
         homo[0:3,0:3] = self.rotation
         homo[0:3,3] = self.centroid.T
+        # homo[1,3] -= self.centroid[1]
         
         return homo
     @classmethod

@@ -4,24 +4,38 @@ from scipy.spatial.transform import Rotation as R
 
 class Stylus():
     def __init__(self):
-        self.a1 = 53.5
-        self.a2 = 80
-        self.a3 = 0
-        self.l1 = 0
-        self.l2 = 110
-        self.le = 0
+        self.h1 = 53.5
+        self.h2 = 80
+        
+        self.l1 = 60
+        self.l2 = 56
+        
+        
+        self.dh = np.matrix([[0 ,self.h1, 0, pi/2],
+                             [pi/2, 0, self.h2, 0],
+                             [0, 0, 0, pi/2],
+                             [0, self.l1+self.l2, 0, -pi/2],
+                             [pi/2, 0, 0, -pi/2],
+                             [pi/2,0, 0, -pi/2]])
+        
+        # self.a1 = 53.5
+        # self.a2 = 80
+        # self.a3 = 0
+        # self.l1 = 0
+        # self.l2 = 110
+        # self.le = 0
         # self.dh = np.matrix([[0 ,self.a1, self.l1, pi/2],
         #                      [pi/2, 0, self.a2, 0],
         #                      [0, 0, self.a3, pi/2],
         #                      [0, self.l2, 0, -pi/2],
         #                      [0, 0, 0, pi/2],
         #                      [0,self.le, 0, 0]])
-        self.dh = np.matrix([[0 ,self.a1, self.l1, pi/2],
-                             [pi/2, 0, self.a2, 0],
-                             [0, 0, self.a3, pi/2],
-                             [0, self.l2, 0, -pi/2],
-                             [pi/2, 0, 0, -pi/2],
-                             [0,self.le, 0, 0]])
+        # # self.dh = np.matrix([[0 ,self.a1, self.l1, pi/2],
+        # #                      [pi/2, 0, self.a2, 0],
+        # #                      [0, 0, self.a3, pi/2],
+        # #                      [0, self.l2, 0, -pi/2],
+        # #                      [pi/2, 0, 0, -pi/2],
+        # #                      [0,self.le, 0, 0]])
         self.rho = [1,1,1,1,1,1]
     
     def transl(self, dist, axis):
@@ -71,6 +85,10 @@ class Stylus():
         dh=self.dh
         n = len(q)
         tformPrev = np.matrix(np.eye(4))
+        # tformPrev = np.array([[0,0,-1,0],
+        #                       [-1,0,0,0],
+        #                       [0,1,0,0],
+        #                       [0,0,0,1]])
         tforms = np.zeros((n,4,4))
         
         for i in range(wrt[0],wrt[1]+1):
@@ -89,25 +107,29 @@ class Stylus():
         q= np.array(q)
         # offsetQ = np.array([2*pi,-pi,-pi,2*pi,-pi/2,-pi])
         # q = q+offsetQ
-        
-        q[0] = pi - q[0]
-        q[1] = q[1] - pi
-        q[2] = q[2] - pi
-        q[3] = pi - q[3]
-        q[4] = q[4] - pi/2
-        q[5] = q[5] - pi
+        # print(q)
+        q[0] = q[0] -pi 
+        q[1] = q[1] - pi 
+        q[2] = q[2] - pi 
+        q[3] = q[3] - pi 
+        q[4] = q[4] - pi 
+        q[5] = q[5] - pi 
+        # print(q)
+        q = q - np.asarray([-0.02147573, -0.02300971, -0.01994175,  0.04141748,  0.02454369, -0.12885439]).T
+        # print(q)
         
         fk = self.forwardKinematics(q.tolist())[-1,:,:]
         # print(fk)
+        
         # offsetZ = 56.5
         offsetZ = 0
         x,y,z = fk[0,3],fk[1,3],fk[2,3]+offsetZ
         r = R.from_matrix(fk[0:3,0:3])
-        print(r.as_matrix())
+        # print(r.as_matrix())
         rx = r.as_euler('xyz')[0]
         ry = r.as_euler('xyz')[1]
         rz = r.as_euler('xyz')[2]
-        return [rx,ry,rz,x,y,z]
+        return [fk,[rx,ry,rz,x,y,z]]
     
 if __name__ == '__main__':
     stylus = Stylus()

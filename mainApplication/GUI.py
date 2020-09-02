@@ -16,7 +16,11 @@ class Gui():
         self.__initWindow(size=(800,600),name="UI")
         self.__initOpenglWindow(size=(0,0,600,600),name="opengl")
         self.__initOutputWidgetStorage()
-        self.cfg={"homeCfg":(5.194169164344988, -0.10359455682344783, 0.25777250727066775)}
+        # self.cfg={"homeCfg":(5.194169164344988, -0.10359455682344783, 0.25777250727066775)}
+        # self.cfg={"homeCfg":(-6.515568371390718, 0.2299748354401926, 0.7399340133222424)}
+        
+        self.cfg={"homeCfg":(5.23747141, -0.01606842, -0.3270202)}
+        
         # self.cfg={"homeCfg":(0, 0, 0)}
         
         self.model=None
@@ -49,7 +53,7 @@ class Gui():
         for n in range(3):
             slider = Fl_Hor_Value_Slider(655, y, 145,25,name_Scale[n])
             y = y + 25
-            slider.minimum(-200)
+            slider.minimum(-50)
             slider.maximum(100)
             slider.value(0)
             slider.align(FL_ALIGN_LEFT)
@@ -77,40 +81,40 @@ class Gui():
     def __cvtPose(self,pose,scale,offset=True):
         newPose = pose.copy()
         real = [0]*9
-        oldHomo = np.eye(4)
+        # oldHomo = np.eye(4)
         
         
         
-        # robotToOpenGlRotm = R.from_matrix([[0,0,-1],
-        #                                    [-1,0,0],
-        #                                    [0,1,0]])
-        transform = np.array([[0,0,-1,0],
-                              [-1,0,0,0],
-                              [0,1,0,0],
-                              [0,0,0,1]])
-        stylusRotm = R.from_euler('xyz', newPose[0:3])
-        # print(stylusRotm.as_matrix())
-        # newRotm = R.from_matrix(np.dot(robotToOpenGlRotm.as_matrix(),stylusRotm.as_matrix()) )
-        # newPose[0] = newRotm.as_euler('xyz')[0]
-        # newPose[1] = newRotm.as_euler('xyz')[1]
-        # newPose[2] = newRotm.as_euler('xyz')[2]
-        oldHomo[0:3,0:3] = stylusRotm.as_matrix()
-        oldHomo[0,3] = newPose[3]
-        oldHomo[1,3] = newPose[4]
-        oldHomo[2,3] = newPose[5]
-        newHomo = np.dot(transform,oldHomo)
-        newRotm = R.from_matrix(newHomo[0:3,0:3])
-        newPose[0]=newRotm.as_euler('xyz')[0]
-        newPose[1]=newRotm.as_euler('xyz')[1]
-        newPose[2]=newRotm.as_euler('xyz')[2]
-        newPose[3] = newHomo[0,3]
-        newPose[4] = newHomo[1,3]
-        newPose[5] = newHomo[2,3]
-        
+        # # robotToOpenGlRotm = R.from_matrix([[0,0,-1],
+        # #                                    [-1,0,0],
+        # #                                    [0,1,0]])
+        # transform = np.array([[0,0,1,0],
+        #                       [1,0,0,0],
+        #                       [0,1,0,0],
+        #                       [0,0,0,1]])
+        # stylusRotm = R.from_euler('xyz', newPose[0:3])
+        # # print(stylusRotm.as_matrix())
+        # # newRotm = R.from_matrix(np.dot(robotToOpenGlRotm.as_matrix(),stylusRotm.as_matrix()) )
+        # # newPose[0] = newRotm.as_euler('xyz')[0]
+        # # newPose[1] = newRotm.as_euler('xyz')[1]
+        # # newPose[2] = newRotm.as_euler('xyz')[2]
+        # oldHomo[0:3,0:3] = stylusRotm.as_matrix()
+        # oldHomo[0,3] = newPose[3]
+        # oldHomo[1,3] = newPose[4]
+        # oldHomo[2,3] = newPose[5]
+        # newHomo = np.dot(np.linalg.inv(transform),oldHomo)
+        # newRotm = R.from_matrix(newHomo[0:3,0:3])
+        # newPose[0]=newRotm.as_euler('xyz')[0]
+        # newPose[1]=newRotm.as_euler('xyz')[1]
+        # newPose[2]=newRotm.as_euler('xyz')[2]
+        # newPose[3] = newHomo[0,3]
+        # newPose[4] = newHomo[1,3]
+        # newPose[5] = newHomo[2,3]
+        # # print(newPose[0],newPose[1],newPose[2])
         for i in range(len(newPose)):
             
             if i <3:
-                real[i+3] = ((newPose[i])*360)/(2*math.pi)
+                real[i+3] = ((newPose[i])*180)/(math.pi)
             else:
                 real[i-3] = newPose[i]*scale
         # print(real)
@@ -118,24 +122,39 @@ class Gui():
             real[0] -= self.cfg["homeCfg"][0]
             real[1] -= self.cfg["homeCfg"][1]
             real[2] -= self.cfg["homeCfg"][2]
-        
+            # real[4] -= 90
         
         
         return real
     
-    def updateUI(self,cursorPose,buttonStates,scale=20):
+    def updateUI(self,cursorPose,buttonStates,scale=20,m=None):
         cvtedPose = self.__cvtPose(cursorPose,self.cursorSpeed)
         self.openglWindow.readPose(cvtedPose)
+        m[0:3,3] = m[0:3,3].copy() *0.05
+        # print(m[0:3,3].copy())
+        m[0,3] -= self.cfg["homeCfg"][0]
+        m[1,3] -= self.cfg["homeCfg"][1]
+        
+        m[2,3] -= self.cfg["homeCfg"][2]
+        
+        self.openglWindow.m = m
+        
         self.openglWindow.redraw()
         self.__updateSlider(cvtedPose)
         # check any model is selected when mouse clicked
+        
         if buttonStates[0] == 1 and buttonStates[1] == 0:
+            print("start",cvtedPose)
+            self.start = cvtedPose
             print("left click!")
             selectedModel = self.selectModel()
             for model in selectedModel:
                 # self.moveModel(model.name,position = self.openglWindow.cursor.centerPosition,rotation = self.openglWindow.cursor.rotation)
                 print("selectModel = ",model.name)
         elif buttonStates[0] == 0 and buttonStates[1] == 1:
+            print("current",cvtedPose)
+            print("diff",cvtedPose[3]-self.start[3],cvtedPose[4]-self.start[4],cvtedPose[5]-self.start[5])
+            
             print("releaseModel")
             self.releaseModel()
             

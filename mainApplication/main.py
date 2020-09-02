@@ -32,10 +32,10 @@ def callback(samplingRate,gui):
             # update gui
             # print("pose",pose)
             # gui.moveModel('teapot',[0,0,0,1,0,0])
-            if count == 3:
-                pose[0] = pose[0]+0.7
-                pose[4] = pose[4]-10
-            gui.updateUI(pose,buttonStates,scale=20)
+            # if count == 3:
+            #     pose[0] = pose[0]+0.7
+            #     pose[4] = pose[4]-10
+            gui.updateUI(pose[1],buttonStates,scale=20,m=pose[0])
             count+=1
             
             
@@ -69,8 +69,8 @@ def openGUI(samplingRate = 0.005):
 if __name__ == '__main__':
     
     # declare port
-    port = '/dev/pts/1' # ubuntu port
-    # port = '/dev/ttyUSB0' # arduino port
+    # port = '/dev/pts/2' # ubuntu port
+    port = '/dev/ttyUSB0' # arduino port
     
     # declare constants
     samplingRate = 0.005
