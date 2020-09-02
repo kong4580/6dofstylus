@@ -34,7 +34,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         self.grid = Model("grid",drawFunc.Grid)
         self.origin = Model("origin",drawFunc.point)
         
-        self.backdropImageFile = Image.open( "backdrop_0.jpg" )
+        self.backdropImageFile = Image.open( "backdropImg/backdrop_0.jpg" )
         
         self.showModel= True
         
@@ -251,10 +251,10 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
     def drawBackdrop(self):
         
         # set camera view
-        GL.glMatrixMode(GL_PROJECTION)
+        GL.glMatrixMode(GL.GL_PROJECTION)
         GL.glLoadIdentity()
         GL.glOrtho( -0.5, 0.5, -0.5, 0.5, -0.5, 1 )
-        GL.glMatrixMode(GL_MODELVIEW)
+        GL.glMatrixMode(GL.GL_MODELVIEW)
         GL.glLoadIdentity()
 
         imageW = self.backdropImageFile.size[0]

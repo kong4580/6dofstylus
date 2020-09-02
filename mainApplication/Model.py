@@ -29,7 +29,7 @@ class Model():
         
     def drawMatrixModel(self, matrix, showFrame=True, enableLight = True):
         
-        GL.glMatrixMode(GL_MODELVIEW)
+        GL.glMatrixMode(GL.GL_MODELVIEW)
         GL.glPushMatrix()
         GL.glLoadIdentity()
         
@@ -77,25 +77,25 @@ class Model():
             for idx in range(len(self.obb.points)):
                 
                 pointIdx = np.append(self.obb.points[idx].copy(),1)
-                self.obb.current_point[idx] = dot(self.obb.current_homo.copy(),pointIdx.T)[0:3]
+                self.obb.current_point[idx] = np.dot(self.obb.current_homo.copy(),pointIdx.T)[0:3]
                 
             # print("after",self.obb.current_point)
             obbCentroid = np.append(self.obb.current_centroid,1)
-            self.obb.current_centroid = dot(self.obb.current_homo,obbCentroid)[0:3]
+            self.obb.current_centroid = np.dot(self.obb.current_homo,obbCentroid)[0:3]
             
             for idx in range(len(self.obj.vertices)):
                 verIdx = np.append(self.obj.vertices[idx].copy(),1)
         
                 
-                self.obj.current_vertices[idx] = dot(GL.glGetFloatv(GL.GL_MODELVIEW_MATRIX).T,verIdx.T)[0:3]
+                self.obj.current_vertices[idx] = np.dot(GL.glGetFloatv(GL.GL_MODELVIEW_MATRIX).T,verIdx.T)[0:3]
             
                 
         else:
             if self.show:
                 self.drawFunction()
-                GL.glDisable(GL_LIGHTING)
+                GL.glDisable(GL.GL_LIGHTING)
                 drawFunc.coordinate()
-                GL.glEnable(GL_LIGHTING)
+                GL.glEnable(GL.GL_LIGHTING)
         
         if showFrame:
             drawFunc.coordinate()
@@ -244,7 +244,7 @@ class Model():
         self.obb.gl_list = GL.glGenLists(1)
         self.obb.show = showOBB
         GL.glNewList(self.obb.gl_list, GL.GL_COMPILE)
-        GL.glBegin(GL_LINES)
+        GL.glBegin(GL.GL_LINES)
         GL.glColor3fv((1, 0, 0))
 
         def inputVertex(x, y, z):
@@ -292,7 +292,7 @@ class Model():
     def initModel(self,matrixView):
         self.obj.initOBJ()
         self.obj.current_vertices = self.obj.vertices.copy()
-        self.obj.createShadow()
+        # self.obj.createShadow()
         self.createOBB(showOBB=False)
         self.obb.current_point = self.obb.points
         self.obb.current_centroid = self.obb.centroid
@@ -383,30 +383,30 @@ class OBJ():
         
         
     def initOBJ(self):
-        self.gl_list = glGenLists(1)
-        glNewList(self.gl_list, GL_COMPILE)
+        self.gl_list = GL.glGenLists(1)
+        GL.glNewList(self.gl_list, GL.GL_COMPILE)
         
         # glEnable(GL_TEXTURE_2D)
-        glFrontFace(GL_CCW)
+        GL.glFrontFace(GL.GL_CCW)
         start = time.time()
         for vertices in self.faces:
             vertices, normals, texcoords, material = vertices
             
-            glBegin(GL_TRIANGLES)
+            GL.glBegin(GL.GL_TRIANGLES)
             
             
             for i in range(len(vertices)):
                 if normals[i] > 0:
-                    glNormal3fv(self.normals[normals[i] - 1])
+                    GL.glNormal3fv(self.normals[normals[i] - 1])
                 if texcoords[i] > 0:
-                    glTexCoord2fv(self.texcoords[texcoords[i] - 1])
-                glVertex3fv(self.vertices[vertices[i] - 1])
+                    GL.glTexCoord2fv(self.texcoords[texcoords[i] - 1])
+                GL.glVertex3fv(self.vertices[vertices[i] - 1])
                 
-            glEnd()
+            GL.glEnd()
         end = time.time()
         # glDisable(GL_TEXTURE_2D)
         
-        glEndList()
+        GL.glEndList()
         
         
     def createShadow(self):

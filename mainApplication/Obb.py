@@ -1,6 +1,6 @@
 from numpy import ndarray, array, asarray, dot, cross, cov, array, finfo, min as npmin, max as npmax
 from numpy.linalg import eigh, norm
-
+import numpy as np
 
 ########################################################################################################################
 # adapted from: http://jamesgregson.blogspot.com/2011/03/latex-test.html
