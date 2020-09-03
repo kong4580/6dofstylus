@@ -15,7 +15,7 @@ from functools import partial
 from Model import Model,OBJ
 import numpy as np
 from scipy.spatial.transform import Rotation as R
-
+import time
 class OpenGLWindow(fltk.Fl_Gl_Window):
     def __init__(self, xpos, ypos, width, height, label):
         fltk.Fl_Gl_Window.__init__(self, xpos, ypos, width, height, label)
@@ -33,13 +33,21 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         self.origin = Model("origin",drawFunc.point)
         
         self.nameNumber = 0
-        self.backdropImageFile = Image.open( "backdropImg/backdrop_0.jpg" )
-        self.imageObj  = self.backdropImageFile.tobytes("raw", "RGBX", 0, -1)
+        self.testNumber = 0
+        self.openBackdropFile("backdropImg/backdrop_0.jpg")
         
+        self.flags = {'snapMode':False,
+                      'showModel':True,
+                      'resetModelTransform':False,
+                      'lineupTestMode':False,
+                      'showModelWireframe':False}
+        
+        self.iouScore = np.array([])
+       
+    def openBackdropFile(self, filename):
+        self.backdropImageFile = Image.open( filename )
+        self.imageObj  = self.backdropImageFile.tobytes("raw", "RGBX", 0, -1)
         self.texid = None
-        self.snapMode = False
-        self.showModel= True
-        self.resetModelTransform = False
         
     def __initGL(self): 
         GLUT.glutInit(sys.argv) #add
@@ -73,6 +81,15 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         
     def readScaleZ(self,scaleZ):
         self.scaleZ = scaleZ
+    
+    def readRotX(self,scaleX):
+        self.rotX = scaleX
+        
+    def readRotY(self,scaleY):
+        self.rotY = scaleY
+        
+    def readRotZ(self,scaleZ):
+        self.rotZ = scaleZ
 
     # main opengl callback 
     def draw(self):
@@ -93,6 +110,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         GL.glLoadIdentity()
         
         GL.glFrustum(-1, 1, -1, 1, 1, 100)
+        # print(self.scaleY,self.scaleZ,self.scaleX)
         GL.glTranslatef(self.scaleY,self.scaleZ,self.scaleX)
         
         GL.glMatrixMode(GL.GL_MODELVIEW)
@@ -100,12 +118,14 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         GLU.gluLookAt(0, 0, 10, 0, 0, 0, 0, 1, 0)
         
         
-        self.cursor.show = not self.snapMode
+        self.cursor.show = not self.flags['snapMode']
+        
         
         # self.cursor.drawModel(position=(self.pose[1],self.pose[2],self.pose[0]),rotation=(self.pose[5],self.pose[3],self.pose[4]),showFrame=not self.snapMode)
         
-        self.cursor.drawMatrixModel(self.cursorTransform,showFrame=not self.snapMode)
+        self.cursor.drawMatrixModel(self.cursorTransform,showFrame=not self.flags['snapMode'])
         
+        # self.grid.drawMatrixModel(np.eye(4),showFrame=not self.flags['snapMode'])
         
         # draw origin
         # self.origin.drawModel(position=(self.pose[6],self.pose[7],self.pose[8]),showFrame=True)
@@ -115,7 +135,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
             for idx in range(self.modelDicts['modelNum']):
                 model = self.modelDicts['model'][idx]
                 movePose = self.modelDicts['movepose'][idx]
-                model.show = self.showModel
+                model.show = self.flags['showModel']
                 
                 if self.modelDicts['isModelInit'][idx] == 0:
                     model.initModel(matrixView = GL.glGetFloatv(GL.GL_MODELVIEW_MATRIX).T)
@@ -128,14 +148,15 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
                     model.cursorM = None
                     model.cursorPose = None
                     
-                    if self.resetModelTransform:
+                    if self.flags['resetModelTransform']:
                         model.currentM = np.eye(4)
+                        self.flags['resetModelTransform'] = False
                         
                     targetPosition,targetRotation,newM = model.centerPosition,model.rotation,model.currentM
                     
                 # model.drawModel(position = targetPosition,rotation = targetRotation,showFrame=False)
                 
-                model.drawMatrixModel(newM,showFrame=False)
+                model.drawMatrixModel(newM,showFrame=False,wireFrame = self.flags['showModelWireframe'])
                 
                 
     def addModel(self,name,drawFunction=None,position=(0,0,0),rotation=(0,0,0),obj=None):
@@ -151,7 +172,23 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
             if model.getName() == name:
                 self.modelDicts['movepose'][idx][0] = (position[0],position[1],position[2])
                 self.modelDicts['movepose'][idx][1] = (rotation[0],rotation[1],rotation[2])
-                
+     
+    def testMode(self,numberOfBackdrop):
+        if not self.flags['lineupTestMode']:
+            self.startLineupTime = time.time()
+            # self.testNumber = 0
+            self.flags['lineupTestMode'] = True
+        
+
+        if len(self.iouScore) == numberOfBackdrop:
+            self.testNumber = 0    
+            print("average IoU:",np.sum(self.iouScore)/numberOfBackdrop)
+            self.stopLineupTime = time.time()
+            self.flags['lineupTestMode'] = False
+            print("total time: ",self.stopLineupTime - self.startLineupTime)
+            print("ModelPerSec: ",(self.stopLineupTime - self.startLineupTime)/5)
+            
+                   
     def handle(self,event):
         xMousePosition = fltk.Fl.event_x()
         yMousePosition = fltk.Fl.event_y()
@@ -162,27 +199,44 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         
         elif event == fltk. FL_KEYUP: #keyboard handle
             print("key press : ",chr(fltk.Fl.event_key())) #check key #type:int 
-            
-            if fltk.Fl.event_key() == ord('s'):
-                self.snapMode = not self.snapMode
-                self.redraw()
-                print("set Snapmode",self.snapMode)
+             #check key #type:int 
+            if fltk.Fl.event_key() == ord('5'):
+                self.flags['showModelWireframe'] = not self.flags['showModelWireframe']
                 
-            if fltk.Fl.event_key() == ord(' ') and self.snapMode:
+            if fltk.Fl.event_key() == ord('s'):
+                self.flags['snapMode'] = not self.flags['snapMode']
+                self.redraw()
+                print("set Snapmode",self.flags['snapMode'])
+                
+            if fltk.Fl.event_key() == ord(' ') and self.flags['snapMode']:
                 backdropName = "backdropImg/backdrop_" + str(self.nameNumber)
                 self.snap(backdropName)
                 self.nameNumber = self.nameNumber + 1
                 
             if fltk.Fl.event_key() == ord('d'):
-                self.checkIoU()
+                oldState = self.flags['showModelWireframe']
+                self.flags['showModelWireframe']=False
+                score = self.checkIoU()
+                self.flags['showModelWireframe']=oldState
+                if self.flags['lineupTestMode']:
+                    self.testNumber += 1
+                                 
+                    self.iouScore = np.append(self.iouScore,score)
+                    print(self.iouScore)
+                    self.testMode(4)
+                    print(self.flags['lineupTestMode'])
+                    if self.flags['lineupTestMode']:
+                        self.openBackdropFile("backdropImg/backdrop_"+str(self.testNumber)+".jpg")   
+                    
                 
             if fltk.Fl.event_key() == ord('q'):
-                self.showModel = not self.showModel
+                self.flags['showModel'] = not self.flags['showModel']
                 
             if fltk.Fl.event_key() == ord('m'):
-                self.resetModelTransform = True
-                
-                
+                self.flags['resetModelTransform'] = True
+            
+            if fltk.Fl.event_key() == ord('p'):
+                self.testMode(4)
             fltk.Fl_check()
             return 1
         
@@ -191,16 +245,18 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
     
     def snap(self,name, save = True, binary = False):
         
-        print("snap!")
         GL.glPixelStorei(GL.GL_PACK_ALIGNMENT, 1)
         data = GL.glReadPixels(0, 0, 600, 600, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE)
         image = Image.frombytes("RGBX", (600, 600), data)
         
         image = ImageOps.flip(image) 
         imagename = name + ".jpg"
-        print("save at :",imagename)
         
         if save:
+            print("snap!")
+            
+            print("save at :",imagename)
+            
             if binary:
                 imagenp = np.asarray(image.convert('RGB')).copy()
                 imagenp[imagenp> 128] = 200
@@ -213,7 +269,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
             return image
         
     def checkIoU(self):
-        self.snapMode = True
+        self.flags['snapMode'] = True
         self.redraw()
         fltk.Fl_check()
         
@@ -232,7 +288,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         iou = np.sum(intersect==255)/np.sum(union==255)
         print("IoU: ",iou)
         
-        self.snapMode = False
+        self.flags['snapMode'] = False
         self.redraw()
         fltk.Fl_check()
         
@@ -278,7 +334,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
             GL.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST)
             GL.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST)
             
-        if not self.snapMode:
+        if not self.flags['snapMode']:
             GL.glBindTexture( GL.GL_TEXTURE_2D, self.texid )
             GL.glEnable( GL.GL_TEXTURE_2D )
             

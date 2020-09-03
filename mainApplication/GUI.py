@@ -47,9 +47,10 @@ class Gui():
             output.align(fltk.FL_ALIGN_LEFT)
             output.value("0")
             storage_area.append(output)
+            
         y=150
-        name_Scale = ["ScaleX","ScaleY","ScaleZ"]
-        for n in range(3):
+        name_Scale = ["ScaleX","ScaleY","ScaleZ","RotX","RotY","RotZ"]
+        for n in range(6):
             slider = fltk.Fl_Hor_Value_Slider(655, y, 145,25,name_Scale[n])
             y = y + 25
             slider.minimum(-50)
@@ -72,7 +73,7 @@ class Gui():
         self.openglWindow.readScaleZ(0)
         return storage_area
            
-    def __updateSlider(self,pos):
+    def __updateOutput(self,pos):
         for i in range(6):
             a=float("{:.2f}".format(pos[i]))
             self.outputWidgetStorage[i].value(str(a))
@@ -100,8 +101,9 @@ class Gui():
     def updateUI(self,cursorPose,buttonStates,scale=20,cursorTransform=None):
         cvtedPose = self.__cvtPose(cursorPose,self.cursorSpeed)
         self.openglWindow.readPose(cvtedPose)
-        cursorTransform[0:3,3] = cursorTransform[0:3,3].copy() * self.cursorSpeed
-        # print(m[0:3,3].copy())
+        cursorTransform[0:3,3] = cursorTransform[0:3,3].copy() * 0.05
+        
+        
         cursorTransform[0,3] -= self.cfg["homeCfg"][0]
         cursorTransform[1,3] -= self.cfg["homeCfg"][1]
         
@@ -110,7 +112,7 @@ class Gui():
         self.openglWindow.cursorTransform = cursorTransform
         
         self.openglWindow.redraw()
-        self.__updateSlider(cvtedPose)
+        self.__updateOutput(cvtedPose)
         
         # check any model is selected when mouse clicked
         if buttonStates[0] == 1 and buttonStates[1] == 0:
@@ -167,13 +169,20 @@ class Gui():
             opengl.readScaleX(size)
         elif v == 1:
             opengl.readScaleY(size)
-        else:
+        elif v==2:
             opengl.readScaleZ(size)
+        elif v == 3:
+            # size = size -10
+            opengl.readRotX(size)
+        elif v == 4:
+            opengl.readRotY(size)
+        elif v==5:
+            opengl.readRotZ(size)
         opengl.redraw()
     
     @staticmethod
     def __sliderMouseCB(GUI,widget,v):
-        mouseSpeed = widget.value()/100
+        mouseSpeed = widget.value()/10
         GUI.setMouseSpeed(mouseSpeed)
     
     

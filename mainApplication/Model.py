@@ -7,7 +7,7 @@ import drawFunc
 import time
 import numpy as np
 from scipy.spatial import ConvexHull
-
+from scipy.spatial.transform import Rotation as R
 from Obb import OBB
 
 class Model():
@@ -27,7 +27,7 @@ class Model():
         self.currentM = m
         self.startclickM = None
         
-    def drawMatrixModel(self, matrix, showFrame=True, enableLight = True):
+    def drawMatrixModel(self, matrix, showFrame=True, enableLight = True,wireFrame = False):
         
         GL.glMatrixMode(GL.GL_MODELVIEW)
         GL.glPushMatrix()
@@ -39,6 +39,13 @@ class Model():
                                 [0,0,1,0],
                                 [1,0,0,0],
                                 [0,0,0,1]])
+            
+            
+            # transform = np.array([[0.866,-0.5,0,0],
+            #                     [0.5,0.866,0,0],
+            #                     [0,0,1,0],
+            #                     [0,0,0,1]])
+            # transform = np.eye(4)
         else:
             transform = np.eye(4)
             
@@ -48,11 +55,18 @@ class Model():
         self.centerPosition = self.currentM[0:3,3]
         
         if self.obj!=None:
+            
             if self.show:
                 if self.obb.show:
                     GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_LINE)
                     GL.glCallList(self.obb.gl_list)
-                GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL)
+                if wireFrame:
+                    
+                    GL.glEnable(GL.GL_CULL_FACE)
+                    GL.glCullFace(GL.GL_BACK)
+                    GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_LINE)
+                else:
+                    GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL)
                 
                 if self.isSelected:
                     GL.glColor3fv(drawFunc.SkyColorVector)
@@ -64,6 +78,7 @@ class Model():
                 GL.glCallList(self.obj.gl_list)
                 if not enableLight:
                     GL.glEnable(GL.GL_LIGHTING)
+                GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL)
                 # glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
                 
                 # glColor3fv(drawFunc.MagentaColorVector)
@@ -89,7 +104,7 @@ class Model():
                 
                 self.obj.current_vertices[idx] = np.dot(GL.glGetFloatv(GL.GL_MODELVIEW_MATRIX).T,verIdx.T)[0:3]
             
-                
+            
         else:
             if self.show:
                 self.drawFunction()
@@ -198,9 +213,7 @@ class Model():
     
     def __updatePosition(self,position=(0,0,0),rotation=(0,0,0)):
         self.centerPosition = position
-        # if self.obj != None:
-        #     # print(self.name)
-        #     self.centerPosition -=self.obb.current_centroid
+        
             
         self.rotation = rotation
 
@@ -300,7 +313,7 @@ class Model():
         if self.obj != None:
             # print(self.name)
             self.centerPosition -=self.obb.current_centroid
-        
+            
     def followCursor(self,cursor):
         if self.cursorPose == None or type(self.cursorM) == type(None):
             self.cursorPose = cursor.rotation
