@@ -102,6 +102,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
         
         GL.glDisable(GL.GL_DEPTH_TEST)
+        
         self.drawBackdrop()
         GL.glEnable(GL.GL_DEPTH_TEST)
 
@@ -132,31 +133,33 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         
         # draw model
         if self.modelDicts['modelNum'] > 0:
-            for idx in range(self.modelDicts['modelNum']):
-                model = self.modelDicts['model'][idx]
-                movePose = self.modelDicts['movepose'][idx]
-                model.show = self.flags['showModel']
+            # for idx in range(self.modelDicts['modelNum']):
+            # if  ==0:
+            idx = self.testNumber % 2
+            model = self.modelDicts['model'][idx]
+            movePose = self.modelDicts['movepose'][idx]
+            model.show = self.flags['showModel']
+
+            if self.modelDicts['isModelInit'][idx] == 0:
+                model.initModel(matrixView = GL.glGetFloatv(GL.GL_MODELVIEW_MATRIX).T)
+                self.modelDicts['isModelInit'][idx] = 1
                 
-                if self.modelDicts['isModelInit'][idx] == 0:
-                    model.initModel(matrixView = GL.glGetFloatv(GL.GL_MODELVIEW_MATRIX).T)
-                    self.modelDicts['isModelInit'][idx] = 1
-                    
-                if model.isSelected:
-                    targetPosition,targetRotation,newM = model.followCursor(self.cursor)
-                    
-                else:
-                    model.cursorM = None
-                    model.cursorPose = None
-                    
-                    if self.flags['resetModelTransform']:
-                        model.currentM = np.eye(4)
-                        self.flags['resetModelTransform'] = False
-                        
-                    targetPosition,targetRotation,newM = model.centerPosition,model.rotation,model.currentM
-                    
-                # model.drawModel(position = targetPosition,rotation = targetRotation,showFrame=False)
+            if model.isSelected:
+                targetPosition,targetRotation,newM = model.followCursor(self.cursor)
                 
-                model.drawMatrixModel(newM,showFrame=False,wireFrame = self.flags['showModelWireframe'])
+            else:
+                model.cursorM = None
+                model.cursorPose = None
+                
+                if self.flags['resetModelTransform']:
+                    model.currentM = np.eye(4)
+                    self.flags['resetModelTransform'] = False
+                    
+                targetPosition,targetRotation,newM = model.centerPosition,model.rotation,model.currentM
+                
+            # model.drawModel(position = targetPosition,rotation = targetRotation,showFrame=False)
+            
+            model.drawMatrixModel(newM,showFrame=False,wireFrame = self.flags['showModelWireframe'])
                 
                 
     def addModel(self,name,drawFunction=None,position=(0,0,0),rotation=(0,0,0),obj=None):

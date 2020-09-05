@@ -43,9 +43,11 @@ def callback(samplingRate,gui):
 def openGUI(samplingRate = 0.005):
     
     # add model
-    bunny = OBJ('./teapot.obj',scale=1)
-    gui.addModel('teapot',bunny.initOBJ,obj=bunny)
-    gui.moveModel('teapot',position = (5,0,0),rotation = (90,0,0))
+    teapot = OBJ('./teapot.obj',scale=1)
+    gui.addModel('teapot',teapot.initOBJ,obj=teapot)
+    bunny = OBJ('./bunny.obj',scale=10)
+    gui.addModel('bunny',bunny.initOBJ,obj=bunny)
+    # gui.moveModel('teapot',position = (5,0,0),rotation = (90,0,0))
     
     # open GUI window
     gui.window.show()
@@ -61,8 +63,8 @@ def openGUI(samplingRate = 0.005):
 if __name__ == '__main__':
     
     # declare port
-    # port = '/dev/pts/1' # ubuntu port
-    port = '/dev/ttyUSB0' # arduino port
+    port = '/dev/pts/3' # ubuntu port
+    # port = '/dev/ttyUSB0' # arduino port
     
     # declare constants
     samplingRate = 0.005
