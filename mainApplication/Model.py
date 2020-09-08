@@ -26,8 +26,8 @@ class Model():
         self.cursorM = None
         self.currentM = m
         self.startclickM = None
-        
-    def drawMatrixModel(self, matrix, showFrame=True, enableLight = True,wireFrame = False):
+        self.opacityValue = 1
+    def drawMatrixModel(self, matrix, showFrame=True, enableLight = True,wireFrame = False, opacity = False):
         
         GL.glMatrixMode(GL.GL_MODELVIEW)
         GL.glPushMatrix()
@@ -69,16 +69,31 @@ class Model():
                     GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL)
                 
                 if self.isSelected:
-                    GL.glColor3fv(drawFunc.SkyColorVector)
+                    color = drawFunc.SkyColorVector
+                    
                 else:
-                    GL.glColor3fv(drawFunc.WhiteColorVector)
+                    color = drawFunc.WhiteColorVector
                 
+                if opacity:
+                    self.opacityValue = 0.5
+                else:
+                    self.opacityValue = 1
+                    
+                color = list(color).copy()
+                color.append(self.opacityValue)
+                GL.glColor4fv(tuple(color))
+                
+                GL.glPushAttrib(GL.GL_COLOR_BUFFER_BIT)
+                GL.glEnable(GL.GL_BLEND)
+                GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
                 if not enableLight:
                     GL.glDisable(GL.GL_LIGHTING)
                 GL.glCallList(self.obj.gl_list)
                 if not enableLight:
                     GL.glEnable(GL.GL_LIGHTING)
                 GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL)
+                GL.glDisable(GL.GL_BLEND)
+                GL.glPopAttrib()
                 # glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
                 
                 # glColor3fv(drawFunc.MagentaColorVector)

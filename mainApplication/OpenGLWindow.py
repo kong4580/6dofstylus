@@ -19,7 +19,7 @@ import time
 class OpenGLWindow(fltk.Fl_Gl_Window):
     def __init__(self, xpos, ypos, width, height, label):
         fltk.Fl_Gl_Window.__init__(self, xpos, ypos, width, height, label)
-        
+        # self.mode(fltk.FL_RGB | fltk.FL_ALPHA)
         self.cursorTransform = np.eye(4)
         self.cursorOffset = np.eye(4)
         self.pose = [0,0,0,0,0,0,0,0,0]
@@ -42,7 +42,8 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
                       'resetModelTransform':False,
                       'lineupTestMode':False,
                       'showModelWireframe':False,
-                      'offsetMode':False}
+                      'offsetMode':False,
+                      'opacityMode':False}
         
         self.iouScore = np.array([])
        
@@ -165,7 +166,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
                 
             # model.drawModel(position = targetPosition,rotation = targetRotation,showFrame=False)
             
-            model.drawMatrixModel(newM,showFrame=False,wireFrame = self.flags['showModelWireframe'])
+            model.drawMatrixModel(newM,showFrame=False,wireFrame = self.flags['showModelWireframe'], opacity = self.flags['opacityMode'])
                 
                 
     def addModel(self,name,drawFunction=None,position=(0,0,0),rotation=(0,0,0),obj=None):
@@ -179,7 +180,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         for idx in range(self.modelDicts['modelNum']):
             model = self.modelDicts['model'][idx]
             if model.getName() == name:
-                self.modelDicts['movepose'][idx][0] = (position[0],position[1],position[2])
+                self.modelDicts['movepose'][idx][0] = 'opacityMode'(position[0],position[1],position[2])
                 self.modelDicts['movepose'][idx][1] = (rotation[0],rotation[1],rotation[2])
      
     def testMode(self,numberOfBackdrop):
@@ -228,16 +229,17 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
                 score = self.checkIoU()
                 self.flags['showModelWireframe']=oldState
                 if self.flags['lineupTestMode']:
-                    self.testNumber += 1
-                                 
+                    self.flags['resetModelTransform'] = True             
                     self.iouScore = np.append(self.iouScore,score)
-                    print(self.iouScore)
+                    
                     self.testMode(6)
-                    print(self.flags['lineupTestMode'])
+                    self.testNumber += 1
+                    
                     if self.flags['lineupTestMode']:
                         self.openBackdropFile("backdropImg/backdrop_"+str(self.testNumber)+".jpg")   
                     
-                
+            if fltk.Fl.event_key() == ord('o'):
+                self.flags['opacityMode'] = not self.flags['opacityMode']
             if fltk.Fl.event_key() == ord('q'):
                 self.flags['showModel'] = not self.flags['showModel']
                 
@@ -245,6 +247,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
                 self.flags['resetModelTransform'] = True
             
             if fltk.Fl.event_key() == ord('p'):
+                print("Enable test mode")
                 self.testMode(6)
             if fltk.Fl.event_key() == ord('c'):
                 self.flags['offsetMode'] = not self.flags['offsetMode']
@@ -280,7 +283,10 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
             return image
         
     def checkIoU(self):
+        oldflags = self.flags.copy()
         self.flags['snapMode'] = True
+        self.flags['showModelWireframe'] = False
+        self.flags['opacityMode'] = False
         self.redraw()
         fltk.Fl_check()
         
@@ -299,7 +305,8 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         iou = np.sum(intersect==255)/np.sum(union==255)
         print("IoU: ",iou)
         
-        self.flags['snapMode'] = False
+        self.flags = oldflags
+        
         self.redraw()
         fltk.Fl_check()
         

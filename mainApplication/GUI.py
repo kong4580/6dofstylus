@@ -16,6 +16,7 @@ from Model import Model
 
 class Gui():
     def __init__(self):
+        
         self.__initWindow(size=(800,600),name="UI")
         self.__initOpenglWindow(size=(0,0,600,600),name="opengl")
         self.__initOutputWidgetStorage()
@@ -27,6 +28,7 @@ class Gui():
         
         self.initHoldCursor = None
         self.offsetCursor = np.eye(4)
+        
     def __initWindow(self,size=(800,600),name="UI"):
         print("Init GUI window ... ",end="")
         self.window = fltk.Fl_Window(size[0],size[1],name)
