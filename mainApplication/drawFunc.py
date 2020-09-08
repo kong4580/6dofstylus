@@ -10,6 +10,8 @@ YellowColorVector = (1,1,0)
 SkyColorVector = (0,1,1)
 MagentaColorVector = (1,0,1)
 WhiteColorVector = (1,1,1)
+GrayColorVector = (0.75,0.75,0.75)
+
 BlackColorVector = (0,0,0)
 
 

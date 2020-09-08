@@ -133,16 +133,19 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         
         # draw model
         if self.modelDicts['modelNum'] > 0:
-            # for idx in range(self.modelDicts['modelNum']):
-            # if  ==0:
+            for idx in range(self.modelDicts['modelNum']):
+                if self.modelDicts['isModelInit'][idx] == 0:
+                
+                    model = self.modelDicts['model'][idx]
+                    model.initModel(matrixView = GL.glGetFloatv(GL.GL_MODELVIEW_MATRIX).T)
+                    self.modelDicts['isModelInit'][idx] = 1
+            
             idx = self.testNumber % 2
             model = self.modelDicts['model'][idx]
             movePose = self.modelDicts['movepose'][idx]
+            
             model.show = self.flags['showModel']
-
-            if self.modelDicts['isModelInit'][idx] == 0:
-                model.initModel(matrixView = GL.glGetFloatv(GL.GL_MODELVIEW_MATRIX).T)
-                self.modelDicts['isModelInit'][idx] = 1
+            
                 
             if model.isSelected:
                 targetPosition,targetRotation,newM = model.followCursor(self.cursor)
