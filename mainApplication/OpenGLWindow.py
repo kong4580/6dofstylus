@@ -6,7 +6,7 @@ from OpenGL import GL, GLUT, GLU
 
 from PIL import Image
 from PIL import ImageOps
-
+import csv
 import fltk
 import sys
 import math
@@ -46,6 +46,16 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
                       'opacityMode':False}
         
         self.iouScore = np.array([])
+        self.log = {
+                        "name":None,
+                        "department":None,
+                        "mayaFamiliar":None,
+                        "dominantHand":None,
+                        "iou":None,
+                        "avgIou":None,
+                        "totalTime":None,
+                        "modelPerSec":None
+                    }
        
     def openBackdropFile(self, filename):
         self.backdropImageFile = Image.open( filename )
@@ -192,11 +202,20 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
 
         if len(self.iouScore) == numberOfBackdrop:
             self.testNumber = 0    
-            print("average IoU:",np.sum(self.iouScore)/numberOfBackdrop)
             self.stopLineupTime = time.time()
             self.flags['lineupTestMode'] = False
-            print("total time: ",self.stopLineupTime - self.startLineupTime)
-            print("ModelPerSec: ",(self.stopLineupTime - self.startLineupTime)/5)
+            self.log["iou"] = self.iouScore
+            self.log["avgIou"] = np.sum(self.iouScore)/numberOfBackdrop
+            self.log["totalTime"] = self.stopLineupTime - self.startLineupTime
+            self.log["modelPerSec"] = (self.stopLineupTime - self.startLineupTime)/5
+            print("IoU : ",self.log["iou"])
+            print("average IoU: ",self.log["avgIou"])
+            print("total time: ",self.log["totalTime"])
+            print("ModelPerSec: ",self.log["modelPerSec"])
+            with open("./testLog.csv","a+",newline='') as csvFile:
+                dictWriter = csv.DictWriter(csvFile,fieldnames = self.log.keys())
+                dictWriter.writerow(self.log)
+            print(self.log)
             
                    
     def handle(self,event):
@@ -224,10 +243,11 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
                 self.nameNumber = self.nameNumber + 1
                 
             if fltk.Fl.event_key() == ord('d'):
-                oldState = self.flags['showModelWireframe']
+                oldFlags = self.flags.copy()
                 self.flags['showModelWireframe']=False
+                self.flags['showModel'] = True
                 score = self.checkIoU()
-                self.fl'showModel':True,ags['showModelWireframe']=oldState
+                self.flags=oldFlags
                 if self.flags['lineupTestMode']:
                     self.flags['resetModelTransform'] = True             
                     self.iouScore = np.append(self.iouScore,score)
@@ -251,12 +271,23 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
                 self.testMode(6)
             if fltk.Fl.event_key() == ord('c'):
                 self.flags['offsetMode'] = not self.flags['offsetMode']
+            if fltk.Fl.event_key() == ord('l'):
+                self.addLogProfile()
             fltk.Fl_check()
             return 1
         
         else:
             return fltk.Fl_Gl_Window.handle(self, event)
-    
+    def addLogProfile(self):
+        try:
+            self.log["name"] = input("Name : ")
+            self.log["department"] = input("Department : ")
+            self.log["mayaFamiliar"] = input("Software Maya Familiar : ")
+            self.log["dominantHand"] = input("Dominant Hand : ")
+        except:
+            print("Add profile error")
+            pass
+        
     def snap(self,name, save = True, binary = False):
         
         GL.glPixelStorei(GL.GL_PACK_ALIGNMENT, 1)
