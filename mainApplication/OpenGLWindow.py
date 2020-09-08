@@ -227,7 +227,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
                 oldState = self.flags['showModelWireframe']
                 self.flags['showModelWireframe']=False
                 score = self.checkIoU()
-                self.flags['showModelWireframe']=oldState
+                self.fl'showModel':True,ags['showModelWireframe']=oldState
                 if self.flags['lineupTestMode']:
                     self.flags['resetModelTransform'] = True             
                     self.iouScore = np.append(self.iouScore,score)
@@ -287,6 +287,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         self.flags['snapMode'] = True
         self.flags['showModelWireframe'] = False
         self.flags['opacityMode'] = False
+        self.flags['showModel'] = True
         self.redraw()
         fltk.Fl_check()
         
