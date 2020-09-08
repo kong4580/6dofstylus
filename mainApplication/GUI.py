@@ -23,7 +23,10 @@ class Gui():
         self.cfg={"homeCfg":(5.23747141, -0.01606842, -0.3270202)}
 
         self.cursorSpeed = 0.05
+        self.cursorIsHold = False
         
+        self.initHoldCursor = None
+        self.offsetCursor = np.eye(4)
     def __initWindow(self,size=(800,600),name="UI"):
         print("Init GUI window ... ",end="")
         self.window = fltk.Fl_Window(size[0],size[1],name)
@@ -109,24 +112,41 @@ class Gui():
         
         cursorTransform[2,3] -= self.cfg["homeCfg"][2]
         
-        self.openglWindow.cursorTransform = cursorTransform
         
-        self.openglWindow.redraw()
-        self.__updateOutput(cvtedPose)
+        if self.openglWindow.flags['offsetMode']:
+            self.offsetCursor = np.dot(cursorTransform,np.linalg.inv(self.openglWindow.cursorTransform.copy()))
+            # self.offsetCursor[0:3,0:3] = np.eye(3)
+            # self.offsetCursor = cursorTransform
+            print(self.offsetCursor)
+        else:
         
+            self.openglWindow.cursorTransform = np.dot(np.linalg.inv(self.offsetCursor),cursorTransform)
+            
+            self.openglWindow.redraw()
+            self.__updateOutput(cvtedPose)
+            
         # check any model is selected when mouse clicked
         if buttonStates[0] == 1 and buttonStates[1] == 0:
             
-            
+            # pass
             print("left click!")
             selectedModel = self.selectModel()
             for model in selectedModel:
                 print("selectModel = ",model.name)
                 
-        elif buttonStates[0] == 0 and buttonStates[1] == 1:      
+        elif buttonStates[0] == 0 and buttonStates[1] == 1: 
+            # pass     
             print("releaseModel")
             self.releaseModel()
-            
+        # elif buttonStates[0] == 1 and buttonStates[1] == 1:      
+        #     print("Hold cursor")
+        #     # self.cursorIsHold = not self.cursorIsHold
+        #     self.offsetCursor = np.dot(cursorTransform,np.linalg.inv(self.openglWindow.cursorTransform.copy()))
+        #     self.offsetCursor[0:3,0:3] = np.eye(3)
+        #     print(self.offsetCursor)
+        
+    
+        
     def addModel(self,name,drawFunction = None,position=(0,0,0),rotation=(0,0,0),obj=None):
         print("Add model name",name)
         self.openglWindow.addModel(name,drawFunction,position,rotation,obj=obj)

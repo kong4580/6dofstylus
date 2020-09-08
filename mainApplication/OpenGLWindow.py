@@ -21,6 +21,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         fltk.Fl_Gl_Window.__init__(self, xpos, ypos, width, height, label)
         
         self.cursorTransform = np.eye(4)
+        self.cursorOffset = np.eye(4)
         self.pose = [0,0,0,0,0,0,0,0,0]
         self.modelDicts = {'model':[],
                            'movepose':[],
@@ -40,7 +41,8 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
                       'showModel':True,
                       'resetModelTransform':False,
                       'lineupTestMode':False,
-                      'showModelWireframe':False}
+                      'showModelWireframe':False,
+                      'offsetMode':False}
         
         self.iouScore = np.array([])
        
@@ -113,6 +115,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         GL.glFrustum(-1, 1, -1, 1, 1, 100)
         # print(self.scaleY,self.scaleZ,self.scaleX)
         GL.glTranslatef(self.scaleY,self.scaleZ,self.scaleX)
+        GL.glTranslatef(0,-5,0)
         
         GL.glMatrixMode(GL.GL_MODELVIEW)
         GL.glLoadIdentity()
@@ -229,7 +232,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
                                  
                     self.iouScore = np.append(self.iouScore,score)
                     print(self.iouScore)
-                    self.testMode(4)
+                    self.testMode(6)
                     print(self.flags['lineupTestMode'])
                     if self.flags['lineupTestMode']:
                         self.openBackdropFile("backdropImg/backdrop_"+str(self.testNumber)+".jpg")   
@@ -242,7 +245,9 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
                 self.flags['resetModelTransform'] = True
             
             if fltk.Fl.event_key() == ord('p'):
-                self.testMode(4)
+                self.testMode(6)
+            if fltk.Fl.event_key() == ord('c'):
+                self.flags['offsetMode'] = not self.flags['offsetMode']
             fltk.Fl_check()
             return 1
         

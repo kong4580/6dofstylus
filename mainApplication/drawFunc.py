@@ -20,7 +20,7 @@ BlackColorVector = (0,0,0)
 
 def point():
     glEnable(GL_POINT_SMOOTH)
-    glPointSize(5)
+    glPointSize(10)
     glBegin(GL_POINTS)
     glColor3fv(MagentaColorVector)
     glVertex3f(0, 0, 0)
