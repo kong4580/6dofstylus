@@ -1,41 +1,58 @@
-
-from OpenGL import GL, GLUT, GLU
-
-
-from PIL import Image
-from PIL import ImageOps
-import csv
-import fltk
 import sys
 import math
-import drawFunc
 from functools import partial
-from Model import Model,OBJ
-import numpy as np
-from scipy.spatial.transform import Rotation as R
 import time
 
+from OpenGL import GL, GLUT, GLU
+import fltk
+from PIL import Image
+from PIL import ImageOps
+import numpy as np
+from scipy.spatial.transform import Rotation as R
+import csv
+
+import drawFunc
+from Model import Model,OBJ
+
 class OpenGLWindow(fltk.Fl_Gl_Window):
+    
+    # init opengl window class
     def __init__(self, xpos, ypos, width, height, label):
+        
+        # create OpenGL window
         fltk.Fl_Gl_Window.__init__(self, xpos, ypos, width, height, label)
-        # self.mode(fltk.FL_RGB | fltk.FL_ALPHA)
+        
+        # variable for cursor position
         self.cursorTransform = np.eye(4)
         self.cursorOffset = np.eye(4)
         self.pose = [0,0,0,0,0,0,0,0,0]
+        
+        # variable for model in opengl window class
         self.modelDicts = {'model':[],
                            'movepose':[],
                            'isModelInit':[],
                            'modelNum':0}
         
-        
+        # init cursor model
         self.cursor = Model('cursor',drawFunc.point)
+        
+        # init grid model
         self.grid = Model("grid",drawFunc.Grid)
+        
+        # init origin model
         self.origin = Model("origin",drawFunc.point)
         
+        # variable for change backdrop image
         self.nameNumber = 0
         self.testNumber = 0
+        
+        # read backdrop file
         self.openBackdropFile("backdropImg/backdrop_0.jpg")
         
+        # iou score buffer
+        self.iouScore = np.array([])
+        
+        # all flags parameter
         self.flags = {'snapMode':False,
                       'showModel':True,
                       'resetModelTransform':False,
@@ -44,7 +61,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
                       'offsetMode':False,
                       'opacityMode':False}
         
-        self.iouScore = np.array([])
+        # logger parameter
         self.log = {
                         "name":None,
                         "department":None,
@@ -56,33 +73,22 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
                         "totalTime":None,
                         "modelPerSec":None
                     }
-       
+    
+    # open backdrop file
     def openBackdropFile(self, filename):
+        
+        # open backdrop as pillow image object
         self.backdropImageFile = Image.open( filename )
+        
+        # conver pillow image object to bytes
         self.imageObj  = self.backdropImageFile.tobytes("raw", "RGBX", 0, -1)
+        
+        # set texture id variable
         self.texid = None
         
-    def __initGL(self): 
-        GLUT.glutInit(sys.argv) #add
-        GL.glClearColor(0.0, 0.0, 0.0, 0.0)
-        GL.glClearDepth(1.0) 
-        GL.glDepthFunc(GL.GL_LESS)
-        GL.glEnable(GL.GL_DEPTH_TEST)
-        GL.glShadeModel(GL.GL_SMOOTH)   
-        GL.glMatrixMode(GL.GL_PROJECTION)
-        GL.glLoadIdentity()
-        
-        GL.glMatrixMode(GL.GL_MODELVIEW)
-        # initialize texture mapping
-        GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT,1)
-        
-        GL.glEnable(GL.GL_TEXTURE_2D)
-        GL.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST)
-        GL.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST)
-        GL.glTexEnvf(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_DECAL)
-        # glDisable(GL_TEXTURE_2D)
         
         
+    # setter function
     def readPose(self,pose):
         self.pose = pose
         
@@ -104,44 +110,79 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
     def readRotZ(self,scaleZ):
         self.rotZ = scaleZ
 
-    # main opengl callback 
+
+
+
+    # main opengl window callback 
     def draw(self):
         
+        # add lighting to opengl window class
         self.lighting()
+        
+        # set background color to black
         GL.glClearColor(0.0, 0.0, 0.0, 0.0)
+        
+        # set depth to draw front object
         GL.glClearDepth(1.0) 
         GL.glDepthFunc(GL.GL_LESS)
         GL.glEnable(GL.GL_DEPTH_TEST)
+        
+        # clear color buffer
         GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
         
+        # draw backdrop to always show with no lighting
         GL.glDisable(GL.GL_DEPTH_TEST)
         GL.glDisable(GL.GL_LIGHTING)
         self.drawBackdrop()
         GL.glEnable(GL.GL_LIGHTING)
-        
         GL.glEnable(GL.GL_DEPTH_TEST)
 
-        # set camera view
+
+        # SET CAMERA VIEW
+        
+        # set matrix mode to projection matrix
         GL.glMatrixMode(GL.GL_PROJECTION)
+        
+        # reset matrix to identity
         GL.glLoadIdentity()
         
+        # set area of screen
+        # minX, maxX, minY, maxY, minZ, maxZ
         GL.glFrustum(-1, 1, -1, 1, 1, 100)
-        # print(self.scaleY,self.scaleZ,self.scaleX)
+
+        # offset camera view
         GL.glTranslatef(self.scaleY,self.scaleZ,self.scaleX)
+        
+        # offset camera view down for 5 units
+        ### now use ###
         GL.glTranslatef(0,-5,0)
         
+        
+        # SET MODEL VIEW
+        
+        # set matrix mode to modelView matrix
         GL.glMatrixMode(GL.GL_MODELVIEW)
+        
+        # reset matrix to identity
         GL.glLoadIdentity()
+        
+        # look at far from infront of model 10 units (toward Z axis)
         GLU.gluLookAt(0, 0, 10, 0, 0, 0, 0, 1, 0)
         
         
+        # DRAW MODEL
+        
+        # if turn on snap mode
+        # close cursor model
         self.cursor.show = not self.flags['snapMode']
         
-        
+        # draw model with position and rotation
         # self.cursor.drawModel(position=(self.pose[1],self.pose[2],self.pose[0]),rotation=(self.pose[5],self.pose[3],self.pose[4]),showFrame=not self.snapMode)
         
+        # draw model with transform matrix
         self.cursor.drawMatrixModel(self.cursorTransform,showFrame=not self.flags['snapMode'])
         
+        # draw grid
         # self.grid.drawMatrixModel(np.eye(4),showFrame=not self.flags['snapMode'])
         
         # draw origin
@@ -149,45 +190,204 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         
         # draw model
         if self.modelDicts['modelNum'] > 0:
+            
+            # run to all model to initialize model
             for idx in range(self.modelDicts['modelNum']):
-                if self.modelDicts['isModelInit'][idx] == 0:
                 
+                # if model is not init
+                if self.modelDicts['isModelInit'][idx] == 0:
+                    
+                    # init model
                     model = self.modelDicts['model'][idx]
                     model.initModel(matrixView = GL.glGetFloatv(GL.GL_MODELVIEW_MATRIX).T)
+                    
+                    # set init model flags to true
                     self.modelDicts['isModelInit'][idx] = 1
             
+            # select model to draw ## because use for test mode ##
             idx = self.testNumber % 2
             model = self.modelDicts['model'][idx]
+            
+            # set pose to move model
+            ### now not use ###
             movePose = self.modelDicts['movepose'][idx]
             
+            # set show or not show model
             model.show = self.flags['showModel']
             
-                
+            # if model is selected
             if model.isSelected:
-                targetPosition,targetRotation,newM = model.followCursor(self.cursor)
                 
+                # move model follow cursor
+                # now use only newM because use transform matrix to draw model
+                targetPosition,targetRotation,newM = model.followCursor(self.cursor)
+            
+            # if model is not selected
             else:
+                
+                # reset value from model
                 model.cursorM = None
                 model.cursorPose = None
                 
+                # if reset mode trigger
                 if self.flags['resetModelTransform']:
-                    model.currentM = np.eye(4)
-                    self.flags['resetModelTransform'] = False
                     
-                targetPosition,targetRotation,newM = model.centerPosition,model.rotation,model.currentM
+                    # set model position to home position ( identity )
+                    model.currentM = np.eye(4)
+                    
+                    # turn off reset flags
+                    self.flags['resetModelTransform'] = False
                 
+                # model position is remain position
+                targetPosition,targetRotation,newM = model.centerPosition,model.rotation,model.currentM
+            
+            # draw model with position and rotation
+            ### now not use ###
             # model.drawModel(position = targetPosition,rotation = targetRotation,showFrame=False)
             
+            # draw model with transform matrix
             model.drawMatrixModel(newM,showFrame=False,wireFrame = self.flags['showModelWireframe'], opacity = self.flags['opacityMode'])
                 
                 
-    def addModel(self,name,drawFunction=None,position=(0,0,0),rotation=(0,0,0),obj=None):
-        model = Model(name,drawFunction,position,rotation,obj=obj)
-        self.modelDicts['model'].append(model)
-        self.modelDicts['movepose'].append([(position[0],position[1],position[2]),(rotation[0],rotation[1],rotation[2])])
-        self.modelDicts['isModelInit'].append(0)
-        self.modelDicts['modelNum'] = len(self.modelDicts['model'])
+                
+    # handle function of opengl window class
+    def handle(self,event):
         
+        # get mouse position
+        xMousePosition = fltk.Fl.event_x()
+        yMousePosition = fltk.Fl.event_y()
+        
+        # if left mouse button is pressed
+        if event == fltk.FL_PUSH and fltk.Fl.event_button() == 1: 
+            # print("mouse position:",xMousePosition,yMousePosition)
+            return 1
+        
+        # check keyborad key event
+        elif event == fltk. FL_KEYUP: #keyboard handle
+            # print("key press : ",chr(fltk.Fl.event_key())) #check key #type:int 
+             #check key #type:int 
+            
+            # toggles show model flags
+            if fltk.Fl.event_key() == ord('q'):
+                self.flags['showModel'] = not self.flags['showModel']
+                
+            # toggles model wireframe mode flags
+            if fltk.Fl.event_key() == ord('5'):
+                self.flags['showModelWireframe'] = not self.flags['showModelWireframe']
+                
+            # toggles model opacity mode flags
+            if fltk.Fl.event_key() == ord('o'):
+                self.flags['opacityMode'] = not self.flags['opacityMode']
+                
+            # reset model position flags
+            if fltk.Fl.event_key() == ord('m'):
+                self.flags['resetModelTransform'] = True
+            
+            # add user profile
+            if fltk.Fl.event_key() == ord('l'):
+                self.addLogProfile()
+            
+            # start test mode
+            if fltk.Fl.event_key() == ord('p'):
+                print("Enable test mode\nNumber of test: ",self.log['testNumber'])
+                self.testMode(self.log['testNumber'])
+            
+            # calculate iou
+            if fltk.Fl.event_key() == ord('d'):
+                
+                # create flags buffer remember current flags
+                oldFlags = self.flags.copy()
+                
+                # set model to solid
+                self.flags['showModelWireframe']=False
+                
+                # turn off opacity
+                self.flags['showModel'] = True
+                
+                # calculate iou
+                score = self.checkIoU()
+                
+                # update flags states from flags buffer
+                self.flags=oldFlags
+                
+                # if in test mode
+                if self.flags['lineupTestMode']:
+                    
+                    # reset model position
+                    self.flags['resetModelTransform'] = True         
+                    
+                    # add iou score to buffer
+                    self.iouScore = np.append(self.iouScore,score)
+                    
+                    # check that test all model or not
+                    self.testMode(self.log['testNumber'])
+                    
+                    # update test number
+                    self.testNumber += 1
+                    
+                    # if still in test mode
+                    if self.flags['lineupTestMode']:
+                        
+                        # open next backdrop
+                        self.openBackdropFile("backdropImg/backdrop_"+str(self.testNumber)+".jpg")
+            
+            # FOR CREATE BACKDROP IMAGE
+            
+            # turn on snap mode
+            if fltk.Fl.event_key() == ord('s'):
+                self.flags['snapMode'] = not self.flags['snapMode']
+                self.redraw()
+                print("set Snapmode",self.flags['snapMode'])
+                
+            # snap current opengl window image
+            if fltk.Fl.event_key() == ord(' ') and self.flags['snapMode']:
+                
+                # set backdrop file name
+                backdropName = "backdropImg/backdrop_" + str(self.nameNumber)
+                
+                # snap current opengl window image and save
+                self.snap(backdropName)
+                
+                # update backdrop number name
+                self.nameNumber = self.nameNumber + 1
+                
+            # STILL TESTING
+            # offset mouse mode
+            if fltk.Fl.event_key() == ord('c'):
+                self.flags['offsetMode'] = not self.flags['offsetMode']
+            
+            # break condition to run main call back
+            fltk.Fl_check()
+            return 1
+        
+        # if no event
+        else:
+            
+            # wait for handle
+            return fltk.Fl_Gl_Window.handle(self, event)
+                
+                
+                
+    # add model to opengl window class
+    def addModel(self,name,drawFunction=None,position=(0,0,0),rotation=(0,0,0),obj=None):
+        
+        # create model class
+        model = Model(name,drawFunction,position,rotation,obj=obj)
+        
+        # add model to model dicts
+        self.modelDicts['model'].append(model)
+        
+        # set move pose to position that create model
+        self.modelDicts['movepose'].append([(position[0],position[1],position[2]),(rotation[0],rotation[1],rotation[2])])
+        
+        # set init model flags to false
+        self.modelDicts['isModelInit'].append(0)
+        
+        # update model number
+        self.modelDicts['modelNum'] = len(self.modelDicts['model'])
+    
+    # move model to specified position
+    ### now not use ###
     def moveModel(self,name,position,rotation):
         for idx in range(self.modelDicts['modelNum']):
             model = self.modelDicts['model'][idx]
@@ -195,93 +395,56 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
                 self.modelDicts['movepose'][idx][0] = 'opacityMode'(position[0],position[1],position[2])
                 self.modelDicts['movepose'][idx][1] = (rotation[0],rotation[1],rotation[2])
      
+    # test mode
     def testMode(self,numberOfBackdrop):
+        
+        # if test mode is not start
         if not self.flags['lineupTestMode']:
+            
+            # start timer
             self.startLineupTime = time.time()
-            # self.testNumber = 0
+            
+            # turn test mode flags to true
             self.flags['lineupTestMode'] = True
         
-
+        # if test all model
         if len(self.iouScore) == numberOfBackdrop:
-            self.testNumber = 0    
+            
+            # reset backdrop number to start backdrop
+            self.testNumber = 0  
+            
+            # stop timer
             self.stopLineupTime = time.time()
+            
+            # turn of test mode flags
             self.flags['lineupTestMode'] = False
+            
+            # add iou score to logger
             self.log["iou"] = self.iouScore
+            
+            # calculate average iou score and at to logger
             self.log["avgIou"] = np.sum(self.iouScore)/numberOfBackdrop
+            
+            # calculate totaltime to logger
             self.log["totalTime"] = self.stopLineupTime - self.startLineupTime
+            
+            # calculate time that use per 1 model
             self.log["modelPerSec"] = (self.stopLineupTime - self.startLineupTime)/5
+            
+            # show score
             print("\nIoU : ",self.log["iou"])
             print("average IoU: ",self.log["avgIou"])
             print("total time: ",self.log["totalTime"])
             print("ModelPerSec: ",self.log["modelPerSec"])
+            
+            # update logger file
             with open("./testLog.csv","a+",newline='') as csvFile:
                 dictWriter = csv.DictWriter(csvFile,fieldnames = self.log.keys())
                 dictWriter.writerow(self.log)
             print("\nFinished Test mode\nsave log at: testLog.csv\n")
             
-                   
-    def handle(self,event):
-        xMousePosition = fltk.Fl.event_x()
-        yMousePosition = fltk.Fl.event_y()
-        
-        if event == fltk.FL_PUSH and fltk.Fl.event_button() == 1: #push left mouse button handle
-            # print("mouse position:",xMousePosition,yMousePosition)
-            return 1
-        
-        elif event == fltk. FL_KEYUP: #keyboard handle
-            # print("key press : ",chr(fltk.Fl.event_key())) #check key #type:int 
-             #check key #type:int 
-            if fltk.Fl.event_key() == ord('5'):
-                self.flags['showModelWireframe'] = not self.flags['showModelWireframe']
-                
-            if fltk.Fl.event_key() == ord('s'):
-                self.flags['snapMode'] = not self.flags['snapMode']
-                self.redraw()
-                print("set Snapmode",self.flags['snapMode'])
-                
-            if fltk.Fl.event_key() == ord(' ') and self.flags['snapMode']:
-                backdropName = "backdropImg/backdrop_" + str(self.nameNumber)
-                self.snap(backdropName)
-                self.nameNumber = self.nameNumber + 1
-                
-            if fltk.Fl.event_key() == ord('d'):
-                oldFlags = self.flags.copy()
-                self.flags['showModelWireframe']=False
-                self.flags['showModel'] = True
-                score = self.checkIoU()
-                self.flags=oldFlags
-                if self.flags['lineupTestMode']:
-                    self.flags['resetModelTransform'] = True             
-                    self.iouScore = np.append(self.iouScore,score)
-                    
-                    self.testMode(self.log['testNumber'])
-                    self.testNumber += 1
-                    
-                    if self.flags['lineupTestMode']:
-                        self.openBackdropFile("backdropImg/backdrop_"+str(self.testNumber)+".jpg")   
-                    
-            if fltk.Fl.event_key() == ord('o'):
-                
-                self.flags['opacityMode'] = not self.flags['opacityMode']
-            if fltk.Fl.event_key() == ord('q'):
-                self.flags['showModel'] = not self.flags['showModel']
-                
-            if fltk.Fl.event_key() == ord('m'):
-                self.flags['resetModelTransform'] = True
-            
-            if fltk.Fl.event_key() == ord('p'):
-                print("Enable test mode\nNumber of test: ",self.log['testNumber'])
-                self.testMode(self.log['testNumber'])
-            if fltk.Fl.event_key() == ord('c'):
-                self.flags['offsetMode'] = not self.flags['offsetMode']
-            if fltk.Fl.event_key() == ord('l'):
-                self.addLogProfile()
-            fltk.Fl_check()
-            return 1
-        
-        else:
-            return fltk.Fl_Gl_Window.handle(self, event)
-        
+
+    # add user profile to logger
     def addLogProfile(self):
         try:
             self.log["name"] = input("Name : ")
@@ -292,75 +455,133 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         except:
             print("Add profile error")
             pass
-        
+    
+    # snap opengl window image
     def snap(self,name, save = True, binary = False):
         
+        # read curren pixel element
         GL.glPixelStorei(GL.GL_PACK_ALIGNMENT, 1)
+        
+        # save pixel to variable as usinged bytes
         data = GL.glReadPixels(0, 0, 600, 600, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE)
+        
+        # convert bytes data to pillow image data
         image = Image.frombytes("RGBX", (600, 600), data)
         
+        # turn image upside down
         image = ImageOps.flip(image) 
+        
+        # set image file name
         imagename = name + ".jpg"
         
+        # if save enable
         if save:
-            print("snap!")
             
+            print("snap!")
             print("save at :",imagename)
             
+            # if binary mode enable
             if binary:
+                
+                # convert image from rgb to binary
                 imagenp = np.asarray(image.convert('RGB')).copy()
                 imagenp[imagenp> 128] = 200
                 imagenp = Image.fromarray(imagenp.astype('uint8'), 'RGB')
+                
+                # save binary image
                 imagenp.save(imagename, 'JPEG')
-            image.save(imagename, 'JPEG')
             
-        else:
-            image = image.convert('L')
-            return image
+            # save image
+            image.save(imagename, 'JPEG')
         
+        # if not save 
+        else:
+            
+            # change image to 8 bits RGB
+            image = image.convert('L')
+            
+            # return gray scale image
+            return image
+    
+    # calculate iou
     def checkIoU(self):
+        
+        # remember current flags to buffer
         oldflags = self.flags.copy()
+        
+        # turn on snap mode
         self.flags['snapMode'] = True
+        
+        # change model to solid
         self.flags['showModelWireframe'] = False
+        
+        # turn off opacity
         self.flags['opacityMode'] = False
+        
+        # set model to show
         self.flags['showModel'] = True
+        
+        # update opengl window
         self.redraw()
         fltk.Fl_check()
         
+        # change backdrop image to 8 bits RGB
         backdropImg = self.backdropImageFile.convert('L')
+        
+        # change backdrop image to binary
         bw = np.asarray(backdropImg).copy()
         bw[bw < 80] = 0    # Black
         bw[bw >= 80] = 255 # White
         
+        # get 8 bits RGB of model image
         testimg = self.snap("test",save=False)
+        
+        # change image to binary
         testbw = np.asarray(testimg).copy()
         testbw[testbw < 80] = 0    # Black
         testbw[testbw >= 80] = 255 # White
         
+        # check intersect pixel
         intersect = np.bitwise_and(bw,testbw)
+        
+        # check union pixel
         union = np.bitwise_or(bw,testbw)
+        
+        # calculate IoU
         iou = np.sum(intersect==255)/np.sum(union==255)
         print("IoU: ",iou)
         
+        # set flags to remain flags
         self.flags = oldflags
         
+        # update opengl window
         self.redraw()
         fltk.Fl_check()
         
+        # return iou score
         return iou
     
+    # create lighting
     def lighting(self):
+        
+        # enable light mode
         GL.glEnable(GL.GL_LIGHTING)
         GL.glEnable(GL.GL_LIGHT0)
+        
+        # set light color and ambient
         ambientLight = [0.2, 0.2, 0.2, 1.0 ] # RGB and alpha channels
         diffuseLight = [0.8, 0.8, 0.8, 1.0 ] # RGB and alpha channels
         GL.glLightfv(GL.GL_LIGHT0, GL.GL_AMBIENT, ambientLight)
         GL.glLightfv(GL.GL_LIGHT0, GL.GL_DIFFUSE, diffuseLight)
         GL.glEnable(GL.GL_COLOR_MATERIAL)
         GL.glColorMaterial(GL.GL_FRONT, GL.GL_AMBIENT_AND_DIFFUSE)
+        
+        # set light source position
+        # x, y, z, alpha
         position = [ 100.0, 0.0, -1.0, 1.0 ]
         GL.glLightfv(GL.GL_LIGHT0, GL.GL_POSITION, position)
 
+    # draw backdrop
     def drawBackdrop(self):
         
         # set camera view
@@ -370,11 +591,14 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         GL.glMatrixMode(GL.GL_MODELVIEW)
         GL.glLoadIdentity()
 
+        # get width and height of backdropImage
         imageW = self.backdropImageFile.size[0]
         imageH = self.backdropImageFile.size[1]
         
+        # if texture id is not set
         if( self.texid == None ):
-        
+            
+            # bind texture
             self.texid = GL.glGenTextures( 1 )
             GL.glEnable( GL.GL_TEXTURE_2D )
             GL.glBindTexture( GL.GL_TEXTURE_2D, self.texid )
@@ -388,14 +612,18 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
             GL.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_REPEAT)
             GL.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST)
             GL.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST)
-            
+        
+        # if not in snap mode
         if not self.flags['snapMode']:
+            
+            # read texture image
             GL.glBindTexture( GL.GL_TEXTURE_2D, self.texid )
             GL.glEnable( GL.GL_TEXTURE_2D )
             
+            # create quads and map texture
             GL.glColor4f(1,1,1,1)
             GL.glBegin(GL.GL_QUADS)
-
+    
             GL.glTexCoord2f(0.0, 0.0)
             GL.glVertex3f( -0.5, -0.5, 0 )
             

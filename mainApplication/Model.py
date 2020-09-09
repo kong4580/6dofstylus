@@ -1,139 +1,221 @@
-from OpenGL import GL, GLUT, GLU
 
-# from fltk import *
 import sys
 from math import sqrt
-import drawFunc 
 import time
+
+from OpenGL import GL, GLUT, GLU
 import numpy as np
 from scipy.spatial import ConvexHull
 from scipy.spatial.transform import Rotation as R
+
+import drawFunc 
 from Obb import OBB
 
 class Model():
+    
+    # init model class
     def __init__(self,name,drawFunction = None,position=(0,0,0),rotation=(0,0,0),obj=None,m =np.eye(4)):
+        
+        # model name
         self.name = name
+        
+        # model position
         self.centerPosition = position
+        
+        # model rotation
         self.rotation = rotation
+        
+        # model draw function
         self.drawFunction = drawFunction
+        
+        # model obj file
         self.obj = obj
+        
+        # model oriented bounding box
         self.obb = None
-        self.isSelected = False
+        
+        # VARIABLE FOR CALCULATE MODEL TRANSFORM FOLLOW CURSOR
+        
+        # model pose and rotation use for calculate follow cursor
         self.realPose = None
         self.cursorPose = None
         self.currentRotation = None
-        self.show = True
+        
+        # model transform use for calculate follow cursor
         self.cursorM = None
         self.currentM = m
         self.startclickM = None
+        
+        # model opacity
         self.opacityValue = 1
+        
+        # model flags
+        self.isSelected = False
+        self.show = True
+        
+    # draw model with transform matrix
     def drawMatrixModel(self, matrix, showFrame=True, enableLight = True,wireFrame = False, opacity = False):
         
+        # start transform matrix in model view
         GL.glMatrixMode(GL.GL_MODELVIEW)
         GL.glPushMatrix()
         GL.glLoadIdentity()
         
+        # if model is cursor
         if self.name == 'cursor':
             
+            # transform axis form stylus to opengl axis
             transform = np.array([[0,1,0,0],
                                 [0,0,1,0],
                                 [1,0,0,0],
                                 [0,0,0,1]])
-            
-            
-            # transform = np.array([[0.866,-0.5,0,0],
-            #                     [0.5,0.866,0,0],
-            #                     [0,0,1,0],
-            #                     [0,0,0,1]])
-            # transform = np.eye(4)
+
+        # if model is not cursor
         else:
-            transform = np.eye(4)
             
+            # set transform matrix to identity 4*4
+            transform = np.eye(4)
+        
+        # create new transform matrix
+        # tNew = tOld * inputMatrix
         nmatrix = np.dot(transform,matrix)
+        
+        # apply transform to model
         GL.glLoadMatrixf(nmatrix.T)
+        
+        # set current model matrix from modelview matrix
         self.currentM = GL.glGetFloatv(GL.GL_MODELVIEW_MATRIX).T
+        
+        # set model center position
         self.centerPosition = self.currentM[0:3,3]
         
+        # if model is obj firl
         if self.obj!=None:
             
+            # if model show flags is true
             if self.show:
+                
+                # if show OBB
                 if self.obb.show:
+                    
+                    # set gl to draw obb in line mode
                     GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_LINE)
+                    
+                    # draw obb from list
                     GL.glCallList(self.obb.gl_list)
+                
+                # if wireFrame is enable
                 if wireFrame:
                     
+                    # turn off back face
                     GL.glEnable(GL.GL_CULL_FACE)
                     GL.glCullFace(GL.GL_BACK)
+                    
+                    # draw model in line mode
                     GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_LINE)
+                
+                # if wireFrame is disable
                 else:
+                    
+                    # draw model in solid mode
                     GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL)
                 
+                # if model is selected
                 if self.isSelected:
+                    
+                    # set model color to sky color
                     color = drawFunc.SkyColorVector
                     
+                # if model is not selected
                 else:
+                    
+                    # set model color to white
                     color = drawFunc.WhiteColorVector
                 
+                # if opacity is enable
                 if opacity:
-                    self.opacityValue = 0.75
-                else:
-                    self.opacityValue = 1
                     
+                    # set model opacity to 0.75
+                    self.opacityValue = 0.75
+                    
+                # if opacity is disable
+                else:
+                    
+                    # set model opacity to 1
+                    self.opacityValue = 1
+                
+                # add opacityValue to color vector
                 color = list(color).copy()
                 color.append(self.opacityValue)
+                
+                # set model color
                 GL.glColor4fv(tuple(color))
                 
+                # set mode attribute
                 GL.glPushAttrib(GL.GL_COLOR_BUFFER_BIT)
                 GL.glEnable(GL.GL_BLEND)
                 GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
+                
+                # if disable lighting
                 if not enableLight:
+                    # turn off lighting
                     GL.glDisable(GL.GL_LIGHTING)
+                    
+                # draw model
                 GL.glCallList(self.obj.gl_list)
+                
+                # if disable lighting
                 if not enableLight:
+                    # turn on lighting
                     GL.glEnable(GL.GL_LIGHTING)
+                
+                # change draw mode to solid
                 GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL)
+                
+                # reset attribute to remain attribute
                 GL.glDisable(GL.GL_BLEND)
                 GL.glPopAttrib()
-                # glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
                 
-                # glColor3fv(drawFunc.MagentaColorVector)
-                # drawFunc.coordinate()
-                # print(nmatrix)
-                
-                # glCallList(self.obj.shadow_gl_list)
-            # self.obb.current_homo = np.dot(glGetFloatv(GL_MODELVIEW_MATRIX).T,self.obb.homo)
+            # set obb transform matrix
             self.obb.current_homo = self.currentM
             
+            # transform obb point to current model transform
             for idx in range(len(self.obb.points)):
-                
                 pointIdx = np.append(self.obb.points[idx].copy(),1)
                 self.obb.current_point[idx] = np.dot(self.obb.current_homo.copy(),pointIdx.T)[0:3]
                 
-            # print("after",self.obb.current_point)
+            # update obb centroid
             obbCentroid = np.append(self.obb.current_centroid,1)
             self.obb.current_centroid = np.dot(self.obb.current_homo,obbCentroid)[0:3]
             
+            # update model vertices position
             for idx in range(len(self.obj.vertices)):
                 verIdx = np.append(self.obj.vertices[idx].copy(),1)
-        
-                
                 self.obj.current_vertices[idx] = np.dot(GL.glGetFloatv(GL.GL_MODELVIEW_MATRIX).T,verIdx.T)[0:3]
             
-            
+        # if model is not obj file    
         else:
+            
+            # if model is show
             if self.show:
+                
+                # draw model from drawFunction
                 self.drawFunction()
+                
+                # disable light to draw model frame
                 GL.glDisable(GL.GL_LIGHTING)
                 drawFunc.coordinate()
                 GL.glEnable(GL.GL_LIGHTING)
-        
+                
+        # draw model frame
         if showFrame:
             drawFunc.coordinate()
                 
         GL.glPopMatrix()
         
         
-        
+    # draw model with position and rotation
+    ### now not use ###
     # def drawModel(self,position=(0,0,0),rotation=(0,0,0),showFrame=False):
         
     #     if self.drawFunction != None:
@@ -226,15 +308,19 @@ class Model():
     #     else:
     #         print("No model draw function")
     
+    # update model position
+    ### now not use ###
     def __updatePosition(self,position=(0,0,0),rotation=(0,0,0)):
         self.centerPosition = position
         
             
         self.rotation = rotation
 
+    # get model name
     def getName(self):
         return self.name
     
+    # check if point is inside OBB
     def isPointInsideOBB(self,point):
         
         centroidToPoint = point - self.obb.current_centroid
@@ -251,27 +337,46 @@ class Model():
             return True
         else:
             return False
-        
+    
+    # check is point inside model
     def isPointInsideConvexHull(self,point):
         
+        # create convex hull of model with current vertices
         hull = ConvexHull(self.obj.current_vertices,incremental = True)
+        
+        # add point into hull and draw new convexHull
         newHull = ConvexHull(np.concatenate((hull.points, [point])))
         
+        # if shape of hull and newHull is the same, then this point is inside model
         if np.array_equal(newHull.vertices, hull.vertices): 
             return True
         
+        # if shape of newHull is not the same, then this point is outside model
         return False
     
+    # create OBB around model
     def createOBB(self,showOBB=False):
+        
+        # create buffer
         indices = []
+        
+        # add each face to buffer
         for face in self.obj.faces:
             indices.append(face[0][0] - 1)
             indices.append(face[0][1] - 1)
             indices.append(face[0][2] - 1)
+            
+        # create obb
         self.obb = OBB.build_from_triangles(self.obj.vertices, indices)
+        
+        # generate list to draw obb
         self.obb.gl_list = GL.glGenLists(1)
-        self.obb.show = showOBB
         GL.glNewList(self.obb.gl_list, GL.GL_COMPILE)
+        
+        # set obb show
+        self.obb.show = showOBB
+        
+        # begin draw obb
         GL.glBegin(GL.GL_LINES)
         GL.glColor3fv((1, 0, 0))
 
@@ -317,39 +422,59 @@ class Model():
         GL.glEnd()
         GL.glEndList()
     
+    # init model
     def initModel(self,matrixView):
+        
+        # init obj class
         self.obj.initOBJ()
+        
+        # update vertices
         self.obj.current_vertices = self.obj.vertices.copy()
         # self.obj.createShadow()
+        
+        # create OBB
         self.createOBB(showOBB=False)
+        
+        # update obb variable
         self.obb.current_point = self.obb.points
         self.obb.current_centroid = self.obb.centroid
         self.obb.current_homo = np.dot(matrixView,self.obb.homo)
         if self.obj != None:
             # print(self.name)
             self.centerPosition -=self.obb.current_centroid
-            
+    
+    # move model follow cursor
     def followCursor(self,cursor):
+        
+        # if not init
         if self.cursorPose == None or type(self.cursorM) == type(None):
+            
+            # remember rotattion and position
+            ### now not use ###
             self.cursorPose = cursor.rotation
             self.currentRotation = self.rotation
             
+            # remember cursor transform matrix when first clicked
             self.cursorM = cursor.currentM.copy()
-            self.startclickM = self.currentM.copy()
             
+            # remember model transform matrix when first clicked
+            self.startclickM = self.currentM.copy()
+        
+        # calcualte delta TRANSFORM of cursor that first clicked and current cursor transform
         deltaTransform = np.dot(cursor.currentM,np.linalg.inv(self.cursorM))
+        
+        # calculate new model transformation
         newM = np.eye(4)
-        
-        # self.startclickM[0:3] = cursor.currentM[0:3]
-        
         newM = np.dot(deltaTransform,self.startclickM)
         
+        # calculate new rotation
+        ### now not use ###
         deltaRot = np.asarray(list(cursor.rotation)) - np.asarray(list(self.cursorPose))
         newRotation = self.currentRotation
-        
         if deltaRot[0]**2+deltaRot[1]**2+deltaRot[2]**2 >=0.1: 
             newRotation = self.currentRotation + deltaRot
         
+        # return new model transform
         return cursor.centerPosition,newRotation,newM
         
         

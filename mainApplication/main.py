@@ -8,7 +8,7 @@ from functools import partial
 
 from StylusReciever import StylusReciever
 from Stylus import Stylus
-# from Guifunc import updateUI, OpenGLWindow, createOutputWidget
+
 from GUI import Gui
 import drawFunc
 from Model import Model,OBJ
@@ -47,7 +47,6 @@ def openGUI(samplingRate = 0.005):
     gui.addModel('teapot',teapot.initOBJ,obj=teapot)
     bunny = OBJ('./bunny.obj',scale=20)
     gui.addModel('bunny',bunny.initOBJ,obj=bunny)
-    # gui.moveModel('teapot',position = (5,0,0),rotation = (90,0,0))
     
     # open GUI window
     gui.window.show()
@@ -56,7 +55,7 @@ def openGUI(samplingRate = 0.005):
     uiCallback = partial(callback,samplingRate,gui)
     fltk.Fl_add_timeout(samplingRate,uiCallback)
     
-    # open application
+    # print description
     print("Start Program ...")
     print("""
             Key\t\tDescription
@@ -67,6 +66,8 @@ def openGUI(samplingRate = 0.005):
              L\t\tAdd User profie
              P\t\tStart test mode (start timer)
              D\t\tCalculate IoU\n\t\t\tWhile press D in test mode backdrop and model will switch to next one\n\t\t\tAfter finish test mode data will update in testLog.csv""")
+    
+    # open application
     return fltk.Fl_run()
 
 if __name__ == '__main__':
