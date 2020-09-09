@@ -272,11 +272,11 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
                 self.flags['showModel'] = not self.flags['showModel']
                 
             # toggles model wireframe mode flags
-            if fltk.Fl.event_key() == ord('5'):
+            if fltk.Fl.event_key() == ord('1'):
                 self.flags['showModelWireframe'] = not self.flags['showModelWireframe']
                 
             # toggles model opacity mode flags
-            if fltk.Fl.event_key() == ord('o'):
+            if fltk.Fl.event_key() == ord('2'):
                 self.flags['opacityMode'] = not self.flags['opacityMode']
                 
             # reset model position flags

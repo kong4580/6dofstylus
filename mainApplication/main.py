@@ -60,8 +60,8 @@ def openGUI(samplingRate = 0.005):
     print("""
             Key\t\tDescription
              Q\t\tShow and hide model
-             5\t\tShow model wireframe
-             O\t\tTurn model to opacity 50%
+             1\t\tShow model wireframe
+             2\t\tTurn model to opacity 50%
              M\t\tReset model position
              L\t\tAdd User profie
              P\t\tStart test mode (start timer)
