@@ -115,8 +115,10 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
         
         GL.glDisable(GL.GL_DEPTH_TEST)
-        
+        GL.glDisable(GL.GL_LIGHTING)
         self.drawBackdrop()
+        GL.glEnable(GL.GL_LIGHTING)
+        
         GL.glEnable(GL.GL_DEPTH_TEST)
 
         # set camera view

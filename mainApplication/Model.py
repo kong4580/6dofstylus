@@ -75,7 +75,7 @@ class Model():
                     color = drawFunc.WhiteColorVector
                 
                 if opacity:
-                    self.opacityValue = 0.5
+                    self.opacityValue = 0.75
                 else:
                     self.opacityValue = 1
                     
