@@ -58,13 +58,22 @@ def openGUI(samplingRate = 0.005):
     
     # open application
     print("Start Program ...")
+    print("""
+            Key\t\tDescription
+             Q\t\tShow and hide model
+             5\t\tShow model wireframe
+             O\t\tTurn model to opacity 50%
+             M\t\tReset model position
+             L\t\tAdd User profie
+             P\t\tStart test mode (start timer)
+             D\t\tCalculate IoU\n\t\t\tWhile press D in test mode backdrop and model will switch to next one\n\t\t\tAfter finish test mode data will update in testLog.csv""")
     return fltk.Fl_run()
 
 if __name__ == '__main__':
     
     # declare port
-    port = '/dev/pts/1' # ubuntu port
-    # port = '/dev/ttyUSB0' # arduino port
+    # port = '/dev/pts/1' # ubuntu port
+    port = '/dev/ttyUSB0' # arduino port
     
     # declare constants
     samplingRate = 0.005

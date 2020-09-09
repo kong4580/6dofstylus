@@ -1,8 +1,6 @@
-# from OpenGL.GL import *
-# from OpenGL.GLUT import *
-# from OpenGL.GLU import *
+
 from OpenGL import GL, GLUT, GLU
-# from PIL.Image import *
+
 
 from PIL import Image
 from PIL import ImageOps
@@ -16,6 +14,7 @@ from Model import Model,OBJ
 import numpy as np
 from scipy.spatial.transform import Rotation as R
 import time
+
 class OpenGLWindow(fltk.Fl_Gl_Window):
     def __init__(self, xpos, ypos, width, height, label):
         fltk.Fl_Gl_Window.__init__(self, xpos, ypos, width, height, label)
@@ -51,6 +50,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
                         "department":None,
                         "mayaFamiliar":None,
                         "dominantHand":None,
+                        "testNumber":6,
                         "iou":None,
                         "avgIou":None,
                         "totalTime":None,
@@ -208,14 +208,14 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
             self.log["avgIou"] = np.sum(self.iouScore)/numberOfBackdrop
             self.log["totalTime"] = self.stopLineupTime - self.startLineupTime
             self.log["modelPerSec"] = (self.stopLineupTime - self.startLineupTime)/5
-            print("IoU : ",self.log["iou"])
+            print("\nIoU : ",self.log["iou"])
             print("average IoU: ",self.log["avgIou"])
             print("total time: ",self.log["totalTime"])
             print("ModelPerSec: ",self.log["modelPerSec"])
             with open("./testLog.csv","a+",newline='') as csvFile:
                 dictWriter = csv.DictWriter(csvFile,fieldnames = self.log.keys())
                 dictWriter.writerow(self.log)
-            print(self.log)
+            print("\nFinished Test mode\nsave log at: testLog.csv\n")
             
                    
     def handle(self,event):
@@ -223,11 +223,11 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         yMousePosition = fltk.Fl.event_y()
         
         if event == fltk.FL_PUSH and fltk.Fl.event_button() == 1: #push left mouse button handle
-            print("mouse position:",xMousePosition,yMousePosition)
+            # print("mouse position:",xMousePosition,yMousePosition)
             return 1
         
         elif event == fltk. FL_KEYUP: #keyboard handle
-            print("key press : ",chr(fltk.Fl.event_key())) #check key #type:int 
+            # print("key press : ",chr(fltk.Fl.event_key())) #check key #type:int 
              #check key #type:int 
             if fltk.Fl.event_key() == ord('5'):
                 self.flags['showModelWireframe'] = not self.flags['showModelWireframe']
@@ -252,13 +252,14 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
                     self.flags['resetModelTransform'] = True             
                     self.iouScore = np.append(self.iouScore,score)
                     
-                    self.testMode(6)
+                    self.testMode(self.log['testNumber'])
                     self.testNumber += 1
                     
                     if self.flags['lineupTestMode']:
                         self.openBackdropFile("backdropImg/backdrop_"+str(self.testNumber)+".jpg")   
                     
             if fltk.Fl.event_key() == ord('o'):
+                
                 self.flags['opacityMode'] = not self.flags['opacityMode']
             if fltk.Fl.event_key() == ord('q'):
                 self.flags['showModel'] = not self.flags['showModel']
@@ -267,8 +268,8 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
                 self.flags['resetModelTransform'] = True
             
             if fltk.Fl.event_key() == ord('p'):
-                print("Enable test mode")
-                self.testMode(6)
+                print("Enable test mode\nNumber of test: ",self.log['testNumber'])
+                self.testMode(self.log['testNumber'])
             if fltk.Fl.event_key() == ord('c'):
                 self.flags['offsetMode'] = not self.flags['offsetMode']
             if fltk.Fl.event_key() == ord('l'):
@@ -278,12 +279,14 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         
         else:
             return fltk.Fl_Gl_Window.handle(self, event)
+        
     def addLogProfile(self):
         try:
             self.log["name"] = input("Name : ")
             self.log["department"] = input("Department : ")
             self.log["mayaFamiliar"] = input("Software Maya Familiar : ")
             self.log["dominantHand"] = input("Dominant Hand : ")
+            print("Add User profile to logger!\n")
         except:
             print("Add profile error")
             pass
