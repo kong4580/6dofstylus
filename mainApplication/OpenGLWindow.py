@@ -73,6 +73,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
                         "totalTime":None,
                         "modelPerSec":None
                     }
+        self.logFileName = "./testLogStylus.csv"
     
     # open backdrop file
     def openBackdropFile(self, filename):
@@ -438,10 +439,10 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
             print("ModelPerSec: ",self.log["modelPerSec"])
             
             # update logger file
-            with open("./testLog.csv","a+",newline='') as csvFile:
+            with open(self.logFileName,"a+",newline='') as csvFile:
                 dictWriter = csv.DictWriter(csvFile,fieldnames = self.log.keys())
                 dictWriter.writerow(self.log)
-            print("\nFinished Test mode\nsave log at: testLog.csv\n")
+            print("\nFinished Test mode\nsave log at: {}\n".format(self.logFileName))
             
 
     # add user profile to logger
