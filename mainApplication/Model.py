@@ -116,6 +116,8 @@ class Model():
                 
                 # if wireFrame is disable
                 else:
+                    # turn off wireFrame
+                    GL.glDisable(GL.GL_CULL_FACE)
                     
                     # draw model in solid mode
                     GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL)

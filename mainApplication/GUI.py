@@ -120,6 +120,7 @@ class Gui():
         cursorTransform[1,3] -= self.cfg["homeCfg"][1]
         cursorTransform[2,3] -= self.cfg["homeCfg"][2]
         
+        # cursorTransform[0:3,3] = cursorTransform[0:3,3].copy() * self.cursorSpeed
         # offset mouse mode
         if self.openglWindow.flags['offsetMode']:
             
