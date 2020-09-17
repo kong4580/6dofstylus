@@ -18,10 +18,13 @@ class Gui():
     def __init__(self):
         
         # init fltk window
-        self.__initWindow(size=(800,600),name="UI")
+        self.__initWindow(900,600,name="UI")
         
         # init opengl window class
-        self.__initOpenglWindow(size=(0,0,600,600),name="opengl")
+        self.__initOpenglWindow(0,0,600,600,name="opengl")
+
+        # resize window
+        self.window.resizable(self.openglWindow)
         
         # init side output
         self.__initOutputWidgetStorage()
@@ -38,15 +41,15 @@ class Gui():
         self.offsetCursor = np.eye(4)
         
     # init fltk window
-    def __initWindow(self,size=(800,600),name="UI"):
+    def __initWindow(self,width,height,name="UI"):
         print("Init GUI window ... ",end="")
-        self.window = fltk.Fl_Window(size[0],size[1],name)
+        self.window = fltk.Fl_Window(width,height,name)
         print("Done !")
         
     # init opengl window
-    def __initOpenglWindow(self,size=(0,0,600,600),name="opengl"):
+    def __initOpenglWindow(self,xpos,ypos,width,height,name="opengl"):
         print("Init openGl window ... ",end="")
-        self.openglWindow = OpenGLWindow(size[0],size[1],size[2],size[3],name)
+        self.openglWindow = OpenGLWindow(xpos,ypos,width,height,name)
         print("Done !")
         
     # init side output

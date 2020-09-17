@@ -145,13 +145,19 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         # set matrix mode to projection matrix
         GL.glMatrixMode(GL.GL_PROJECTION)
         
-        # reset matrix to identity
-        GL.glLoadIdentity()
-        
-        # set area of screen
-        # minX, maxX, minY, maxY, minZ, maxZ
-        GL.glFrustum(-1, 1, -1, 1, 1, 100)
+        valid = False
+        if (not valid) :
+            valid = True
+            
+            # reset matrix to identity
+            GL.glLoadIdentity()
 
+            # set new viewport if window resize
+            GL.glViewport(0,0,self.w(),self.h())
+            
+            # minX, maxX, minY, maxY, minZ, maxZ
+            GL.glFrustum((-1*(self.w()/self.h())), (1*(self.w()/self.h())), -1, 1, 1, 100)
+    
         # offset camera view
         GL.glTranslatef(self.scaleY,self.scaleZ,self.scaleX)
         
@@ -169,7 +175,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         GL.glLoadIdentity()
         
         # look at far from infront of model 10 units (toward Z axis)
-        GLU.gluLookAt(0, 0, 10, 0, 0, 0, 0, 1, 0)
+        # GLU.gluLookAt(0, 0, 10, 0, 0, 0, 0, 1, 0)
         
         
         # DRAW MODEL
@@ -597,7 +603,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         # set camera view
         GL.glMatrixMode(GL.GL_PROJECTION)
         GL.glLoadIdentity()
-        GL.glOrtho( -0.5, 0.5, -0.5, 0.5, -0.5, 1 )
+        GL.glOrtho( -0.5*(self.w()/self.h()), 0.5*(self.w()/self.h()), -0.5, 0.5, -0.5, 1 )
         GL.glMatrixMode(GL.GL_MODELVIEW)
         GL.glLoadIdentity()
 
