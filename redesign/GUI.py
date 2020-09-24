@@ -22,6 +22,9 @@ class Gui():
         
         # init opengl window class
         self.__initOpenglWindow(size=(0,0,600,600),name="opengl")
+
+        #resize fltk and opengl window
+        self.window.resizable(self.openglWindow)
         
         # init side output
         self.__initOutputWidgetStorage()
@@ -37,6 +40,18 @@ class Gui():
         self.initHoldCursor = None
         self.offsetCursor = np.eye(4)
         
+        # variable for creating log 
+        self.addLog = False
+        self.log = {
+                        "name":None,
+                        "department":None,
+                        "mayaFamiliar":None,
+                        "dominantHand":None,
+                        "testNumber":6
+                    }
+        # log file name
+        self.logFileName = "./testLogStylus.csv"
+
     # init fltk window
     def __initWindow(self,size=(800,600),name="UI"):
         print("Init GUI window ... ",end="")
@@ -52,7 +67,231 @@ class Gui():
     # init side output
     def __initOutputWidgetStorage(self):
         self.outputWidgetStorage = self.__createOutputWidget()
+        self.cameraSliderBarWidget()
+        self.cameraInputWidget()
+        # self.positionOutputWidget()
+        self.textWidget()
     
+    # create text widget
+    def textWidget(self):
+        disp = fltk.Fl_Text_Display(600, 250, 300, 350, "Shortcut Key")
+        tbuff = fltk.Fl_Text_Buffer()
+        disp.buffer(tbuff)
+        tbuff.text("Key\tDescription\n"
+                   " Q\tShow and hide model\n"
+                   " 1\tShow model wireframe\n"
+                   " 2\tTurn model to opacity 50%\n"
+                   " M\tReset model position\n"
+                   " L\tAdd User profie\n"
+                   " P\tStart test mode (start timer)\n"
+                   " D\tCalculate IoU\n"
+                   " W\tTranslation Mode\n"
+                   "\n"
+                   "In Translation Mode\n"
+                   "**USE Scrollbar to translate\nalong Z-axis\n"
+                   "**USE Mouse Drag to translate\n in XY-plane\n"
+                   "\n"
+                   "In Rotation Mode\n"
+                   "Key to rotate around\n"
+                   " Z\tBLUE axis\n"
+                   " X\tRED  axis\n"
+                   " C\tGreen axis\n"
+                   "**USE Scrollbar or Mouse Drag\n to rotate object\n "
+                   )
+
+    # create slider bar widget
+    def __createSliderBarWidget(self,xSliderBarPosition,ySliderBarPosition,widthSliderBar,heightSliderBar,nameLabel,minValue,maxValue,beginValue,stepValue):
+            slider = fltk.Fl_Hor_Slider(xSliderBarPosition,ySliderBarPosition,widthSliderBar,heightSliderBar)
+            slider.minimum(minValue)
+            slider.maximum(maxValue)
+            slider.value(beginValue)
+            slider.step(stepValue)
+            slider.align(fltk.FL_ALIGN_LEFT)
+            return slider
+
+    # create input widget
+    def __createInputWidget(self,xInputPosition,yInputPosition,widthInput,heightInput,nameLabel,beginValue):
+            inp = fltk.Fl_Input(xInputPosition,yInputPosition,widthInput,heightInput,nameLabel)
+            inp.value(str(beginValue))
+            inp.align(fltk.FL_ALIGN_LEFT)
+            inp.when(fltk.FL_WHEN_ENTER_KEY)
+            return inp
+    
+    # create output widget
+    def __createOutputWidget(self,xInputPosition,yInputPosition,widthInput,heightInput,nameLabel,beginValue):
+            out = fltk.Fl_Output(xInputPosition,yInputPosition,widthInput,heightInput,nameLabel)
+            out.value(str(beginValue))
+            out.align(fltk.FL_ALIGN_LEFT)
+            return out
+
+    #bunch of slider bar for controlling this UI
+    def __allsliderBarWidget(self):
+        self.storageArea = []
+        # self.sliderBarValue =[0, 0, 0, 0, 0, 0, 0, 0, 0]
+        self.sliderBarValue = self.openglWindow.positionValue
+        self.nameLabel = ["TransX", "TransY", "TransZ", "RotX", "RotY", "RotZ"]
+        minValue =       [-10     , -10     , -10     , -180  , -180  , -180  ]
+        maxValue =       [ 10     ,  10     ,  10     ,  180  ,  180  ,  180  ]
+        stepValue = 0.1
+        yWidgetPosition = 0
+        for n in range(6) :
+            slider = self.__createSliderBarWidget(695,yWidgetPosition,105,25,self.nameLabel[n],minValue[n],maxValue[n],self.sliderBarValue[n],stepValue)
+            yWidgetPosition = yWidgetPosition + 25
+            slider.callback(self.__sliderCB,n)
+            self.storageArea.append(slider)
+    
+    # camera sliderbar control widget
+    def cameraSliderBarWidget(self):
+        self.storageCamera = []
+        self.cameravalue= self.openglWindow.cameravalue
+        self.nameLabel = ["Zoom", "CameraX", "CameraY"]
+        minValue =       [ 0.01     , -1     , -1     ]
+        # minValue = [1]*6
+        maxValue =       [ 10       ,  1     ,  1     ]
+        stepValue = 0.001
+        yWidgetPosition = 150
+        for n in range(3) :
+            slider = self.__createSliderBarWidget(695,yWidgetPosition,105,25,self.nameLabel[n],minValue[n],maxValue[n],self.cameravalue[n],stepValue)
+            yWidgetPosition = yWidgetPosition + 25
+            slider.callback(self.__sliderCameraCB,n)
+            self.storageCamera.append(slider)
+
+    # model position output        
+    def positionOutputWidget(self):
+        self.storageOutput = []
+        yWidgetPosition = 0
+        self.sliderBarValue = self.openglWindow.positionValue
+        self.nameLabel = ["TransX", "TransY", "TransZ", "RotX", "RotY", "RotZ"]
+        for n in range(6) :
+            output = self.__createOutputWidget(655,yWidgetPosition,145,25,self.nameLabel[n],self.sliderBarValue[n])
+            yWidgetPosition = yWidgetPosition + 25
+            output.callback(self.__outputCB,n)
+            self.storageOutput.append(output)
+        # update fltk from opengl 
+
+    def updateFltk(self):
+        for i in range(len(self.nameLabel)):
+            # self.storageArea[i].value(self.openglWindow.positionValue[i])
+            # self.storageInput[i].value(str(self.openglWindow.positionValue[i]))
+            self.storageOutput[i].value(str(self.openglWindow.positionValue[i]))
+        self.addLog = self.openglWindow.addLog
+        self.loghandle()
+
+    # collect information from tester
+    def loghandle(self):
+        if self.addLog == True:
+            self.createlogWindow()
+            self.addLog = False
+            self.openglWindow.addLog = False
+        if self.openglWindow.logfinish == True:
+            # print(self.openglWindow.log)
+            self.log.update(self.openglWindow.log)
+            with open(self.logFileName,"a+",newline='') as csvFile:
+                dictWriter = csv.DictWriter(csvFile,fieldnames = self.log.keys())
+                dictWriter.writerow(self.log)
+            # print(self.log)
+            print("\nFinished Test mode\nsave log at: {}\n".format(self.logFileName))
+            self.openglWindow.logfinish = False
+
+    # create log window
+    def createlogWindow(self):
+        x = 150
+        self.logWindow = fltk.Fl_Window(500,200)
+        self.name = fltk.Fl_Input(x,10,300,25,"Name                  ")
+        self.department = fltk.Fl_Input(x,40,300,25,"Department       ")
+        self.Hand = fltk.Fl_Choice(x,70,300,25,"Dominant Hand")
+        self.Hand.add("Right")
+        self.Hand.add("Left")
+        self.Hand.value(0)
+        self.Maya = fltk.Fl_Choice(x,100,300,25,"Maya Familiar   ")
+        for i in range(11):
+            self.Maya.add(str(i))
+        self.Maya.value(0)
+        button = fltk.Fl_Button(200,150,100,25,"Confirm")
+        button.callback(self.buttonCB,1)
+        self.logWindow.show()
+        self.logWindow.end()
+        if self.addLog == False:
+            self.logWindow.hide()
+        elif self.addLog == True:
+            self.logWindow.show()
+
+    # buttin callback from log window
+    def buttonCB(self,widget,v):
+        self.logWindow.hide()
+        self.log["name"] = self.name.value()
+        self.log["department"] = self.department.value()
+        self.log["mayaFamiliar"] = self.Maya.value()
+        strhand = ""
+        if self.Hand.value() == 0:
+            strhand = "Right"
+        if self.Hand.value() ==1:
+            strhand = "Left"
+        self.log["dominantHand"] = strhand
+        # print(self.log)
+        
+    # bunch of input for controlling this UI
+    def cameraInputWidget(self):
+        self.storageInput = []
+        yWidgetPosition = 150
+        self.cameravalue = self.openglWindow.cameravalue
+        self.nameLabel = ["Zoom", "CamX", "CamY"]
+        for n in range(3) :
+            inp = self.__createInputWidget(655,yWidgetPosition,40,25,self.nameLabel[n],self.cameravalue[n])
+            yWidgetPosition = yWidgetPosition + 25
+            inp.callback(self.__inputCB,n)
+            self.storageInput.append(inp)
+
+
+    # camera slider bar call back
+    def __sliderCameraCB(self,widget, v):
+        widgetValue = widget.value()
+        self.cameravalue[v] = widgetValue
+        self.storageInput[v].value(str(widgetValue))
+        self.openglWindow.getCameraFromSlider(v,widgetValue)
+        self.openglWindow.redraw()
+    
+    # camera input call back
+    def __inputCB(self,widget, v):
+        widgetValue = float(widget.value())
+        widget.value(str(widgetValue))
+        self.cameravalue[v] = widgetValue
+        self.openglWindow.getCameraFromSlider(v,widgetValue)
+        self.openglWindow.redraw()
+
+    # model position output call back
+    def __outputCB(self,widget, v):
+        widgetValue = float(widget.value())
+        widget.value(str(widgetValue))
+        self.sliderBarValue[v] = widgetValue
+        self.openglWindow.getPositionFromSlider(v,widgetValue)
+        self.openglWindow.redraw()
+
+    # camera slider bar call back
+    def __sliderCameraCB(self,widget, v):
+        widgetValue = widget.value()
+        self.cameravalue[v] = widgetValue
+        self.storageInput[v].value(str(widgetValue))
+        self.openglWindow.getCameraFromSlider(v,widgetValue)
+        self.openglWindow.redraw()
+    
+    # camera input call back
+    def __inputCB(self,widget, v):
+        widgetValue = float(widget.value())
+        widget.value(str(widgetValue))
+        # self.storageArea[v].value(widgetValue)
+        self.cameravalue[v] = widgetValue
+        self.openglWindow.getCameraFromSlider(v,widgetValue)
+        self.openglWindow.redraw()
+
+    # model position output call back
+    def __outputCB(self,widget, v):
+        widgetValue = float(widget.value())
+        widget.value(str(widgetValue))
+        self.sliderBarValue[v] = widgetValue
+        self.openglWindow.getPositionFromSlider(v,widgetValue)
+        self.openglWindow.redraw()
+
     # draw side output
     def __createOutputWidget(self):
         
@@ -68,35 +307,6 @@ class Gui():
             output.align(fltk.FL_ALIGN_LEFT)
             output.value("0")
             storage_area.append(output)
-        
-        # create camera control slider
-        y=150
-        name_Scale = ["ScaleX","ScaleY","ScaleZ","RotX","RotY","RotZ"]
-        for n in range(6):
-            slider = fltk.Fl_Hor_Value_Slider(655, y, 145,25,name_Scale[n])
-            y = y + 25
-            slider.minimum(-50)
-            slider.maximum(100)
-            slider.value(0)
-            slider.align(fltk.FL_ALIGN_LEFT)
-            sldCallback = partial(Gui.__sliderScaleCB,self.openglWindow)
-            slider.callback(sldCallback, n)
-        
-        # create mouse speed control slider
-        slider = fltk.Fl_Hor_Value_Slider(655, y, 145,25,'mouseSpeed')
-        slider.minimum(0)
-        slider.maximum(10)
-        slider.value(5)
-        slider.align(fltk.FL_ALIGN_LEFT)
-        sldCallback = partial(Gui.__sliderMouseCB,self)
-        slider.callback(sldCallback, 4)
-        
-        # add value to opengl window class
-        self.openglWindow.readScaleX(-10)
-        self.openglWindow.readScaleY(0)
-        self.openglWindow.readScaleZ(0)
-        
-        # return side output position and value
         return storage_area
            
            
@@ -251,39 +461,3 @@ class Gui():
             
             # change model to not selected
             model.isSelected = False
-    
-    # set cursor speed
-    def setMouseSpeed(self,speed):
-        self.cursorSpeed = speed
-    
-    
-    
-    # Callback
-    # camera control slider call back
-    @staticmethod
-    def __sliderScaleCB(opengl,widget,v):
-        a = widget.value()
-        size = (a/10)
-        if v == 0:
-            size = size -10
-            opengl.readScaleX(size)
-        elif v == 1:
-            opengl.readScaleY(size)
-        elif v==2:
-            opengl.readScaleZ(size)
-        elif v == 3:
-            # size = size -10
-            opengl.readRotX(size)
-        elif v == 4:
-            opengl.readRotY(size)
-        elif v==5:
-            opengl.readRotZ(size)
-        opengl.redraw()
-    
-    # mouse speed slider callback
-    @staticmethod
-    def __sliderMouseCB(GUI,widget,v):
-        mouseSpeed = widget.value()/10
-        GUI.setMouseSpeed(mouseSpeed)
-    
-    
