@@ -75,8 +75,8 @@ def openGUI(samplingRate = 0.005):
 if __name__ == '__main__':
     
     # declare port
-    # port = '/dev/pts/4' # ubuntu port
-    port = '/dev/ttyUSB1' # arduino port
+    port = '/dev/pts/4' # ubuntu port
+    # port = '/dev/ttyUSB1' # arduino port
     
     # declare constants
     samplingRate = 0.005

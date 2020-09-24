@@ -190,10 +190,16 @@ class Gui():
             with open(self.logFileName,"a+",newline='') as csvFile:
                 dictWriter = csv.DictWriter(csvFile,fieldnames = self.log.keys())
                 dictWriter.writerow(self.log)
-            # print(self.log)
             print("\nFinished Test mode\nsave log at: {}\n".format(self.logFileName))
+            
             self.openglWindow.logfinish = False
-
+    def createScoreWindow(self):
+        self.scoreWindow = fltk.Fl_Window(500,200)
+        self.score = fltk.Fl_Output(150,10,300,25,"score") 
+        self.score.value(self.log['name'])
+        self.scoreWindow.show()
+        self.scoreWindow.end()
+        
     # create log window
     def createlogWindow(self):
         x = 150
@@ -212,10 +218,6 @@ class Gui():
         button.callback(self.buttonCB,1)
         self.logWindow.show()
         self.logWindow.end()
-        if self.addLog == False:
-            self.logWindow.hide()
-        elif self.addLog == True:
-            self.logWindow.show()
 
     # buttin callback from log window
     def buttonCB(self,widget,v):
@@ -230,6 +232,7 @@ class Gui():
             strhand = "Left"
         self.log["dominantHand"] = strhand
         # print(self.log)
+        self.createScoreWindow()
         
     # bunch of input for controlling this UI
     def cameraInputWidget(self):
