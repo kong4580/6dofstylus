@@ -74,7 +74,7 @@ class Model():
                                 [-1,0,0,0],
                                 [0,0,0,1]])
             transform = np.eye(4)
-            
+            "test"
 
         # if model is not cursor
         else:
