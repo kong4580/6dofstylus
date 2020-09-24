@@ -69,12 +69,12 @@ class Model():
                                   [0,0,1,0],
                                   [1,0,0,0],
                                   [0,0,0,1]])
-            # transform = np.array([[0,-1,0,0],
-            #                     [0,0,1,0],
-            #                     [-1,0,0,0],
-            #                     [0,0,0,1]])
-            # transform = np.eye(4)
-            
+            transform = np.array([[0,-1,0,0],
+                                [0,0,1,0],
+                                [-1,0,0,0],
+                                [0,0,0,1]])
+            transform = np.eye(4)
+            "sss"
 
         # if model is not cursor
         else:
