@@ -12,6 +12,7 @@ from Stylus import Stylus
 from GUI import Gui
 import drawFunc
 from Model import Model,OBJ
+from Controller import MainController,StylusController
 
 def callback(samplingRate,gui):
 
@@ -50,7 +51,8 @@ def openGUI(samplingRate = 0.005):
     
     # open GUI window
     gui.window.show()
-    
+    mainController = MainController()
+    stylusController = StylusController(gui.openglWindow.flags,gui.openglWindow.modelDicts)
     # run callback function
     uiCallback = partial(callback,samplingRate,gui)
     fltk.Fl_add_timeout(samplingRate,uiCallback)
@@ -73,8 +75,8 @@ def openGUI(samplingRate = 0.005):
 if __name__ == '__main__':
     
     # declare port
-    # port = '/dev/pts/1' # ubuntu port
-    port = '/dev/ttyUSB0' # arduino port
+    port = '/dev/pts/3' # ubuntu port
+    # port = '/dev/ttyUSB0' # arduino port
     
     # declare constants
     samplingRate = 0.005
