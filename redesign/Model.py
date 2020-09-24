@@ -54,46 +54,46 @@ class Model():
         self.show = True
         
     # draw model with transform matrix
-    def drawMatrixModel(self, matrix, showFrame=True, enableLight = True,wireFrame = False, opacity = False):
+    def drawMatrixModel(self, showFrame=True, enableLight = True,wireFrame = False, opacity = False):
         
         # start transform matrix in model view
         GL.glMatrixMode(GL.GL_MODELVIEW)
         GL.glPushMatrix()
         GL.glLoadIdentity()
         
-        # if model is cursor
-        if self.name == 'cursor':
+        # # if model is cursor
+        # if self.name == 'cursor':
             
-            # transform axis form stylus to opengl axis
-            transform = np.array([[0,1,0,0],
-                                  [0,0,1,0],
-                                  [1,0,0,0],
-                                  [0,0,0,1]])
-            transform = np.array([[0,-1,0,0],
-                                [0,0,1,0],
-                                [-1,0,0,0],
-                                [0,0,0,1]])
-            transform = np.eye(4)
-            "test"
+        #     # transform axis form stylus to opengl axis
+        #     transform = np.array([[0,1,0,0],
+        #                           [0,0,1,0],
+        #                           [1,0,0,0],
+        #                           [0,0,0,1]])
+        #     transform = np.array([[0,-1,0,0],
+        #                         [0,0,1,0],
+        #                         [-1,0,0,0],
+        #                         [0,0,0,1]])
+        #     transform = np.eye(4)
+            
 
-        # if model is not cursor
-        else:
+        # # if model is not cursor
+        # else:
             
-            # set transform matrix to identity 4*4
-            transform = np.eye(4)
+        #     # set transform matrix to identity 4*4
+        #     transform = np.eye(4)
         
-        # create new transform matrix
-        # tNew = tOld * inputMatrix
-        nmatrix = np.dot(transform,matrix)
+        # # create new transform matrix
+        # # tNew = tOld * inputMatrix
+        # nmatrix = np.dot(transform,matrix)
         
         # apply transform to model
-        GL.glLoadMatrixf(nmatrix.T)
+        GL.glLoadMatrixf(self.currentM.T)
         
-        # set current model matrix from modelview matrix
-        self.currentM = GL.glGetFloatv(GL.GL_MODELVIEW_MATRIX).T
+        # # set current model matrix from modelview matrix
+        # self.currentM = GL.glGetFloatv(GL.GL_MODELVIEW_MATRIX).T
         
-        # set model center position
-        self.centerPosition = self.currentM[0:3,3]
+        # # set model center position
+        # self.centerPosition = self.currentM[0:3,3]
         
         # if model is obj firl
         if self.obj!=None:
@@ -222,99 +222,53 @@ class Model():
         GL.glPopMatrix()
         
         
-    # draw model with position and rotation
-    ### now not use ###
-    # def drawModel(self,position=(0,0,0),rotation=(0,0,0),showFrame=False):
+    def moveModel(self,matrix):
+        # if model is cursor
+        if self.name == 'cursor':
+            
+            # transform axis form stylus to opengl axis
+            transform = np.array([[0,1,0,0],
+                                  [0,0,1,0],
+                                  [1,0,0,0],
+                                  [0,0,0,1]])
+            # transform = np.array([[0,-1,0,0],
+            #                     [0,0,1,0],
+            #                     [-1,0,0,0],
+            #                     [0,0,0,1]])
+            # transform = np.eye(4)
+            
+
+        # if model is not cursor
+        else:
+            
+            # set transform matrix to identity 4*4
+            transform = np.eye(4)
         
-    #     if self.drawFunction != None:
-    #         self.__updatePosition(position,rotation)
-    #         # print("cen",self.centerPosition)
-    #         # if self.obj == None:
+        # create new transform matrix
+        # tNew = tOld * inputMatrix
+        nmatrix = np.dot(transform,matrix)
+        # set current model matrix from modelview matrix
+        self.currentM = nmatrix
+        
+        # set model center position
+        self.centerPosition = self.currentM[0:3,3]
+        if self.obj!=None:
+        # set obb transform matrix
+            self.obb.current_homo = self.currentM
             
-            
-    #         glMatrixMode(GL_MODELVIEW)
-    #         glPushMatrix()
-    #         glLoadIdentity()
-            
-    #         glTranslatef(self.centerPosition[0],self.centerPosition[1],self.centerPosition[2])
-            
-    #         # if self.name == 'cursor':
-    #         #     glRotatef(self.rotation[0],0,1,0) #y#z
-    #         #     glRotatef(self.rotation[2],1,0,0) #x#y
+            # transform obb point to current model transform
+            for idx in range(len(self.obb.points)):
+                pointIdx = np.append(self.obb.points[idx].copy(),1)
+                self.obb.current_point[idx] = np.dot(self.obb.current_homo.copy(),pointIdx.T)[0:3]
                 
-    #         #     glRotatef(self.rotation[1],0,0,1) #z#x
-    #         # else:
-    #         #     # glTranslatef(self.centerPosition[0],self.centerPosition[1],self.centerPosition[2])
-                
-    #         #     glRotatef(self.rotation[0],1,0,0) #y#z
+            # update obb centroid
+            obbCentroid = np.append(self.obb.current_centroid,1)
+            self.obb.current_centroid = np.dot(self.obb.current_homo,obbCentroid)[0:3]
             
-    #         #     glRotatef(self.rotation[1],0,1,0) #x#y
-    #         #     glRotatef(self.rotation[2],0,0,1) #z#
-    #         # glTranslatef(-self.centerPosition[0],-self.centerPosition[1],-self.centerPosition[2])
-    #         glRotatef(self.rotation[0],1,0,0) #y#z
-    #         glRotatef(self.rotation[2],0,0,1) #z#x
-    #         glRotatef(self.rotation[1],0,1,0) #x#y
-            
-    #         # glRotatef(self.rotation[0],1,0,0) #y#z
-            
-    #         # glRotatef(self.rotation[1],0,1,0) #x#y
-    #         # glRotatef(self.rotation[2],0,0,1) #z#x
-            
-    #         glTranslatef(-self.centerPosition[0],-self.centerPosition[1],-self.centerPosition[2])
-    #         glTranslatef(self.centerPosition[0],self.centerPosition[1],self.centerPosition[2])
-            
-    #         # drawFunc.coordinate()
-            
-    #         # self.realPose = glGetFloatv(GL_MODELVIEW_MATRIX).T[0:3,3].T
-            
-    #         if self.obj!=None:
-    #             if self.show:
-    #                 if self.obb.show:
-    #                     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
-    #                     glCallList(self.obb.gl_list)
-    #                 glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
-                    
-    #                 if self.isSelected:
-    #                     glColor3fv(drawFunc.SkyColorVector)
-    #                 else:
-    #                     glColor3fv(drawFunc.WhiteColorVector)
-                    
-    #                 glCallList(self.obj.gl_list)
-    #                 # glColor3fv(drawFunc.MagentaColorVector)
-                    
-    #                 # glCallList(self.obj.shadow_gl_list)
-    #             # self.obb.current_homo = np.dot(glGetFloatv(GL_MODELVIEW_MATRIX).T,self.obb.homo)
-    #             self.obb.current_homo = glGetFloatv(GL_MODELVIEW_MATRIX).T
-    #             # print("ahomo",self.obb.current_homo)
-    #             # print("before",self.name,self.obb.current_point)
-    #             for idx in range(len(self.obb.points)):
-                    
-    #                 pointIdx = np.append(self.obb.points[idx].copy(),1)
-                    
-    #                 self.obb.current_point[idx] = dot(self.obb.current_homo.copy(),pointIdx.T)[0:3]
-    #             # print("after",self.obb.current_point)
-    #             obbCentroid = np.append(self.obb.current_centroid,1)
-    #             self.obb.current_centroid = dot(self.obb.current_homo,obbCentroid)[0:3]
-                
-    #             for idx in range(len(self.obj.vertices)):
-    #                 verIdx = np.append(self.obj.vertices[idx].copy(),1)
-            
-                    
-    #                 self.obj.current_vertices[idx] = dot(glGetFloatv(GL_MODELVIEW_MATRIX).T,verIdx.T)[0:3]
-    #             # self.centerPosition -=self.obb.current_centroid
-                    
-    #         else:
-    #             if self.show:
-    #                 self.drawFunction()
-            
-    #         if showFrame:
-    #             drawFunc.coordinate()
-            
-    #         # if self.obj == None:
-    #         glPopMatrix()
-    #         # glPopMatrix()
-    #     else:
-    #         print("No model draw function")
+            # update model vertices position
+            for idx in range(len(self.obj.vertices)):
+                verIdx = np.append(self.obj.vertices[idx].copy(),1)
+                self.obj.current_vertices[idx] = np.dot(GL.glGetFloatv(GL.GL_MODELVIEW_MATRIX).T,verIdx.T)[0:3]
     
     # update model position
     ### now not use ###
