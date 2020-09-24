@@ -19,15 +19,6 @@ class Stylus():
                              [pi/2,0, 0, -pi/2]])
         
         self.rho = [1,1,1,1,1,1]
-        
-        ### IMU MODE ###
-        self.imu = {'hBaseToWorld':np.eye(4),
-                    'hWorldToImu':np.eye(4),
-                    'hBaseToImu':np.eye(4),
-                    'hOpenGLToBase':self.rot(-pi/2,'x'),
-                    'hOpenGLToImu':np.eye(4),
-                    'isImuCalibrated':False,
-                    'home':False}
     
     def transl(self, dist, axis):
         h = np.matrix(np.eye(4))
@@ -101,7 +92,7 @@ class Stylus():
         q[5] = q[5] - pi 
         
         q = q - np.asarray([-0.02147573, -0.02300971, -0.01994175,  0.04141748,  0.02454369, -0.12885439]).T
-        # print(q)
+        
         
         fk = self.forwardKinematics(q.tolist())[-1,:,:]
         
@@ -113,23 +104,6 @@ class Stylus():
         ry = r.as_euler('xyz')[1]
         rz = r.as_euler('xyz')[2]
         return [fk,[rx,ry,rz,x,y,z]]
-    
-    def calibImu(self,quat):
-        h = np.eye(4)
-        r = R.from_quat(quat)
-        h[0:3,0:3] = r.as_matrix()
-        self.imu['hBaseToWorld'] = np.linalg.inv(h.copy())
-        
-    def readImuQuat(self,quat):
-        if not (self.imu['isImuCalibrated'] and self.imu['home']):
-            self.calibImu(quat)
-        else:
-            # print(self.imu)
-            rWorldToImu = R.from_quat(quat).as_matrix()
-            self.imu['hWorldToImu'][0:3,0:3] = rWorldToImu
-            self.imu['hBaseToImu'] = np.dot(self.imu['hBaseToWorld'],self.imu['hWorldToImu'])
-            self.imu['hOpenGLToImu'] = np.dot(self.imu['hOpenGLToBase'],self.imu['hBaseToImu'])
-        return self.imu['hOpenGLToImu']
     
 if __name__ == '__main__':
     stylus = Stylus()

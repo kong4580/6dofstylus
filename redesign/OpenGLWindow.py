@@ -34,10 +34,8 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
                            'modelNum':0}
         
         # init cursor model
-        # self.cursor = Model('cursor',drawFunc.point)
-        self.cursor = Model('imu',drawFunc.point)
+        self.cursor = Model('cursor',drawFunc.point)
         
-        self.cursorSpeed = 1
         # init grid model
         self.grid = Model("grid",drawFunc.Grid)
         
@@ -61,8 +59,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
                       'lineupTestMode':False,
                       'showModelWireframe':False,
                       'offsetMode':False,
-                      'opacityMode':False,
-                      'followCursor':'nomal'}
+                      'opacityMode':False}
         
         # logger parameter
         self.log = {
@@ -77,9 +74,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
                         "modelPerSec":None
                     }
         self.logFileName = "./testLogStylus.csv"
-
-        
-        self.home = False
+    
     # open backdrop file
     def openBackdropFile(self, filename):
         
@@ -149,19 +144,13 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         # set matrix mode to projection matrix
         GL.glMatrixMode(GL.GL_PROJECTION)
         
-        valid = False
-        if (not valid) :
-            valid = True
-            
-            # reset matrix to identity
-            GL.glLoadIdentity()
+        # reset matrix to identity
+        GL.glLoadIdentity()
+        
+        # set area of screen
+        # minX, maxX, minY, maxY, minZ, maxZ
+        GL.glFrustum(-1, 1, -1, 1, 1, 100)
 
-            # set new viewport if window resize
-            GL.glViewport(0,0,self.w(),self.h())
-            
-            # minX, maxX, minY, maxY, minZ, maxZ
-            GL.glFrustum((-1*(self.w()/self.h())), (1*(self.w()/self.h())), -1, 1, 1, 100)
-    
         # offset camera view
         GL.glTranslatef(self.scaleY,self.scaleZ,self.scaleX)
         
@@ -179,7 +168,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         GL.glLoadIdentity()
         
         # look at far from infront of model 10 units (toward Z axis)
-        # GLU.gluLookAt(0, 0, 10, 0, 0, 0, 0, 1, 0)
+        GLU.gluLookAt(0, 0, 10, 0, 0, 0, 0, 1, 0)
         
         
         # DRAW MODEL
@@ -232,7 +221,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
                 
                 # move model follow cursor
                 # now use only newM because use transform matrix to draw model
-                targetPosition,targetRotation,newM = model.followCursor(self.cursor,self.cursorSpeed,self.flags['followCursor'])
+                targetPosition,targetRotation,newM = model.followCursor(self.cursor)
             
             # if model is not selected
             else:
@@ -240,7 +229,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
                 # reset value from model
                 model.cursorM = None
                 model.cursorPose = None
-                # self.flags['followCursor'] = 'nomal'
+                
                 # if reset mode trigger
                 if self.flags['resetModelTransform']:
                     
@@ -268,7 +257,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         # get mouse position
         xMousePosition = fltk.Fl.event_x()
         yMousePosition = fltk.Fl.event_y()
-        # print(event== fltk.FL_KEYUP)
+        
         # if left mouse button is pressed
         if event == fltk.FL_PUSH and fltk.Fl.event_button() == 1: 
             # print("mouse position:",xMousePosition,yMousePosition)
@@ -362,17 +351,8 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
                 
                 # update backdrop number name
                 self.nameNumber = self.nameNumber + 1
-            
-            if fltk.Fl.event_key() == ord('z'):
                 
-                self.flags['followCursor'] = 'trans'
-            if fltk.Fl.event_key() == ord('x'):
-                self.flags['followCursor'] = 'rot'
-            if fltk.Fl.event_key() == ord('v'):
-                self.flags['followCursor'] = 'nomal'
             # STILL TESTING
-            if fltk.Fl.event_key() == ord('h'):
-                self.home = True
             # offset mouse mode
             if fltk.Fl.event_key() == ord('c'):
                 self.flags['offsetMode'] = not self.flags['offsetMode']
@@ -380,7 +360,6 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
             # break condition to run main call back
             fltk.Fl_check()
             return 1
-        
         
         # if no event
         else:
@@ -532,31 +511,6 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         oldflags = self.flags.copy()
         
         # turn on snap mode
-        self.flags['snapMode'] = False
-        
-        # change model to solid
-        self.flags['showModelWireframe'] = False
-        
-        # turn off opacity
-        self.flags['opacityMode'] = False
-        
-        # set model to show
-        self.flags['showModel'] = False
-        
-        # update opengl window
-        self.redraw()
-        fltk.Fl_check()
-        
-        
-        # change backdrop image to 8 bits RGB
-        backdropImg = self.snap("backdrop",save=False)
-        
-        # change backdrop image to binary
-        bw = np.asarray(backdropImg).copy()
-        bw[bw < 80] = 0    # Black
-        bw[bw >= 80] = 255 # White
-        
-        # turn on snap mode
         self.flags['snapMode'] = True
         
         # change model to solid
@@ -571,6 +525,14 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         # update opengl window
         self.redraw()
         fltk.Fl_check()
+        
+        # change backdrop image to 8 bits RGB
+        backdropImg = self.backdropImageFile.convert('L')
+        
+        # change backdrop image to binary
+        bw = np.asarray(backdropImg).copy()
+        bw[bw < 80] = 0    # Black
+        bw[bw >= 80] = 255 # White
         
         # get 8 bits RGB of model image
         testimg = self.snap("test",save=False)
@@ -626,7 +588,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         # set camera view
         GL.glMatrixMode(GL.GL_PROJECTION)
         GL.glLoadIdentity()
-        GL.glOrtho( -0.5*(self.w()/self.h()), 0.5*(self.w()/self.h()), -0.5, 0.5, -0.5, 1 )
+        GL.glOrtho( -0.5, 0.5, -0.5, 0.5, -0.5, 1 )
         GL.glMatrixMode(GL.GL_MODELVIEW)
         GL.glLoadIdentity()
 

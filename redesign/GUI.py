@@ -18,13 +18,10 @@ class Gui():
     def __init__(self):
         
         # init fltk window
-        self.__initWindow(900,600,name="UI")
+        self.__initWindow(size=(800,600),name="UI")
         
         # init opengl window class
-        self.__initOpenglWindow(0,0,600,600,name="opengl")
-
-        # resize window
-        self.window.resizable(self.openglWindow)
+        self.__initOpenglWindow(size=(0,0,600,600),name="opengl")
         
         # init side output
         self.__initOutputWidgetStorage()
@@ -33,7 +30,7 @@ class Gui():
         self.cfg={"homeCfg":(5.23747141, -0.01606842, -0.3270202)}
 
         # set cursor scale
-        self.cursorSpeed = 1
+        self.cursorSpeed = 0.05
         
         # variable for revolute cursor mode
         self.cursorIsHold = False
@@ -41,15 +38,15 @@ class Gui():
         self.offsetCursor = np.eye(4)
         
     # init fltk window
-    def __initWindow(self,width,height,name="UI"):
+    def __initWindow(self,size=(800,600),name="UI"):
         print("Init GUI window ... ",end="")
-        self.window = fltk.Fl_Window(width,height,name)
+        self.window = fltk.Fl_Window(size[0],size[1],name)
         print("Done !")
         
     # init opengl window
-    def __initOpenglWindow(self,xpos,ypos,width,height,name="opengl"):
+    def __initOpenglWindow(self,size=(0,0,600,600),name="opengl"):
         print("Init openGl window ... ",end="")
-        self.openglWindow = OpenGLWindow(xpos,ypos,width,height,name)
+        self.openglWindow = OpenGLWindow(size[0],size[1],size[2],size[3],name)
         print("Done !")
         
     # init side output
@@ -89,7 +86,7 @@ class Gui():
         slider = fltk.Fl_Hor_Value_Slider(655, y, 145,25,'mouseSpeed')
         slider.minimum(0)
         slider.maximum(10)
-        slider.value(10)
+        slider.value(5)
         slider.align(fltk.FL_ALIGN_LEFT)
         sldCallback = partial(Gui.__sliderMouseCB,self)
         slider.callback(sldCallback, 4)
@@ -105,109 +102,68 @@ class Gui():
            
     
     # main call back update ui
-    def updateUI(self,cursorTransform,buttonStates=[0,0],scale=20,prototype=1):
+    def updateUI(self,cursorPose,buttonStates,scale=20,cursorTransform=None):
         
-        # # convert pose format
-        # ### now not use ###
-        # cvtedPose = self.__cvtPose(cursorPose,self.cursorSpeed)
+        # convert pose format
+        ### now not use ###
+        cvtedPose = self.__cvtPose(cursorPose,self.cursorSpeed)
         
-        # # add cursor pose to openglWindow class
-        # ### now not use ###
-        # self.openglWindow.readPose(cvtedPose)
-        if prototype == 1:
-            # read cursor transform from stylus and scaling
-            cursorTransform[0:3,3] = cursorTransform[0:3,3].copy() * 0.05
+        # add cursor pose to openglWindow class
+        ### now not use ###
+        self.openglWindow.readPose(cvtedPose)
+        
+        # read cursor transform from stylus and scaling
+        cursorTransform[0:3,3] = cursorTransform[0:3,3].copy() * 0.05
+        
+        # offset home position
+        cursorTransform[0,3] -= self.cfg["homeCfg"][0]
+        cursorTransform[1,3] -= self.cfg["homeCfg"][1]
+        cursorTransform[2,3] -= self.cfg["homeCfg"][2]
+        
+        # cursorTransform[0:3,3] = cursorTransform[0:3,3].copy() * self.cursorSpeed
+        # offset mouse mode
+        if self.openglWindow.flags['offsetMode']:
             
-            # offset home position
-            cursorTransform[0,3] -= self.cfg["homeCfg"][0]
-            cursorTransform[1,3] -= self.cfg["homeCfg"][1]
-            cursorTransform[2,3] -= self.cfg["homeCfg"][2]
+            # find delta transform between first transform that trigger mode and last transform that turn off this mode
+            self.offsetCursor = np.dot(cursorTransform,np.linalg.inv(self.openglWindow.cursorTransform.copy()))
             
-            # cursorTransform = np.dot(np.linalg.inv(self.openglWindow.cursorTransform.copy()),cursorTransform.copy())
-            # cursorTransform[0:3,3] = cursorTransform[0:3,3].copy() * self.cursorSpeed
-            # scale = self.cursorSpeed*np.eye(4)
-            # cursorTransform[0:3,3] = np.dot(self.cursorSpeed,cursorTransform[0:3,3])
-            self.openglWindow.cursorSpeed = self.cursorSpeed
+            # offset only translation
+            # self.offsetCursor[0:3,0:3] = np.eye(3)
             
-            # offset mouse mode
-            if self.openglWindow.flags['offsetMode']:
-                
-                # find delta transform between first transform that trigger mode and last transform that turn off this mode
-                self.offsetCursor = np.dot(cursorTransform,np.linalg.inv(self.openglWindow.cursorTransform.copy()))
-                # cursorTransform = np.dot(np.linalg.inv(self.openglWindow.cursorTransform.copy()),cursorTransform.copy())
-                
-                
-                # offset only translation
-                # self.offsetCursor[0:3,0:3] = np.eye(3)
-                
-            else:
-                
-                # new cursor transform is
-                # inv(offsetCursor) * current cursor transform from stylus
-                self.openglWindow.cursorTransform = np.dot(np.linalg.inv(self.offsetCursor),cursorTransform)
-                # self.openglWindow.cursorTransform = np.dot(self.openglWindow.cursorTransform.copy(),cursorTransform)
-                
-                # update opengl window
-                self.openglWindow.redraw()
-                
-                # update side output value
-                # self.__updateOutput(cvtedPose)
-                
-            # check left mouse is clicked
-            if buttonStates[0] == 1 and buttonStates[1] == 0:
-                
-                # pass
-                
-                # check what model is clicked
-                print("left click!")
-                selectedModel = self.selectModel()
-                
-                # show all model that is selected
-                for model in selectedModel:
-                    print("selectModel = ",model.name)
+        else:
             
-            # check right mouse is clicked
-            elif buttonStates[0] == 0 and buttonStates[1] == 1: 
-                
-                # pass     
-                # realease model
-                print("releaseModel")
-                self.releaseModel()
-                
-            return
-        elif prototype == 2:
+            # new cursor transform is
+            # inv(offsetCursor) * current cursor transform from stylus
+            self.openglWindow.cursorTransform = np.dot(np.linalg.inv(self.offsetCursor),cursorTransform)
             
-            self.openglWindow.cursorTransform = cursorTransform
-                # self.openglWindow.cursorTransform = np.dot(self.openglWindow.cursorTransform.copy(),cursorTransform)
-                
-                # update opengl window
+            # update opengl window
             self.openglWindow.redraw()
-                
-                # update side output value
-            self.__updateOutput([0,0,0,0,0,0,0,0,0])
-                
-            # check left mouse is clicked
-            if buttonStates[0] == 1 and buttonStates[1] == 0:
-                
-                # pass
-                
-                # check what model is clicked
-                print("left click!")
-                selectedModel = self.selectModel()
-                
-                # show all model that is selected
-                for model in selectedModel:
-                    print("selectModel = ",model.name)
             
-            # check right mouse is clicked
-            elif buttonStates[0] == 0 and buttonStates[1] == 1: 
-                
-                # pass     
-                # realease model
-                print("releaseModel")
-                self.releaseModel()
-                
-            return
+            # update side output value
+            self.__updateOutput(cvtedPose)
+            
+        # check left mouse is clicked
+        if buttonStates[0] == 1 and buttonStates[1] == 0:
+            
+            # pass
+            
+            # check what model is clicked
+            print("left click!")
+            selectedModel = self.selectModel()
+            
+            # show all model that is selected
+            for model in selectedModel:
+                print("selectModel = ",model.name)
+        
+        # check right mouse is clicked
+        elif buttonStates[0] == 0 and buttonStates[1] == 1: 
+            
+            # pass     
+            # realease model
+            print("releaseModel")
+            self.releaseModel()
+            
+        return
     
     
     

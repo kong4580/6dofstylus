@@ -19,7 +19,7 @@ def callback(samplingRate,gui):
     # if recieve serial messages
     if srec.isActivate():
         command,rawData = srec.recieve()
-        # print(command,rawData)
+        
         # update joint state command
         if command == 0xFF:
             # get joint states and button states
@@ -27,24 +27,13 @@ def callback(samplingRate,gui):
             # print(jointStates)
             pose = stylus.getEndTransforms(jointStates)
             # update gui
-            gui.updateUI(pose[0],buttonStates,scale=20)
+            gui.updateUI(pose[1],buttonStates,scale=20,cursorTransform=pose[0])
             
             
             
         # update button state command    
         if command == 0xFE:
             # get button states
-            print(rawData)
-            imuQuat,calibState = srec.readCommand(command,rawData)
-            if calibState == 7:
-                stylus.imu['isImuCalibrated'] = True
-            try:
-                if gui.openglWindow.home == True:
-                    stylus.imu['home'] = True
-            except:
-                pass
-            imuTransform = stylus.readImuQuat(imuQuat)
-            gui.updateUI(imuTransform,scale=20,prototype= 2 )
             pass
         
     uiCallback = partial(callback,samplingRate,gui)
@@ -84,7 +73,7 @@ def openGUI(samplingRate = 0.005):
 if __name__ == '__main__':
     
     # declare port
-    # port = '/dev/pts/3' # ubuntu port
+    # port = '/dev/pts/1' # ubuntu port
     port = '/dev/ttyUSB0' # arduino port
     
     # declare constants
@@ -98,7 +87,7 @@ if __name__ == '__main__':
     
     # init serial
     print("Init Stylus Serial ... ",end="")
-    srec = StylusReciever(baudrate = 115200,port = port,timeout = serialTimeOut) 
+    srec = StylusReciever(baudrate = 9600,port = port,timeout = serialTimeOut) 
     print("Done !")
     
     # init GUI

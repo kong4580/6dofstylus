@@ -49,7 +49,6 @@ class StylusReciever():
         # check start bytes
         start[0] =  self.readRaw()
         if start[0] == None:
-            # print("start0")
             return -1,-1
         elif  start[0]== 0xFE:
             start[1] =  self.readRaw()
@@ -62,7 +61,6 @@ class StylusReciever():
         
         # get data
                 if command == None or dataLen == None:
-                    print("command",command,dataLen)
                     return -1,-1
                 rawData = [None] * dataLen
 
@@ -80,14 +78,10 @@ class StylusReciever():
                     
                     return command,rawData
                 else: # data is wrong
-                    print("stop")
                     return -1,-1
             else:
-                print('start2')
                 return -1,-1
         else:
-            print('start1',start[0])
-            
             return -1,-1
         
                 
@@ -109,8 +103,8 @@ class StylusReciever():
                 dummy = 15
             return dummy
         
-        convertedData = [None]*(len(data)//2)
-        for i in range(0,len(data),2):
+        convertedData = [None]*6
+        for i in range(0,12,2):
             
             # High byte
             if len(hex(data[i]))==3:
@@ -132,8 +126,6 @@ class StylusReciever():
                 
             # convert data
             convertedData[i//2] = highByte + lowByte
-            maxInt = 2**(8*2-1)-1
-            convertedData[i//2] = convertedData[i//2] - (2*(maxInt+1) if convertedData[i//2] > maxInt else 0)
         return convertedData
     
     def getButtonState(self,data):
@@ -163,22 +155,17 @@ class StylusReciever():
                 
             return jointStates,buttonStates
         if command == 0xFE:
-            imuRawData = rawData[:-1]
-            calibrateState = rawData[-1]
-            imuData = self.encDataCvt(imuRawData)
-            imuNpData = np.array(imuData)/1000
-            print(imuNpData)
-            return imuNpData,calibrateState
+            
             # get button states
-            # pass
+            pass
         
 
 if __name__ == '__main__':
-    # port = '/dev/pts/4' # ubuntu port
-    port = '/dev/ttyUSB0' # arduino port
+    port = '/dev/pts/4' # ubuntu port
+    # port = '/dev/ttyUSB0' # arduino port
     
     stylus = Stylus() # init stylus
-    srec = StylusReciever(baudrate = 115200,port = port) # init serial
+    srec = StylusReciever(baudrate = 9600,port = port) # init serial
     
     # init GUI window
     ###########
@@ -196,9 +183,6 @@ if __name__ == '__main__':
             print(buttonStates)
         if command == 0xFE:
             # get button states
-            # print(bin(rawData[0]),bin(rawData[1]))
-            
-            print(srec.encDataCvt(rawData))
             pass
         
         # update frame gui

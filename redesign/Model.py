@@ -1,6 +1,6 @@
 
 import sys
-from math import sqrt,acos,sin,cos,tan
+from math import sqrt
 import time
 
 from OpenGL import GL, GLUT, GLU
@@ -65,15 +65,15 @@ class Model():
         if self.name == 'cursor':
             
             # transform axis form stylus to opengl axis
-            # transform = np.array([[0,1,0,0],
-            #                       [0,0,1,0],
-            #                       [1,0,0,0],
-            #                       [0,0,0,1]])
+            transform = np.array([[0,1,0,0],
+                                  [0,0,1,0],
+                                  [1,0,0,0],
+                                  [0,0,0,1]])
             # transform = np.array([[0,-1,0,0],
             #                     [0,0,1,0],
             #                     [-1,0,0,0],
             #                     [0,0,0,1]])
-            transform = np.eye(4)
+            # transform = np.eye(4)
             
 
         # if model is not cursor
@@ -452,7 +452,7 @@ class Model():
             self.centerPosition -=self.obb.current_centroid
     
     # move model follow cursor
-    def followCursor(self,cursor,cursorSpeed,mode = 'nomal'):
+    def followCursor(self,cursor):
         
         # if not init
         if self.cursorPose == None or type(self.cursorM) == type(None):
@@ -467,16 +467,15 @@ class Model():
             
             # remember model transform matrix when first clicked
             self.startclickM = self.currentM.copy()
-            # cursorSpeed = 1
         
-        if mode == 'nomal':
-            deltaTransform = np.dot(cursor.currentM, np.linalg.inv(self.cursorM))
-            newM = np.eye(4)
-            newM = np.dot(deltaTransform,self.startclickM)
-        elif mode == 'trans':
-            newM = self.fineTranslate(cursor,cursorSpeed)
-        elif mode == 'rot':
-            newM = self.fineRotate(cursor,cursorSpeed)
+        # calcualte delta TRANSFORM of cursor that first clicked and current cursor transform
+        deltaTransform = np.dot(cursor.currentM,np.linalg.inv(self.cursorM))
+        
+        # calculate new model transformation
+        newM = np.eye(4)
+        newM = np.dot(deltaTransform,self.startclickM)
+        
+        # calculate new rotation
         ### now not use ###
         deltaRot = np.asarray(list(cursor.rotation)) - np.asarray(list(self.cursorPose))
         newRotation = self.currentRotation
@@ -486,68 +485,8 @@ class Model():
         # return new model transform
         return cursor.centerPosition,newRotation,newM
         
-    def fineRotate(self,cursor,cursorSpeed):
-        qFrom = R.from_matrix(self.cursorM.copy()[0:3,0:3]).as_quat()
-        qTo = R.from_matrix(cursor.currentM.copy()[0:3,0:3]).as_quat()
         
-        cosom = qFrom[0]*qTo[0]+qFrom[1]*qTo[1]+qFrom[2]*qTo[2]+qFrom[3]*qTo[3]
-        to1 = [0,0,0,0]
-        if cosom < 0:
-            cosom = -cosom
-            to1[0] = -qTo[0]
-            to1[1] = -qTo[1]
-            to1[2] = -qTo[2]
-            to1[3] = -qTo[3]
-        else:
-            to1[0] = qTo[0]
-            to1[1] = qTo[1]
-            to1[2] = qTo[2]
-            to1[3] = qTo[3]
-            
-        if (1-cosom) > 0.3:
-            omega = acos(cosom)
-            sinom = sin(omega)
-            scale0 = sin(1-cursorSpeed* omega)/ sinom
-            scale1 = sin(cursorSpeed * omega)/ sinom
-        else:
-            scale0 = 1- cursorSpeed
-            scale1 = cursorSpeed
-        res = R.from_matrix(np.eye(3)).as_quat()
-        res[0] = scale0 * qFrom[0] + scale1 * to1[0]
-        res[1] = scale0 * qFrom[1] + scale1 * to1[1]
-        res[2] = scale0 * qFrom[2] + scale1 * to1[2]
-        res[3] = scale0 * qFrom[3] + scale1 * to1[3]
         
-        newR = R.from_quat(res).as_matrix()
-        d = cursor.currentM.copy()
-        d[0:3, 0:3] = newR
-        # d[0:3,3] = np.array([0,0,0]).T
-        deltaTransform = np.dot(d,np.linalg.inv(self.cursorM))
-        # deltaTransform[0:3,0:3] = newR
-        # calculate new model transformation
-        newM = np.eye(4)
-        newM = np.dot(deltaTransform,self.startclickM)
-        newM[0:3,3] = self.startclickM[0:3,3]
-        return newM           
-    
-    def fineTranslate(self,cursor,cursorSpeed):
-        currentM = cursor.currentM.copy()
-        self.cursorM[0:3,0:3] = np.eye(3)
-        currentM[0:3,0:3] = np.eye(3)
-        
-        scale = np.eye(4)
-        scale[0:3,0:3] = cursorSpeed * scale[0:3,0:3].copy()
-        deltaTransform = np.dot(scale,currentM)
-        
-        invScale = np.eye(4)
-        invScale[0:3,0:3] = (1/cursorSpeed)*invScale[0:3,0:3].copy()
-        mt = np.dot(np.linalg.inv(self.cursorM),invScale)
-        # mt[0:3,0:3] = np.eye(3)
-        newM = np.dot(mt,self.startclickM)
-        
-        newM = np.dot(deltaTransform,newM)
-        newM[0:3,0:3] = self.startclickM[0:3,0:3]
-        return newM
 class OBJ():
     def __init__(self, filename, swap_yz=False,scale=1):
         self.vertices = []
