@@ -41,16 +41,7 @@ class CommonController(Handler):
         self.flags[flags] = not self.flags[flags]
         # return self.flags
         
-    def addLogProfile(self):
-        # try:
-        self.log["name"] = input("Name : ")
-        self.log["department"] = input("Department : ")
-        self.log["mayaFamiliar"] = input("Software Maya Familiar : ")
-        self.log["dominantHand"] = input("Dominant Hand : ")
-        print("Add User profile to logger!\n")
-        # except:
-        #     print("Add profile error")
-        #     pass
+    
         
     def runEvent(self):
         # print(self.keyCha)
@@ -66,7 +57,7 @@ class CommonController(Handler):
             self.toggleFlags('opacityMode')
             
         if self.keyCha == 'l':
-            self.addLogProfile()
+            self.flags['addLog'] = True
             
             
         # if self.keyCha == 'm':

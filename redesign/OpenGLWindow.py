@@ -66,7 +66,9 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
                       'lineupTestMode':False,
                       'showModelWireframe':False,
                       'offsetMode':False,
-                      'opacityMode':False}
+                      'opacityMode':False,
+                      'addLog':False,
+                      'logFinish':False}
         
         # logger parameter
         self.log = {
@@ -291,8 +293,8 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         #     if fltk.Fl.event_key() == ord('l'):
         #         self.addLogProfile()
             # add user profile
-            if fltk.Fl.event_key() == ord('l'):
-                self.addLog = True
+            # if fltk.Fl.event_key() == ord('l'):
+            #     self.addLog = True
             
             # # start test mode
             # if fltk.Fl.event_key() == ord('p'):

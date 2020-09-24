@@ -175,7 +175,7 @@ class Gui():
             # self.storageInput[i].value(str(self.openglWindow.positionValue[i]))
             # self.storageOutput[i].value(str(self.openglWindow.positionValue[i]))
             pass
-        self.addLog = self.openglWindow.addLog
+        self.addLog = self.openglWindow.flags['addLog']
         self.loghandle()
 
     # collect information from tester
@@ -183,8 +183,8 @@ class Gui():
         if self.addLog == True:
             self.createlogWindow()
             self.addLog = False
-            self.openglWindow.addLog = False
-        if self.openglWindow.logfinish == True:
+            self.openglWindow.flags['addLog'] = False
+        if self.openglWindow.flags['logFinish'] == True:
             # print(self.openglWindow.log)
             self.log.update(self.openglWindow.log)
             with open(self.logFileName,"a+",newline='') as csvFile:
@@ -192,7 +192,7 @@ class Gui():
                 dictWriter.writerow(self.log)
             # print(self.log)
             print("\nFinished Test mode\nsave log at: {}\n".format(self.logFileName))
-            self.openglWindow.logfinish = False
+            self.openglWindow.flags['logFinish'] = False
 
     # create log window
     def createlogWindow(self):
