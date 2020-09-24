@@ -191,20 +191,8 @@ class Gui():
                 dictWriter = csv.DictWriter(csvFile,fieldnames = self.log.keys())
                 dictWriter.writerow(self.log)
             print("\nFinished Test mode\nsave log at: {}\n".format(self.logFileName))
-<<<<<<< HEAD
-            
-            self.openglWindow.logfinish = False
-    def createScoreWindow(self):
-        self.scoreWindow = fltk.Fl_Window(500,200)
-        self.score = fltk.Fl_Output(150,10,300,25,"score") 
-        self.score.value(self.log['name'])
-        self.scoreWindow.show()
-        self.scoreWindow.end()
-        
-=======
             self.openglWindow.flags['logFinish'] = False
 
->>>>>>> dev
     # create log window
     def createlogWindow(self):
         x = 150

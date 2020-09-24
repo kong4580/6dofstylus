@@ -85,11 +85,7 @@ if __name__ == '__main__':
     
     # declare port
     port = '/dev/pts/4' # ubuntu port
-<<<<<<< HEAD
     # port = '/dev/ttyUSB1' # arduino port
-=======
-    # port = '/dev/ttyUSB0' # arduino port
->>>>>>> dev
     
     # declare constants
     samplingRate = 0.005
