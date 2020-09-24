@@ -23,9 +23,9 @@ class MainController(Handler):
             
             
             if event == fltk.FL_KEYUP:
-                print('ss')
+                
                 ctl.keyCha = chr(fltk.Fl.event_key())
-                print(ctl.keyCha)
+                
             ctl.runEvent()    
              
 class CommonController(Handler):
@@ -55,6 +55,14 @@ class CommonController(Handler):
             
         if self.keyCha == '2':
             self.toggleFlags('opacityMode')
+        
+        if self.keyCha == 's':
+            self.toggleFlags('snapMode')
+            self.flags['showCursor'] = not self.flags['snapMode']
+        
+        if self.keyCha == 'd':
+            
+            self.toggleFlags('checkIoU')
             
         if self.keyCha == 'l':
             self.flags['addLog'] = True
