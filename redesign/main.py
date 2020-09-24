@@ -16,27 +16,29 @@ from Controller import MainController,StylusController
 
 def callback(samplingRate,gui):
 
-    
-    # if recieve serial messages
-    if srec.isActivate():
-        command,rawData = srec.recieve()
-        
-        # update joint state command
-        if command == 0xFF:
-            # get joint states and button states
-            jointStates,buttonStates = srec.readCommand(command,rawData)
-            # print(jointStates)
-            pose = stylus.getEndTransforms(jointStates)
-            # update gui
-            gui.updateUI(pose[1],buttonStates,scale=20,cursorTransform=pose[0])
+    while gui.openglWindow.shown():
+        # if recieve serial messages
+        if srec.isActivate():
+            command,rawData = srec.recieve()
             
-            
-            
-        # update button state command    
-        if command == 0xFE:
-            # get button states
-            pass
-        
+            # update joint state command
+            if command == 0xFF:
+                # get joint states and button states
+                jointStates,buttonStates = srec.readCommand(command,rawData)
+                # print(jointStates)
+                pose = stylus.getEndTransforms(jointStates)
+                # update gui
+                gui.updateUI(pose[1],buttonStates,scale=20,cursorTransform=pose[0])
+                
+                
+                
+            # update button state command    
+            if command == 0xFE:
+                # get button states
+                pass
+        # gui.updateUI(None,None)
+        gui.updateFltk() 
+        fltk.Fl_check()    
     uiCallback = partial(callback,samplingRate,gui)
     fltk.Fl_repeat_timeout(samplingRate,uiCallback)
     
@@ -46,7 +48,7 @@ def openGUI(samplingRate = 0.005):
     
     packData = {'flags':gui.openglWindow.flags,
                 'modelDicts':gui.openglWindow.modelDicts,
-                'log':gui.openglWindow.log}
+                'log':gui.log}
     
     stylusController = StylusController(packData)
     mainController.registerController(stylusController)

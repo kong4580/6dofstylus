@@ -21,7 +21,13 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         
         # create OpenGL window
         fltk.Fl_Gl_Window.__init__(self, xpos, ypos, width, height, label)
-        
+
+        # iniit model value
+        self.positionValue = [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]
+
+        #initcamera value
+        self.cameravalue = [1,0,0,1,1,1]
+
         # variable for cursor position
         self.cursorTransform = np.eye(4)
         self.cursorOffset = np.eye(4)
@@ -64,19 +70,20 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         
         # logger parameter
         self.log = {
-                        "name":None,
-                        "department":None,
-                        "mayaFamiliar":None,
-                        "dominantHand":None,
                         "testNumber":6,
                         "iou":None,
                         "avgIou":None,
                         "totalTime":None,
                         "modelPerSec":None
                     }
+        
+        #log file name
         self.logFileName = "./testLogStylus.csv"
         
         self.ctl = None
+        self.addLog = False
+        self.logfinish = False
+    
     # open backdrop file
     def openBackdropFile(self, filename):
         
@@ -146,32 +153,25 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         # set matrix mode to projection matrix
         GL.glMatrixMode(GL.GL_PROJECTION)
         
+       
         # reset matrix to identity
         GL.glLoadIdentity()
-        
-        # set area of screen
-        # minX, maxX, minY, maxY, minZ, maxZ
-        GL.glFrustum(-1, 1, -1, 1, 1, 100)
 
-        # offset camera view
-        GL.glTranslatef(self.scaleY,self.scaleZ,self.scaleX)
-        
-        # offset camera view down for 5 units
-        ### now use ###
+        # set new view port
+        GL.glViewport(0,0,self.w(),self.h())
+
+        # set area of screen
+        # implement zoom and tramslate view
+        # minX, maxX, minY, maxY, minZ, maxZ
+        GL.glFrustum(((-1*(self.w()/self.h()))/self.cameravalue[0])-self.cameravalue[1], ((1*(self.w()/self.h()))/self.cameravalue[0])-self.cameravalue[1], -1/self.cameravalue[0]-self.cameravalue[2], 1/self.cameravalue[0]-self.cameravalue[2], 1, 100) 
+
+        #offset camera view
         GL.glTranslatef(0,-5,0)
+        GL.glTranslatef(0,0,-10)
         
         
-        # SET MODEL VIEW
-        
-        # set matrix mode to modelView matrix
         GL.glMatrixMode(GL.GL_MODELVIEW)
-        
-        # reset matrix to identity
         GL.glLoadIdentity()
-        
-        # look at far from infront of model 10 units (toward Z axis)
-        GLU.gluLookAt(0, 0, 10, 0, 0, 0, 0, 1, 0)
-        
         
         # DRAW MODEL
         
@@ -184,6 +184,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         
         # draw model with transform matrix
         self.cursor.moveModel(self.cursorTransform)
+        self.cursor.show = self.flags['showModel']
         self.cursor.drawMatrixModel(showFrame=not self.flags['snapMode'])
         
         # draw grid
@@ -289,6 +290,9 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         #     # add user profile
         #     if fltk.Fl.event_key() == ord('l'):
         #         self.addLogProfile()
+            # add user profile
+            if fltk.Fl.event_key() == ord('l'):
+                self.addLog = True
             
             # # start test mode
             # if fltk.Fl.event_key() == ord('p'):
@@ -440,36 +444,24 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
             print("total time: ",self.log["totalTime"])
             print("ModelPerSec: ",self.log["modelPerSec"])
             
-            # update logger file
-            with open(self.logFileName,"a+",newline='') as csvFile:
-                dictWriter = csv.DictWriter(csvFile,fieldnames = self.log.keys())
-                dictWriter.writerow(self.log)
-            print("\nFinished Test mode\nsave log at: {}\n".format(self.logFileName))
-            
-
-    # add user profile to logger
-    def addLogProfile(self):
-        try:
-            self.log["name"] = input("Name : ")
-            self.log["department"] = input("Department : ")
-            self.log["mayaFamiliar"] = input("Software Maya Familiar : ")
-            self.log["dominantHand"] = input("Dominant Hand : ")
-            print("Add User profile to logger!\n")
-        except:
-            print("Add profile error")
-            pass
-    
     # snap opengl window image
     def snap(self,name, save = True, binary = False):
         
         # read curren pixel element
         GL.glPixelStorei(GL.GL_PACK_ALIGNMENT, 1)
+
+        xMin = (self.w()-self.h())/2
+        xMax = self.h()
+        yMin = 0
+        yMax = self.h() 
+        wSize = self.h()
+        hSize = self. h()   
         
         # save pixel to variable as usinged bytes
-        data = GL.glReadPixels(0, 0, 600, 600, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE)
+        data = GL.glReadPixels(xMin, yMin, xMax, yMax, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE)
         
         # convert bytes data to pillow image data
-        image = Image.frombytes("RGBX", (600, 600), data)
+        image = Image.frombytes("RGBX", (wSize, hSize), data)
         
         # turn image upside down
         image = ImageOps.flip(image) 
@@ -513,7 +505,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         oldflags = self.flags.copy()
         
         # turn on snap mode
-        self.flags['snapMode'] = True
+        self.flags['snapMode'] = False
         
         # change model to solid
         self.flags['showModelWireframe'] = False
@@ -528,14 +520,23 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         self.redraw()
         fltk.Fl_check()
         
-        # change backdrop image to 8 bits RGB
-        backdropImg = self.backdropImageFile.convert('L')
-        
         # change backdrop image to binary
+        fltk.Fl_wait(0.5)
+        self.snap("backdrop",save=True)
+        backdropImg = self.snap("backdrop",save=False)
         bw = np.asarray(backdropImg).copy()
         bw[bw < 80] = 0    # Black
         bw[bw >= 80] = 255 # White
         
+        self.flags['snapMode'] = True
+        self.flags['showModelWireframe'] = False
+        self.flags['opacityMode'] = False
+        self.flags['showModel'] = True
+        self.redraw()
+        fltk.Fl_check()
+        fltk.Fl_wait(0.5)
+        self.snap("test",save=True)
+
         # get 8 bits RGB of model image
         testimg = self.snap("test",save=False)
         
@@ -590,7 +591,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         # set camera view
         GL.glMatrixMode(GL.GL_PROJECTION)
         GL.glLoadIdentity()
-        GL.glOrtho( -0.5, 0.5, -0.5, 0.5, -0.5, 1 )
+        GL.glOrtho( (-0.5*(self.w()/self.h())/self.cameravalue[0])-0.5*self.cameravalue[1], (0.5*(self.w()/self.h())/self.cameravalue[0])-0.5*self.cameravalue[1], -0.5/self.cameravalue[0]-0.5*self.cameravalue[2], 0.5/self.cameravalue[0]-0.5*self.cameravalue[2], -0.5, 1 )
         GL.glMatrixMode(GL.GL_MODELVIEW)
         GL.glLoadIdentity()
 
@@ -642,3 +643,9 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
             GL.glEnd()
             
             GL.glDisable( GL.GL_TEXTURE_2D )
+    def getPositionFromSlider(self,num,value):
+        self.positionValue[num] = value
+
+    def getCameraFromSlider(self,num,value):
+        self.cameravalue[num] = value
+        self.redraw()
