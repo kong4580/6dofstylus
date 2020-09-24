@@ -173,7 +173,8 @@ class Gui():
         for i in range(len(self.nameLabel)):
             # self.storageArea[i].value(self.openglWindow.positionValue[i])
             # self.storageInput[i].value(str(self.openglWindow.positionValue[i]))
-            self.storageOutput[i].value(str(self.openglWindow.positionValue[i]))
+            # self.storageOutput[i].value(str(self.openglWindow.positionValue[i]))
+            pass
         self.addLog = self.openglWindow.addLog
         self.loghandle()
 

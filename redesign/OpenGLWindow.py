@@ -181,6 +181,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         
         # draw model with transform matrix
         self.cursor.moveModel(self.cursorTransform)
+        self.cursor.show = self.flags['showModel']
         self.cursor.drawMatrixModel(showFrame=not self.flags['snapMode'])
         
         # draw grid

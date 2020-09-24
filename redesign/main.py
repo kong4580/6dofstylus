@@ -35,8 +35,8 @@ def callback(samplingRate,gui):
             if command == 0xFE:
                 # get button states
                 pass
-        gui.updateUI(None,None)
-        gui.updatesliderbar() 
+        # gui.updateUI(None,None)
+        gui.updateFltk() 
         fltk.Fl_check()    
     uiCallback = partial(callback,samplingRate,gui)
     fltk.Fl_repeat_timeout(samplingRate,uiCallback)
@@ -75,8 +75,8 @@ def openGUI(samplingRate = 0.005):
 if __name__ == '__main__':
     
     # declare port
-    # port = '/dev/pts/1' # ubuntu port
-    port = '/dev/ttyUSB0' # arduino port
+    # port = '/dev/pts/4' # ubuntu port
+    port = '/dev/ttyUSB1' # arduino port
     
     # declare constants
     samplingRate = 0.005
