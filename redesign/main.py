@@ -12,6 +12,7 @@ from Stylus import Stylus
 from GUI import Gui
 import drawFunc
 from Model import Model,OBJ
+from Controller import MainController,StylusController
 
 def callback(samplingRate,gui):
 
@@ -43,7 +44,15 @@ def callback(samplingRate,gui):
     
 
 def openGUI(samplingRate = 0.005):
+    mainController = MainController()
     
+    packData = {'flags':gui.openglWindow.flags,
+                'modelDicts':gui.openglWindow.modelDicts,
+                'log':gui.log}
+    
+    stylusController = StylusController(packData)
+    mainController.registerController(stylusController)
+    gui.openglWindow.ctl = mainController
     # add model
     teapot = OBJ('./teapot.obj',scale=1)
     gui.addModel('teapot',teapot.initOBJ,obj=teapot)
@@ -76,7 +85,11 @@ if __name__ == '__main__':
     
     # declare port
     port = '/dev/pts/4' # ubuntu port
+<<<<<<< HEAD
     # port = '/dev/ttyUSB1' # arduino port
+=======
+    # port = '/dev/ttyUSB0' # arduino port
+>>>>>>> dev
     
     # declare constants
     samplingRate = 0.005

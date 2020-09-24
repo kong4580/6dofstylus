@@ -13,7 +13,7 @@ import csv
 
 import drawFunc
 from Model import Model,OBJ
-
+from Controller import MainController,StylusController
 class OpenGLWindow(fltk.Fl_Gl_Window):
     
     # init opengl window class
@@ -37,6 +37,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         self.modelDicts = {'model':[],
                            'movepose':[],
                            'isModelInit':[],
+                           'runModelIdx':0,
                            'modelNum':0}
         
         # init cursor model
@@ -65,7 +66,9 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
                       'lineupTestMode':False,
                       'showModelWireframe':False,
                       'offsetMode':False,
-                      'opacityMode':False}
+                      'opacityMode':False,
+                      'addLog':False,
+                      'logFinish':False}
         
         # logger parameter
         self.log = {
@@ -78,6 +81,8 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         
         #log file name
         self.logFileName = "./testLogStylus.csv"
+        
+        self.ctl = None
         self.addLog = False
         self.logfinish = False
     
@@ -207,12 +212,12 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
                     self.modelDicts['isModelInit'][idx] = 1
             
             # select model to draw ## because use for test mode ##
-            idx = self.testNumber % 2
-            model = self.modelDicts['model'][idx]
+            self.modelDicts['runModelIdx'] = self.testNumber % 2
+            model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
             
             # set pose to move model
             ### now not use ###
-            movePose = self.modelDicts['movepose'][idx]
+            movePose = self.modelDicts['movepose'][self.modelDicts['runModelIdx']]
             
             # set show or not show model
             model.show = self.flags['showModel']
@@ -256,117 +261,119 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
     def handle(self,event):
         
         # get mouse position
-        xMousePosition = fltk.Fl.event_x()
-        yMousePosition = fltk.Fl.event_y()
+        # print("ctl")
+        self.ctl.readEvent(event)
+        return fltk.Fl_Gl_Window.handle(self, event)
         
-        # if left mouse button is pressed
-        if event == fltk.FL_PUSH and fltk.Fl.event_button() == 1: 
-            # print("mouse position:",xMousePosition,yMousePosition)
-            return 1
+        
+        # xMousePosition = fltk.Fl.event_x()
+        # yMousePosition = fltk.Fl.event_y()
+        
+        # # if left mouse button is pressed
+        # if event == fltk.FL_PUSH and fltk.Fl.event_button() == 1: 
+        #     # print("mouse position:",xMousePosition,yMousePosition)
+        #     return 1
         
         # check keyborad key event
-        elif event == fltk. FL_KEYUP: #keyboard handle
-            # print("key press : ",chr(fltk.Fl.event_key())) #check key #type:int 
-             #check key #type:int 
+        # if event == fltk. FL_KEYUP: #keyboard handle
+        #     # print("key press : ",chr(fltk.Fl.event_key())) #check key #type:int 
+        #      #check key #type:int 
             
-            # toggles show model flags
-            if fltk.Fl.event_key() == ord('q'):
-                self.flags['showModel'] = not self.flags['showModel']
-                
-            # toggles model wireframe mode flags
-            if fltk.Fl.event_key() == ord('1'):
-                self.flags['showModelWireframe'] = not self.flags['showModelWireframe']
-                
-            # toggles model opacity mode flags
-            if fltk.Fl.event_key() == ord('2'):
-                self.flags['opacityMode'] = not self.flags['opacityMode']
-                
-            # reset model position flags
-            if fltk.Fl.event_key() == ord('m'):
-                self.flags['resetModelTransform'] = True
-            
-            # add user profile
-            if fltk.Fl.event_key() == ord('l'):
-                self.addLog = True
-            
-            # start test mode
-            if fltk.Fl.event_key() == ord('p'):
-                print("Enable test mode\nNumber of test: ",self.log['testNumber'])
-                self.testMode(self.log['testNumber'])
-            
-            # calculate iou
-            if fltk.Fl.event_key() == ord('d'):
-                
-                # create flags buffer remember current flags
-                oldFlags = self.flags.copy()
-                
-                # set model to solid
-                self.flags['showModelWireframe']=False
-                
-                # turn off opacity
-                self.flags['showModel'] = True
-                
-                # calculate iou
-                score = self.checkIoU()
-                
-                # update flags states from flags buffer
-                self.flags=oldFlags
-                
-                # if in test mode
-                if self.flags['lineupTestMode']:
-                    
-                    # reset model position
-                    self.flags['resetModelTransform'] = True         
-                    
-                    # add iou score to buffer
-                    self.iouScore = np.append(self.iouScore,score)
-                    
-                    # check that test all model or not
-                    self.testMode(self.log['testNumber'])
-                    
-                    # update test number
-                    self.testNumber += 1
-                    
-                    # if still in test mode
-                    if self.flags['lineupTestMode']:
-                        
-                        # open next backdrop
-                        self.openBackdropFile("backdropImg/backdrop_"+str(self.testNumber)+".jpg")
-            
-            # FOR CREATE BACKDROP IMAGE
-            
-            # turn on snap mode
-            if fltk.Fl.event_key() == ord('s'):
-                self.flags['snapMode'] = not self.flags['snapMode']
-                self.redraw()
-                print("set Snapmode",self.flags['snapMode'])
-                
-            # snap current opengl window image
-            if fltk.Fl.event_key() == ord(' ') and self.flags['snapMode']:
-                
-                # set backdrop file name
-                backdropName = "backdropImg/backdrop_" + str(self.nameNumber)
-                
-                # snap current opengl window image and save
-                self.snap(backdropName)
-                
-                # update backdrop number name
-                self.nameNumber = self.nameNumber + 1
-                
-            # STILL TESTING
-            # offset mouse mode
-            if fltk.Fl.event_key() == ord('c'):
-                self.flags['offsetMode'] = not self.flags['offsetMode']
-            
-            # break condition to run main call back
-            fltk.Fl_check()
-            return 1
         
-        # if no event
-        else:
+                
+        
+                
+        
+                
+        #     # # reset model position flags
+        #     # if fltk.Fl.event_key() == ord('m'):
+        #     #     self.flags['resetModelTransform'] = True
             
-            # wait for handle
-            return fltk.Fl_Gl_Window.handle(self, event)
+        #     # add user profile
+        #     if fltk.Fl.event_key() == ord('l'):
+        #         self.addLogProfile()
+            # add user profile
+            # if fltk.Fl.event_key() == ord('l'):
+            #     self.addLog = True
+            
+            # # start test mode
+            # if fltk.Fl.event_key() == ord('p'):
+            #     print("Enable test mode\nNumber of test: ",self.log['testNumber'])
+            #     self.testMode(self.log['testNumber'])
+            
+        #     # calculate iou
+        #     if fltk.Fl.event_key() == ord('d'):
+                
+        #         # create flags buffer remember current flags
+        #         oldFlags = self.flags.copy()
+                
+        #         # set model to solid
+        #         self.flags['showModelWireframe']=False
+                
+        #         # turn off opacity
+        #         self.flags['showModel'] = True
+                
+        #         # calculate iou
+        #         score = self.checkIoU()
+                
+        #         # update flags states from flags buffer
+        #         self.flags=oldFlags
+                
+        #         # if in test mode
+        #         if self.flags['lineupTestMode']:
+                    
+        #             # reset model position
+        #             self.flags['resetModelTransform'] = True         
+                    
+        #             # add iou score to buffer
+        #             self.iouScore = np.append(self.iouScore,score)
+                    
+        #             # check that test all model or not
+        #             self.testMode(self.log['testNumber'])
+                    
+        #             # update test number
+        #             self.testNumber += 1
+                    
+        #             # if still in test mode
+        #             if self.flags['lineupTestMode']:
+                        
+        #                 # open next backdrop
+        #                 self.openBackdropFile("backdropImg/backdrop_"+str(self.testNumber)+".jpg")
+            
+        #     # FOR CREATE BACKDROP IMAGE
+            
+        #     # turn on snap mode
+        #     if fltk.Fl.event_key() == ord('s'):
+        #         self.flags['snapMode'] = not self.flags['snapMode']
+        #         self.redraw()
+        #         print("set Snapmode",self.flags['snapMode'])
+                
+        #     # snap current opengl window image
+        #     if fltk.Fl.event_key() == ord(' ') and self.flags['snapMode']:
+                
+        #         # set backdrop file name
+        #         backdropName = "backdropImg/backdrop_" + str(self.nameNumber)
+                
+        #         # snap current opengl window image and save
+        #         self.snap(backdropName)
+                
+        #         # update backdrop number name
+        #         self.nameNumber = self.nameNumber + 1
+                
+        #     # STILL TESTING
+        #     # offset mouse mode
+        #     if fltk.Fl.event_key() == ord('c'):
+        #         self.flags['offsetMode'] = not self.flags['offsetMode']
+            
+        #     # break condition to run main call back
+        #     fltk.Fl_check()
+        #     return 1
+        
+        # # if no event
+        # else:
+            
+        #     # wait for handle
+        #     return fltk.Fl_Gl_Window.handle(self, event)
                 
                 
                 
