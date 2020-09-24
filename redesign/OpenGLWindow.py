@@ -31,6 +31,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         self.modelDicts = {'model':[],
                            'movepose':[],
                            'isModelInit':[],
+                           'runModelIdx':0,
                            'modelNum':0}
         
         # init cursor model
@@ -75,9 +76,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
                     }
         self.logFileName = "./testLogStylus.csv"
         
-        self.ctl = MainController()
-        self.stylusCtl = StylusController(self.flags,self.modelDicts)
-        self.ctl.registerController(self.stylusCtl)
+        self.ctl = None
     # open backdrop file
     def openBackdropFile(self, filename):
         
@@ -210,12 +209,12 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
                     self.modelDicts['isModelInit'][idx] = 1
             
             # select model to draw ## because use for test mode ##
-            idx = self.testNumber % 2
-            model = self.modelDicts['model'][idx]
+            self.modelDicts['runModelIdx'] = self.testNumber % 2
+            model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
             
             # set pose to move model
             ### now not use ###
-            movePose = self.modelDicts['movepose'][idx]
+            movePose = self.modelDicts['movepose'][self.modelDicts['runModelIdx']]
             
             # set show or not show model
             model.show = self.flags['showModel']
@@ -272,35 +271,29 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         #     # print("mouse position:",xMousePosition,yMousePosition)
         #     return 1
         
-        # # check keyborad key event
-        # elif event == fltk. FL_KEYUP: #keyboard handle
+        # check keyborad key event
+        # if event == fltk. FL_KEYUP: #keyboard handle
         #     # print("key press : ",chr(fltk.Fl.event_key())) #check key #type:int 
         #      #check key #type:int 
             
-        #     # toggles show model flags
-        #     if fltk.Fl.event_key() == ord('q'):
-        #         self.flags['showModel'] = not self.flags['showModel']
+        
                 
-        #     # toggles model wireframe mode flags
-        #     if fltk.Fl.event_key() == ord('1'):
-        #         self.flags['showModelWireframe'] = not self.flags['showModelWireframe']
+        
                 
-        #     # toggles model opacity mode flags
-        #     if fltk.Fl.event_key() == ord('2'):
-        #         self.flags['opacityMode'] = not self.flags['opacityMode']
+        
                 
-        #     # reset model position flags
-        #     if fltk.Fl.event_key() == ord('m'):
-        #         self.flags['resetModelTransform'] = True
+        #     # # reset model position flags
+        #     # if fltk.Fl.event_key() == ord('m'):
+        #     #     self.flags['resetModelTransform'] = True
             
         #     # add user profile
         #     if fltk.Fl.event_key() == ord('l'):
         #         self.addLogProfile()
             
-        #     # start test mode
-        #     if fltk.Fl.event_key() == ord('p'):
-        #         print("Enable test mode\nNumber of test: ",self.log['testNumber'])
-        #         self.testMode(self.log['testNumber'])
+            # # start test mode
+            # if fltk.Fl.event_key() == ord('p'):
+            #     print("Enable test mode\nNumber of test: ",self.log['testNumber'])
+            #     self.testMode(self.log['testNumber'])
             
         #     # calculate iou
         #     if fltk.Fl.event_key() == ord('d'):

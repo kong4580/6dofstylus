@@ -42,7 +42,15 @@ def callback(samplingRate,gui):
     
 
 def openGUI(samplingRate = 0.005):
+    mainController = MainController()
     
+    packData = {'flags':gui.openglWindow.flags,
+                'modelDicts':gui.openglWindow.modelDicts,
+                'log':gui.openglWindow.log}
+    
+    stylusController = StylusController(packData)
+    mainController.registerController(stylusController)
+    gui.openglWindow.ctl = mainController
     # add model
     teapot = OBJ('./teapot.obj',scale=1)
     gui.addModel('teapot',teapot.initOBJ,obj=teapot)
@@ -51,8 +59,7 @@ def openGUI(samplingRate = 0.005):
     
     # open GUI window
     gui.window.show()
-    mainController = MainController()
-    stylusController = StylusController(gui.openglWindow.flags,gui.openglWindow.modelDicts)
+    
     # run callback function
     uiCallback = partial(callback,samplingRate,gui)
     fltk.Fl_add_timeout(samplingRate,uiCallback)
