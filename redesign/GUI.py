@@ -346,7 +346,7 @@ class Gui():
             # new cursor transform is
             # inv(offsetCursor) * current cursor transform from stylus
             self.openglWindow.cursorTransform = np.dot(np.linalg.inv(self.offsetCursor),cursorTransform)
-            print(self.openglWindow.flags)
+            
             self.checkModeEvent()
             # update opengl window
             self.openglWindow.redraw()
@@ -394,20 +394,21 @@ class Gui():
             score = self.openglWindow.checkIoU()
             
             # update flags states from flags buffer
-            # self.openglWindow.flags=oldFlags
             
+            # reset checkIoU flags
+            self.openglWindow.flags['checkIoU'] = False
             # if in test mode
             if self.openglWindow.flags['lineupTestMode']:
-                
+               
                 # reset model position
                 self.openglWindow.flags['resetModelTransform'] = True         
                 
                 # add iou score to buffer
                 self.openglWindow.iouScore = np.append(self.openglWindow.iouScore,score)
                 
+                # print(self.openglWindow.testNumber,self.openglWindow.log['testNumber'])
                 # check that test all model or not
                 self.openglWindow.testMode(self.openglWindow.log['testNumber'])
-                
                 # update test number
                 self.openglWindow.testNumber += 1
                 
@@ -415,12 +416,15 @@ class Gui():
                 if self.openglWindow.flags['lineupTestMode']:
                     
                     # open next backdrop
-                    self.openglWindow.openBackdropFile("backdropImg/backdrop_"+str(self.testNumber)+".jpg")
+                    self.openglWindow.openBackdropFile("backdropImg/backdrop_"+str(self.openglWindow.testNumber)+".jpg")
             
-            # reset checkIoU flags
-            self.openglWindow.flags['checkIoU'] = False
-            # print(self.openglWindow.flags)
-            fltk.Fl_check()
+            
+            
+        if self.openglWindow.flags['testMode']:
+            print("Enable test mode\nNumber of test: ",self.openglWindow.log['testNumber'])
+            self.openglWindow.testMode(self.openglWindow.log['testNumber'])
+            self.openglWindow.flags['testMode'] = False
+        fltk.Fl_check()
     
     
     # update output function

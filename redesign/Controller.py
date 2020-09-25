@@ -63,6 +63,10 @@ class CommonController(Handler):
         if self.keyCha == 'd':
             
             self.toggleFlags('checkIoU')
+        
+        if self.keyCha == 'p':
+            
+            self.toggleFlags('testMode')
             
         if self.keyCha == 'l':
             self.flags['addLog'] = True

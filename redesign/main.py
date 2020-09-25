@@ -30,8 +30,8 @@ def callback(samplingRate,gui):
                 # print(jointStates)
                 pose = stylus.getEndTransforms(jointStates)
                 # update gui
-                print(pose)
-                gui.updateUI(pose[1],buttonStates,scale=20,cursorTransform=pose[0])
+                # print(pose)
+                # gui.updateUI(pose[1],buttonStates,scale=20,cursorTransform=pose[0])
                 
                 
                 
@@ -48,7 +48,10 @@ def callback(samplingRate,gui):
          2.00920150e+01],
        [ 0.00000000e+00,  0.00000000e+00,  0.00000000e+00,
          1.00000000e+00]])
-        gui.updateUI(posed,(False, False),scale=20,cursorTransform=posed2)
+        try:
+            gui.updateUI(pose[1],(False, False),scale=20,cursorTransform=pose[0])
+        except:
+            pass
         
         gui.updateFltk() 
         fltk.Fl_check()    
@@ -97,8 +100,8 @@ def openGUI(samplingRate = 0.005):
 if __name__ == '__main__':
     
     # declare port
-    port = '/dev/pts/3' # ubuntu port
-    # port = '/dev/ttyUSB0' # arduino port
+    # port = '/dev/pts/3' # ubuntu port
+    port = '/dev/ttyUSB0' # arduino port
     
     # declare constants
     samplingRate = 0.005

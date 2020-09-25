@@ -70,7 +70,8 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
                       'addLog':False,
                       'logFinish':False,
                       'checkIoU':False,
-                      'showCursor':True}
+                      'showCursor':True,
+                      'testMode':False}
         
         # logger parameter
         self.log = {
@@ -296,49 +297,6 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
             
         
             
-            # # start test mode
-            # if fltk.Fl.event_key() == ord('p'):
-            #     print("Enable test mode\nNumber of test: ",self.log['testNumber'])
-            #     self.testMode(self.log['testNumber'])
-            
-        #     # calculate iou
-        #     if fltk.Fl.event_key() == ord('d'):
-                
-        #         # create flags buffer remember current flags
-        #         oldFlags = self.flags.copy()
-                
-        #         # set model to solid
-        #         self.flags['showModelWireframe']=False
-                
-        #         # turn off opacity
-        #         self.flags['showModel'] = True
-                
-        #         # calculate iou
-        #         score = self.checkIoU()
-                
-        #         # update flags states from flags buffer
-        #         self.flags=oldFlags
-                
-        #         # if in test mode
-        #         if self.flags['lineupTestMode']:
-                    
-        #             # reset model position
-        #             self.flags['resetModelTransform'] = True         
-                    
-        #             # add iou score to buffer
-        #             self.iouScore = np.append(self.iouScore,score)
-                    
-        #             # check that test all model or not
-        #             self.testMode(self.log['testNumber'])
-                    
-        #             # update test number
-        #             self.testNumber += 1
-                    
-        #             # if still in test mode
-        #             if self.flags['lineupTestMode']:
-                        
-        #                 # open next backdrop
-        #                 self.openBackdropFile("backdropImg/backdrop_"+str(self.testNumber)+".jpg")
             
         #     # FOR CREATE BACKDROP IMAGE
             
@@ -564,7 +522,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         fltk.Fl_check()
         
         # change backdrop image to binary
-        fltk.Fl_wait(0.5)
+        # fltk.Fl_wait(0.5)
         self.snap("backdrop",save=True)
         backdropImg = self.snap("backdrop",save=False)
         bw = np.asarray(backdropImg).copy()
@@ -579,7 +537,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         
         self.redraw()
         fltk.Fl_check()
-        fltk.Fl_wait(0.5)
+        # fltk.Fl_wait(0.5)
         self.snap("test",save=True)
 
         # get 8 bits RGB of model image
