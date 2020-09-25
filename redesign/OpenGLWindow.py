@@ -523,7 +523,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         
         # change backdrop image to binary
         # fltk.Fl_wait(0.5)
-        self.snap("backdrop",save=True)
+        # self.snap("backdrop",save=True)
         backdropImg = self.snap("backdrop",save=False)
         bw = np.asarray(backdropImg).copy()
         bw[bw < 80] = 0    # Black
@@ -538,7 +538,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         self.redraw()
         fltk.Fl_check()
         # fltk.Fl_wait(0.5)
-        self.snap("test",save=True)
+        # self.snap("test",save=True)
 
         # get 8 bits RGB of model image
         testimg = self.snap("test",save=False)
