@@ -11,6 +11,8 @@ from drawFunc import *
 from OpenGLWindow import OpenGLWindow
 from Model import Model
 
+import csv 
+
 #test git rearrange
 class Gui():
     
@@ -47,7 +49,11 @@ class Gui():
                         "department":None,
                         "mayaFamiliar":None,
                         "dominantHand":None,
-                        "testNumber":6
+                        "testNumber":6,
+                        "iou":None,
+                        "avgIou":None,
+                        "totalTime":None,
+                        "modelPerSec":None
                     }
         # log file name
         self.logFileName = "./testLogStylus.csv"
@@ -70,7 +76,22 @@ class Gui():
         self.cameraSliderBarWidget()
         self.cameraInputWidget()
         # self.positionOutputWidget()
-        self.textWidget()
+        # self.textWidget()
+        self.iouOutput()
+    
+    # create IoU output for all image
+    def iouOutput(self):
+        self.storageIouOutput = []
+        y = 250
+        width = 50
+        height = 25
+        iouBox = fltk.Fl_Box(600,225,100,height,"IoU Score")
+        iouBox.box(fltk.FL_NO_BOX)
+        for i in range(6):
+            output = fltk.Fl_Output(650,y,width,height,str(i+1))
+            output.value(str(0))
+            y+=30
+            self.storageIouOutput.append(output)
     
     # create text widget
     def textWidget(self):
@@ -170,11 +191,15 @@ class Gui():
         # update fltk from opengl 
 
     def updateFltk(self):
-        for i in range(len(self.nameLabel)):
+        # for i in range(len(self.nameLabel)):
             # self.storageArea[i].value(self.openglWindow.positionValue[i])
             # self.storageInput[i].value(str(self.openglWindow.positionValue[i]))
             # self.storageOutput[i].value(str(self.openglWindow.positionValue[i]))
-            pass
+            # pass
+        self.iouScore = [0,0,0,0,0,0]
+        self.iouScore[:len(self.openglWindow.iouScore)] = self.openglWindow.iouScore
+        for i in range(len(self.iouScore)):
+            self.storageIouOutput[i].value(str(round(self.iouScore[i],2)))
         self.addLog = self.openglWindow.flags['addLog']
         self.loghandle()
 
