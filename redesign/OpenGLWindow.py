@@ -188,7 +188,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         # self.cursor.drawModel(position=(self.pose[1],self.pose[2],self.pose[0]),rotation=(self.pose[5],self.pose[3],self.pose[4]),showFrame=not self.snapMode)
         
         # draw model with transform matrix
-        self.cursor.moveModel(self.cursorTransform)
+        # self.cursor.moveModel(self.ctl.getController().transform)
         
         self.cursor.drawMatrixModel(showFrame=self.flags['showCursor'])
         
@@ -526,7 +526,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         
         # change backdrop image to binary
         # fltk.Fl_wait(0.5)
-        self.snap("backdrop",save=True)
+        # self.snap("backdrop",save=True)
         backdropImg = self.snap("backdrop",save=False)
         bw = np.asarray(backdropImg).copy()
         bw[bw < 80] = 0    # Black
@@ -541,7 +541,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         self.redraw()
         fltk.Fl_check()
         # fltk.Fl_wait(0.5)
-        self.snap("test",save=True)
+        # self.snap("test",save=True)
 
         # get 8 bits RGB of model image
         testimg = self.snap("test",save=False)
