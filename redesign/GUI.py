@@ -85,7 +85,8 @@ class Gui():
     def testModeUIOff(self,lineUporNot = False):
         testStr = "Testing Mode : " + "OFF"
         self.testTextOff = fltk.Fl_Box(600,250,200,25,testStr)
-        self.testTextOff.labelsize(20)
+        self.testTextOff.labelsize(18)
+        self.testTextOff.labelfont(fltk.FL_BOLD)
         c = fltk.fl_rgb_color(204, 41, 0)
         self.testTextOff.labelcolor(c)
 
@@ -93,7 +94,8 @@ class Gui():
     def testModeUIOn(self,lineUporNot = False):
         testStr = "Testing Mode : " + "ON"
         self.testTextOn = fltk.Fl_Box(600,250,200,25,testStr)
-        self.testTextOn.labelsize(20)
+        self.testTextOn.labelsize(18)
+        self.testTextOn.labelfont(fltk.FL_BOLD)
         c = fltk.fl_rgb_color(51, 204, 0)
         self.testTextOn.labelcolor(c)
 
