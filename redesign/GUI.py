@@ -11,6 +11,8 @@ from drawFunc import *
 from OpenGLWindow import OpenGLWindow
 from Model import Model
 
+import csv 
+
 #test git rearrange
 class Gui():
     
@@ -47,7 +49,11 @@ class Gui():
                         "department":None,
                         "mayaFamiliar":None,
                         "dominantHand":None,
-                        "testNumber":6
+                        "testNumber":6,
+                        "iou":None,
+                        "avgIou":None,
+                        "totalTime":None,
+                        "modelPerSec":None
                     }
         # log file name
         self.logFileName = "./testLogStylus.csv"
@@ -70,7 +76,42 @@ class Gui():
         self.cameraSliderBarWidget()
         self.cameraInputWidget()
         # self.positionOutputWidget()
-        self.textWidget()
+        # self.textWidget()
+        self.testModeUIOff()
+        self.testModeUIOn()
+        self.iouOutput()
+    
+    # text test mode off
+    def testModeUIOff(self,lineUporNot = False):
+        testStr = "Testing Mode : " + "OFF"
+        self.testTextOff = fltk.Fl_Box(600,250,200,25,testStr)
+        self.testTextOff.labelsize(18)
+        self.testTextOff.labelfont(fltk.FL_BOLD)
+        c = fltk.fl_rgb_color(204, 41, 0)
+        self.testTextOff.labelcolor(c)
+
+    # text test mode on
+    def testModeUIOn(self,lineUporNot = False):
+        testStr = "Testing Mode : " + "ON"
+        self.testTextOn = fltk.Fl_Box(600,250,200,25,testStr)
+        self.testTextOn.labelsize(18)
+        self.testTextOn.labelfont(fltk.FL_BOLD)
+        c = fltk.fl_rgb_color(51, 204, 0)
+        self.testTextOn.labelcolor(c)
+
+    # create IoU output for all image
+    def iouOutput(self):
+        self.storageIouOutput = []
+        y = 300
+        width = 50
+        height = 25
+        iouBox = fltk.Fl_Box(600,275,100,height,"IoU Score")
+        iouBox.box(fltk.FL_NO_BOX)
+        for i in range(6):
+            output = fltk.Fl_Output(650,y,width,height,str(i+1))
+            output.value(str(0))
+            y+=30
+            self.storageIouOutput.append(output)
     
     # create text widget
     def textWidget(self):
@@ -167,16 +208,30 @@ class Gui():
             yWidgetPosition = yWidgetPosition + 25
             output.callback(self.__outputCB,n)
             self.storageOutput.append(output)
-        # update fltk from opengl 
+        
+    # test mode text handle
+    def testModeUIHandle(self,testMode):
+        if testMode == True:
+            self.testTextOn.show()
+            self.testTextOff.hide()
+        elif testMode == False:
+            self.testTextOn.hide()
+            self.testTextOff.show()
 
+    # update fltk from opengl 
     def updateFltk(self):
-        for i in range(len(self.nameLabel)):
+        # for i in range(len(self.nameLabel)):
             # self.storageArea[i].value(self.openglWindow.positionValue[i])
             # self.storageInput[i].value(str(self.openglWindow.positionValue[i]))
             # self.storageOutput[i].value(str(self.openglWindow.positionValue[i]))
-            pass
+            # pass
+        self.iouScore = [0,0,0,0,0,0]
+        self.iouScore[:len(self.openglWindow.iouScore)] = self.openglWindow.iouScore
+        for i in range(len(self.iouScore)):
+            self.storageIouOutput[i].value(str(round(self.iouScore[i],2)))
         self.addLog = self.openglWindow.flags['addLog']
         self.loghandle()
+        self.testModeUIHandle(self.openglWindow.flags['lineupTestMode'])
 
     # collect information from tester
     def loghandle(self):

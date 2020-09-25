@@ -356,6 +356,9 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
             # turn of test mode flags
             self.flags['lineupTestMode'] = False
             
+            # 
+            self.flags['logFinish'] = True
+
             # add iou score to logger
             self.log["iou"] = self.iouScore
             
