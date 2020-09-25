@@ -188,7 +188,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         # self.cursor.drawModel(position=(self.pose[1],self.pose[2],self.pose[0]),rotation=(self.pose[5],self.pose[3],self.pose[4]),showFrame=not self.snapMode)
         
         # draw model with transform matrix
-        self.cursor.moveModel(self.cursorTransform)
+        # self.cursor.moveModel(self.ctl.getController().transform)
         
         self.cursor.drawMatrixModel(showFrame=self.flags['showCursor'])
         

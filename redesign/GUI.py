@@ -360,7 +360,7 @@ class Gui():
             
             # new cursor transform is
             # inv(offsetCursor) * current cursor transform from stylus
-            self.openglWindow.cursorTransform = np.dot(np.linalg.inv(self.offsetCursor),cursorTransform)
+            # self.openglWindow.cursorTransform = np.dot(np.linalg.inv(self.offsetCursor),cursorTransform)
             
             self.checkModeEvent()
             # update opengl window

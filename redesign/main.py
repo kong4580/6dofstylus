@@ -29,6 +29,17 @@ def callback(samplingRate,gui):
                 jointStates,buttonStates = srec.readCommand(command,rawData)
                 # print(jointStates)
                 pose = stylus.getEndTransforms(jointStates)
+                
+                device.setTransform(pose[0])
+                gui.openglWindow.ctl.readEvent(999)
+                
+                if buttonStates[0] == True and buttonStates[1] == False:
+                    gui.openglWindow.ctl.readEvent(1001)
+                elif buttonStates[0] == False and buttonStates[1] == True:
+                    gui.openglWindow.ctl.readEvent(1002)
+                else:
+                    gui.openglWindow.ctl.readEvent(1000)
+                    
                 # update gui
                 # print(pose)
                 # gui.updateUI(pose[1],buttonStates,scale=20,cursorTransform=pose[0])
@@ -60,14 +71,8 @@ def callback(samplingRate,gui):
     
 
 def openGUI(samplingRate = 0.005):
-    mainController = MainController()
     
-    packData = {'flags':gui.openglWindow.flags,
-                'modelDicts':gui.openglWindow.modelDicts,
-                'log':gui.log}
     
-    stylusController = StylusController(packData)
-    mainController.registerController(stylusController)
     gui.openglWindow.ctl = mainController
     # add model
     teapot = OBJ('./teapot.obj',scale=1)
@@ -119,6 +124,15 @@ if __name__ == '__main__':
     
     # init GUI
     gui = Gui()
+    mainController = MainController()
     
+    packData = {'flags':gui.openglWindow.flags,
+                'modelDicts':gui.openglWindow.modelDicts,
+                'log':gui.log,
+                'cursor':gui.openglWindow.cursor}
+    
+    stylusController = StylusController(packData)
+    mainController.registerController(stylusController)
+    device = mainController.getController()
     # run GUI
     openGUI(samplingRate)

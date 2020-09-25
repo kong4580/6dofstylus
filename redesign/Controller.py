@@ -14,9 +14,11 @@ class MainController(Handler):
         super().__init__()
         
         self.controllerList = []
-        self.transFrom = np.eye(4)
     def registerController(self,controller):
         self.controllerList.append(controller)
+    
+    def getController(self,idx=0):
+        return self.controllerList[idx]
     
     def readEvent(self,event):
         for ctl in self.controllerList:
@@ -26,7 +28,7 @@ class MainController(Handler):
                 
                 ctl.keyCha = chr(fltk.Fl.event_key())
                 
-            ctl.runEvent()    
+            ctl.runEvent(event)    
              
 class CommonController(Handler):
     
@@ -43,7 +45,7 @@ class CommonController(Handler):
         
     
         
-    def runEvent(self):
+    def runCommonEvent(self):
         # print(self.keyCha)
         
         if self.keyCha == 'q':
@@ -81,4 +83,74 @@ class CommonController(Handler):
 class StylusController(CommonController):
     def __init__(self,packData):
         super().__init__(packData)
+        # set config
+        self.cfg={"homeCfg":(5.23747141, -0.01606842, -0.3270202)}
+        self.transform = np.eye(4)
+        self.cursor = packData['cursor']
         
+    def runEvent(self,event):
+        self.runCommonEvent()
+        if event == 999: # move cursor
+            self.cursor.moveModel(self.transform)
+        if event >= 1000:
+            key = event%1000
+            if key == 1:
+                self.push = True
+                self.release = False
+                self.buttonNum = 1
+                print("left click!")
+                selectedModel = self.selectModel()
+                
+                # show all model that is selected
+                for model in selectedModel:
+                    print("selectModel = ",model.name)
+            elif key == 2:
+                self.push = True
+                self.release = False
+                self.buttonNum = 2
+                print("releaseModel")
+                self.releaseModel()
+            else:
+                self.push = False
+                self.release = True
+                self.buttonNum = None
+            
+    def setTransform(self, cursorTransform):
+        # read cursor transform from stylus and scaling
+        cursorTransform[0:3,3] = cursorTransform[0:3,3].copy() * 0.05
+        
+        # offset home position
+        cursorTransform[0,3] -= self.cfg["homeCfg"][0]
+        cursorTransform[1,3] -= self.cfg["homeCfg"][1]
+        cursorTransform[2,3] -= self.cfg["homeCfg"][2]
+        self.transform = cursorTransform.copy()
+    
+    def selectModel(self):
+        
+        
+        # create selected model buffer
+        selectModel = []
+        
+        # run through all models in opengl window class
+        for model in self.modelDicts['model']:
+            
+            # if cursor position is in model
+            if model.isPointInsideConvexHull(self.cursor.centerPosition):
+                
+                # model is selected
+                model.isSelected = True
+                
+                # add model to selected model buffer
+                selectModel.append(model)
+        
+        # return selected model buffer
+        return selectModel
+    
+    # release model
+    def releaseModel(self):
+        
+        # run through all models in opengl window class
+        for model in self.modelDicts['model']:
+            
+            # change model to not selected
+            model.isSelected = False
