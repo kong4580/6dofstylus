@@ -61,39 +61,9 @@ class Model():
         GL.glPushMatrix()
         GL.glLoadIdentity()
         
-        # # if model is cursor
-        # if self.name == 'cursor':
-            
-        #     # transform axis form stylus to opengl axis
-        #     transform = np.array([[0,1,0,0],
-        #                           [0,0,1,0],
-        #                           [1,0,0,0],
-        #                           [0,0,0,1]])
-        #     transform = np.array([[0,-1,0,0],
-        #                         [0,0,1,0],
-        #                         [-1,0,0,0],
-        #                         [0,0,0,1]])
-        #     transform = np.eye(4)
-            
-
-        # # if model is not cursor
-        # else:
-            
-        #     # set transform matrix to identity 4*4
-        #     transform = np.eye(4)
-        
-        # # create new transform matrix
-        # # tNew = tOld * inputMatrix
-        # nmatrix = np.dot(transform,matrix)
-        
         # apply transform to model
         GL.glLoadMatrixf(self.currentM.T)
-        
-        # # set current model matrix from modelview matrix
-        # self.currentM = GL.glGetFloatv(GL.GL_MODELVIEW_MATRIX).T
-        
-        # # set model center position
-        # self.centerPosition = self.currentM[0:3,3]
+       
         
         # if model is obj firl
         if self.obj!=None:
@@ -183,23 +153,7 @@ class Model():
                 # reset attribute to remain attribute
                 GL.glDisable(GL.GL_BLEND)
                 GL.glPopAttrib()
-                
-            # set obb transform matrix
-            self.obb.current_homo = self.currentM
             
-            # transform obb point to current model transform
-            for idx in range(len(self.obb.points)):
-                pointIdx = np.append(self.obb.points[idx].copy(),1)
-                self.obb.current_point[idx] = np.dot(self.obb.current_homo.copy(),pointIdx.T)[0:3]
-                
-            # update obb centroid
-            obbCentroid = np.append(self.obb.current_centroid,1)
-            self.obb.current_centroid = np.dot(self.obb.current_homo,obbCentroid)[0:3]
-            
-            # update model vertices position
-            for idx in range(len(self.obj.vertices)):
-                verIdx = np.append(self.obj.vertices[idx].copy(),1)
-                self.obj.current_vertices[idx] = np.dot(GL.glGetFloatv(GL.GL_MODELVIEW_MATRIX).T,verIdx.T)[0:3]
             
         # if model is not obj file    
         else:
@@ -269,7 +223,7 @@ class Model():
             # update model vertices position
             for idx in range(len(self.obj.vertices)):
                 verIdx = np.append(self.obj.vertices[idx].copy(),1)
-                self.obj.current_vertices[idx] = np.dot(GL.glGetFloatv(GL.GL_MODELVIEW_MATRIX).T,verIdx.T)[0:3]
+                self.obj.current_vertices[idx] = np.dot(self.currentM,verIdx.T)[0:3]
     
     # update model position
     ### now not use ###
@@ -300,22 +254,6 @@ class Model():
             return True
         else:
             return False
-    
-    # check is point inside model
-    def isPointInsideConvexHull(self,point):
-        
-        # create convex hull of model with current vertices
-        hull = ConvexHull(self.obj.current_vertices,incremental = True)
-        
-        # add point into hull and draw new convexHull
-        newHull = ConvexHull(np.concatenate((hull.points, [point])))
-        
-        # if shape of hull and newHull is the same, then this point is inside model
-        if np.array_equal(newHull.vertices, hull.vertices): 
-            return True
-        
-        # if shape of newHull is not the same, then this point is outside model
-        return False
     
     # create OBB around model
     def createOBB(self,showOBB=False):
@@ -406,39 +344,6 @@ class Model():
             # print(self.name)
             self.centerPosition -=self.obb.current_centroid
     
-    # move model follow cursor
-    def followCursor(self,cursor):
-        
-        # if not init
-        if self.cursorPose == None or type(self.cursorM) == type(None):
-            
-            # remember rotattion and position
-            ### now not use ###
-            self.cursorPose = cursor.rotation
-            self.currentRotation = self.rotation
-            
-            # remember cursor transform matrix when first clicked
-            self.cursorM = cursor.currentM.copy()
-            
-            # remember model transform matrix when first clicked
-            self.startclickM = self.currentM.copy()
-        
-        # calcualte delta TRANSFORM of cursor that first clicked and current cursor transform
-        deltaTransform = np.dot(cursor.currentM,np.linalg.inv(self.cursorM))
-        
-        # calculate new model transformation
-        newM = np.eye(4)
-        newM = np.dot(deltaTransform,self.startclickM)
-        
-        # calculate new rotation
-        ### now not use ###
-        deltaRot = np.asarray(list(cursor.rotation)) - np.asarray(list(self.cursorPose))
-        newRotation = self.currentRotation
-        if deltaRot[0]**2+deltaRot[1]**2+deltaRot[2]**2 >=0.1: 
-            newRotation = self.currentRotation + deltaRot
-        
-        # return new model transform
-        return cursor.centerPosition,newRotation,newM
         
         
         

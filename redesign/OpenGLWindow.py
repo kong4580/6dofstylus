@@ -13,7 +13,7 @@ import csv
 
 import drawFunc
 from Model import Model,OBJ
-from Controller import MainController,StylusController
+# from Controller import MainController,StylusController
 class OpenGLWindow(fltk.Fl_Gl_Window):
     
     # init opengl window class
@@ -217,44 +217,45 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
             # select model to draw ## because use for test mode ##
             self.modelDicts['runModelIdx'] = self.testNumber % 2
             model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
-            
-            # set pose to move model
-            ### now not use ###
-            movePose = self.modelDicts['movepose'][self.modelDicts['runModelIdx']]
-            
             # set show or not show model
             model.show = self.flags['showModel']
+            # # set pose to move model
+            # ### now not use ###
+            # movePose = self.modelDicts['movepose'][self.modelDicts['runModelIdx']]
             
-            # if model is selected
-            if model.isSelected:
-                
-                # move model follow cursor
-                # now use only newM because use transform matrix to draw model
-                targetPosition,targetRotation,newM = model.followCursor(self.cursor)
+            # # set show or not show model
+            # model.show = self.flags['showModel']
             
-            # if model is not selected
-            else:
+            # # if model is selected
+            # if model.isSelected:
                 
-                # reset value from model
-                model.cursorM = None
-                model.cursorPose = None
+            #     # move model follow cursor
+            #     # now use only newM because use transform matrix to draw model
+            #     targetPosition,targetRotation,newM = model.followCursor(self.cursor)
+            
+            # # if model is not selected
+            # else:
                 
-                # if reset mode trigger
-                if self.flags['resetModelTransform']:
+            #     # reset value from model
+            #     model.cursorM = None
+            #     model.cursorPose = None
+                
+            #     # if reset mode trigger
+            #     if self.flags['resetModelTransform']:
                     
-                    # set model position to home position ( identity )
-                    model.currentM = np.eye(4)
+            #         # set model position to home position ( identity )
+            #         model.currentM = np.eye(4)
                     
-                    # turn off reset flags
-                    self.flags['resetModelTransform'] = False
+            #         # turn off reset flags
+            #         self.flags['resetModelTransform'] = False
                 
-                # model position is remain position
-                targetPosition,targetRotation,newM = model.centerPosition,model.rotation,model.currentM
+            #     # model position is remain position
+            #     targetPosition,targetRotation,newM = model.centerPosition,model.rotation,model.currentM
             
-            # draw model with position and rotation
-            ### now not use ###
-            # model.drawModel(position = targetPosition,rotation = targetRotation,showFrame=False)
-            model.moveModel(newM)
+            # # draw model with position and rotation
+            # ### now not use ###
+            # # model.drawModel(position = targetPosition,rotation = targetRotation,showFrame=False)
+            # model.moveModel(newM)
             # draw model with transform matrix
             model.drawMatrixModel(showFrame=False,wireFrame = self.flags['showModelWireframe'], opacity = self.flags['opacityMode'])
                 
@@ -263,41 +264,10 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
     # handle function of opengl window class
     def handle(self,event):
         
-        # get mouse position
-        # print("ctl")
         self.ctl.readEvent(event)
-        
-        
-        
+
         return fltk.Fl_Gl_Window.handle(self, event)
         
-        
-        # xMousePosition = fltk.Fl.event_x()
-        # yMousePosition = fltk.Fl.event_y()
-        
-        # # if left mouse button is pressed
-        # if event == fltk.FL_PUSH and fltk.Fl.event_button() == 1: 
-        #     # print("mouse position:",xMousePosition,yMousePosition)
-        #     return 1
-        
-        # check keyborad key event
-        # if event == fltk. FL_KEYUP: #keyboard handle
-        #     # print("key press : ",chr(fltk.Fl.event_key())) #check key #type:int 
-        #      #check key #type:int 
-            
-        
-                
-        
-                
-        
-                
-        #     # # reset model position flags
-        #     # if fltk.Fl.event_key() == ord('m'):
-        #     #     self.flags['resetModelTransform'] = True
-            
-        
-            
-            
         #     # FOR CREATE BACKDROP IMAGE
             
         #     # turn on snap mode
@@ -333,47 +303,6 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         #     # wait for handle
         #     return fltk.Fl_Gl_Window.handle(self, event)
                 
-    # def checkModeEvent(self):
-    #     if self.flags['checkIoU']:
-            
-    #         # create flags buffer remember current flags
-    #         oldFlags = self.flags.copy()
-            
-    #         # set model to solid
-    #         self.flags['showModelWireframe']=False
-            
-    #         # turn off opacity
-    #         self.flags['showModel'] = True
-            
-    #         # calculate iou
-    #         score = self.checkIoU()
-            
-    #         # update flags states from flags buffer
-    #         self.flags=oldFlags
-            
-    #         # if in test mode
-    #         if self.flags['lineupTestMode']:
-                
-    #             # reset model position
-    #             self.flags['resetModelTransform'] = True         
-                
-    #             # add iou score to buffer
-    #             self.iouScore = np.append(self.iouScore,score)
-                
-    #             # check that test all model or not
-    #             self.testMode(self.log['testNumber'])
-                
-    #             # update test number
-    #             self.testNumber += 1
-                
-    #             # if still in test mode
-    #             if self.flags['lineupTestMode']:
-                    
-    #                 # open next backdrop
-    #                 self.openBackdropFile("backdropImg/backdrop_"+str(self.testNumber)+".jpg")
-            
-    #         # reset checkIoU flags
-    #         self.flags['checkIoU'] = False
             
                 
     # add model to opengl window class
