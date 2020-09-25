@@ -103,7 +103,7 @@ class Stylus():
         rx = r.as_euler('xyz')[0]
         ry = r.as_euler('xyz')[1]
         rz = r.as_euler('xyz')[2]
-        return [fk,[rx,ry,rz,x,y,z]]
+        return fk
     
 if __name__ == '__main__':
     stylus = Stylus()

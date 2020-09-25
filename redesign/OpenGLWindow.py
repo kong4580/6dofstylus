@@ -184,19 +184,9 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         # close cursor model
         self.cursor.show = self.flags['showCursor']
         
-        # draw model with position and rotation
-        # self.cursor.drawModel(position=(self.pose[1],self.pose[2],self.pose[0]),rotation=(self.pose[5],self.pose[3],self.pose[4]),showFrame=not self.snapMode)
-        
-        # draw model with transform matrix
-        # self.cursor.moveModel(self.ctl.getController().transform)
         
         self.cursor.drawMatrixModel(showFrame=self.flags['showCursor'])
         
-        # draw grid
-        # self.grid.drawMatrixModel(np.eye(4),showFrame=not self.flags['snapMode'])
-        
-        # draw origin
-        # self.origin.drawModel(position=(self.pose[6],self.pose[7],self.pose[8]),showFrame=True)
         
         # draw model
         if self.modelDicts['modelNum'] > 0:
@@ -219,43 +209,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
             model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
             # set show or not show model
             model.show = self.flags['showModel']
-            # # set pose to move model
-            # ### now not use ###
-            # movePose = self.modelDicts['movepose'][self.modelDicts['runModelIdx']]
             
-            # # set show or not show model
-            # model.show = self.flags['showModel']
-            
-            # # if model is selected
-            # if model.isSelected:
-                
-            #     # move model follow cursor
-            #     # now use only newM because use transform matrix to draw model
-            #     targetPosition,targetRotation,newM = model.followCursor(self.cursor)
-            
-            # # if model is not selected
-            # else:
-                
-            #     # reset value from model
-            #     model.cursorM = None
-            #     model.cursorPose = None
-                
-            #     # if reset mode trigger
-            #     if self.flags['resetModelTransform']:
-                    
-            #         # set model position to home position ( identity )
-            #         model.currentM = np.eye(4)
-                    
-            #         # turn off reset flags
-            #         self.flags['resetModelTransform'] = False
-                
-            #     # model position is remain position
-            #     targetPosition,targetRotation,newM = model.centerPosition,model.rotation,model.currentM
-            
-            # # draw model with position and rotation
-            # ### now not use ###
-            # # model.drawModel(position = targetPosition,rotation = targetRotation,showFrame=False)
-            # model.moveModel(newM)
             # draw model with transform matrix
             model.drawMatrixModel(showFrame=False,wireFrame = self.flags['showModelWireframe'], opacity = self.flags['opacityMode'])
                 
@@ -323,14 +277,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         # update model number
         self.modelDicts['modelNum'] = len(self.modelDicts['model'])
     
-    # move model to specified position
-    ### now not use ###
-    def moveModel(self,name,position,rotation):
-        for idx in range(self.modelDicts['modelNum']):
-            model = self.modelDicts['model'][idx]
-            if model.getName() == name:
-                self.modelDicts['movepose'][idx][0] = 'opacityMode'(position[0],position[1],position[2])
-                self.modelDicts['movepose'][idx][1] = (rotation[0],rotation[1],rotation[2])
+    
      
     # test mode
     def testMode(self,numberOfBackdrop):
