@@ -109,7 +109,7 @@ if __name__ == '__main__':
     port = '/dev/ttyUSB0' # arduino port
     
     # declare constants
-    samplingRate = 0.0005
+    samplingRate = 0.005
     serialTimeOut = 0.0005
     
     # init stylus
