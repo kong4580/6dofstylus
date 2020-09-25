@@ -361,7 +361,8 @@ class Gui():
             # new cursor transform is
             # inv(offsetCursor) * current cursor transform from stylus
             self.openglWindow.cursorTransform = np.dot(np.linalg.inv(self.offsetCursor),cursorTransform)
-            
+            print(self.openglWindow.flags)
+            self.checkModeEvent()
             # update opengl window
             self.openglWindow.redraw()
             
@@ -391,6 +392,50 @@ class Gui():
             
         return
     
+    def checkModeEvent(self):
+        
+        if self.openglWindow.flags['checkIoU']:
+            
+            # # create flags buffer remember current flags
+            # oldFlags = self.openglWindow.flags.copy()
+            
+            # # set model to solid
+            # self.openglWindow.flags['showModelWireframe']=False
+            
+            # # turn off opacity
+            # self.openglWindow.flags['showModel'] = True
+            
+            # calculate iou
+            score = self.openglWindow.checkIoU()
+            
+            # update flags states from flags buffer
+            # self.openglWindow.flags=oldFlags
+            
+            # if in test mode
+            if self.openglWindow.flags['lineupTestMode']:
+                
+                # reset model position
+                self.openglWindow.flags['resetModelTransform'] = True         
+                
+                # add iou score to buffer
+                self.openglWindow.iouScore = np.append(self.openglWindow.iouScore,score)
+                
+                # check that test all model or not
+                self.openglWindow.testMode(self.openglWindow.log['testNumber'])
+                
+                # update test number
+                self.openglWindow.testNumber += 1
+                
+                # if still in test mode
+                if self.openglWindow.flags['lineupTestMode']:
+                    
+                    # open next backdrop
+                    self.openglWindow.openBackdropFile("backdropImg/backdrop_"+str(self.testNumber)+".jpg")
+            
+            # reset checkIoU flags
+            self.openglWindow.flags['checkIoU'] = False
+            # print(self.openglWindow.flags)
+            fltk.Fl_check()
     
     
     # update output function
