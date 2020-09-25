@@ -190,9 +190,27 @@ class Gui():
             with open(self.logFileName,"a+",newline='') as csvFile:
                 dictWriter = csv.DictWriter(csvFile,fieldnames = self.log.keys())
                 dictWriter.writerow(self.log)
-            # print(self.log)
             print("\nFinished Test mode\nsave log at: {}\n".format(self.logFileName))
+            self.createScoreWindow()
             self.openglWindow.flags['logFinish'] = False
+
+    # pop up score window after finish testing 
+    def createScoreWindow(self):
+        self.scoreWindow = fltk.Fl_Window(400,100)
+        self.textbox = fltk.Fl_Box(100,10,200,25,"Finish Testing")
+        self.textbox.box(fltk.FL_NO_BOX)
+        self.textbox.labelsize(28)
+        self.textbox.labelfont(fltk.FL_BOLD)
+        self.avgIou = fltk.Fl_Output(225,40,300,25,"Average IoU : ")
+        self.avgIou.labelfont(fltk.FL_BOLD)
+        self.avgIou.box(fltk.FL_NO_BOX) 
+        self.avgIou.value(str(round(self.log["avgIou"],2)))
+        self.modelPerSec = fltk.Fl_Output(225,70,300,25,"Model Per sec : ")
+        self.modelPerSec.labelfont(fltk.FL_BOLD)
+        self.modelPerSec.box(fltk.FL_NO_BOX) 
+        self.modelPerSec.value(str(round(self.log["modelPerSec"],2)))
+        self.scoreWindow.show()
+        self.scoreWindow.end()
 
     # create log window
     def createlogWindow(self):
@@ -212,10 +230,6 @@ class Gui():
         button.callback(self.buttonCB,1)
         self.logWindow.show()
         self.logWindow.end()
-        if self.addLog == False:
-            self.logWindow.hide()
-        elif self.addLog == True:
-            self.logWindow.show()
 
     # buttin callback from log window
     def buttonCB(self,widget,v):
@@ -230,6 +244,7 @@ class Gui():
             strhand = "Left"
         self.log["dominantHand"] = strhand
         # print(self.log)
+        self.createScoreWindow()
         
     # bunch of input for controlling this UI
     def cameraInputWidget(self):
