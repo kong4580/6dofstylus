@@ -68,7 +68,9 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
                       'offsetMode':False,
                       'opacityMode':False,
                       'addLog':False,
-                      'logFinish':False}
+                      'logFinish':False,
+                      'checkIoU':False,
+                      'showCursor':True}
         
         # logger parameter
         self.log = {
@@ -179,15 +181,15 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         
         # if turn on snap mode
         # close cursor model
-        self.cursor.show = not self.flags['snapMode']
+        self.cursor.show = self.flags['showCursor']
         
         # draw model with position and rotation
         # self.cursor.drawModel(position=(self.pose[1],self.pose[2],self.pose[0]),rotation=(self.pose[5],self.pose[3],self.pose[4]),showFrame=not self.snapMode)
         
         # draw model with transform matrix
         self.cursor.moveModel(self.cursorTransform)
-        self.cursor.show = self.flags['showModel']
-        self.cursor.drawMatrixModel(showFrame=not self.flags['snapMode'])
+        
+        self.cursor.drawMatrixModel(showFrame=self.flags['showCursor'])
         
         # draw grid
         # self.grid.drawMatrixModel(np.eye(4),showFrame=not self.flags['snapMode'])
@@ -263,6 +265,9 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         # get mouse position
         # print("ctl")
         self.ctl.readEvent(event)
+        
+        
+        
         return fltk.Fl_Gl_Window.handle(self, event)
         
         
@@ -289,12 +294,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         #     # if fltk.Fl.event_key() == ord('m'):
         #     #     self.flags['resetModelTransform'] = True
             
-        #     # add user profile
-        #     if fltk.Fl.event_key() == ord('l'):
-        #         self.addLogProfile()
-            # add user profile
-            # if fltk.Fl.event_key() == ord('l'):
-            #     self.addLog = True
+        
             
             # # start test mode
             # if fltk.Fl.event_key() == ord('p'):
@@ -375,7 +375,48 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         #     # wait for handle
         #     return fltk.Fl_Gl_Window.handle(self, event)
                 
+    # def checkModeEvent(self):
+    #     if self.flags['checkIoU']:
+            
+    #         # create flags buffer remember current flags
+    #         oldFlags = self.flags.copy()
+            
+    #         # set model to solid
+    #         self.flags['showModelWireframe']=False
+            
+    #         # turn off opacity
+    #         self.flags['showModel'] = True
+            
+    #         # calculate iou
+    #         score = self.checkIoU()
+            
+    #         # update flags states from flags buffer
+    #         self.flags=oldFlags
+            
+    #         # if in test mode
+    #         if self.flags['lineupTestMode']:
                 
+    #             # reset model position
+    #             self.flags['resetModelTransform'] = True         
+                
+    #             # add iou score to buffer
+    #             self.iouScore = np.append(self.iouScore,score)
+                
+    #             # check that test all model or not
+    #             self.testMode(self.log['testNumber'])
+                
+    #             # update test number
+    #             self.testNumber += 1
+                
+    #             # if still in test mode
+    #             if self.flags['lineupTestMode']:
+                    
+    #                 # open next backdrop
+    #                 self.openBackdropFile("backdropImg/backdrop_"+str(self.testNumber)+".jpg")
+            
+    #         # reset checkIoU flags
+    #         self.flags['checkIoU'] = False
+            
                 
     # add model to opengl window class
     def addModel(self,name,drawFunction=None,position=(0,0,0),rotation=(0,0,0),obj=None):
@@ -516,8 +557,8 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         self.flags['opacityMode'] = False
         
         # set model to show
-        self.flags['showModel'] = True
-        
+        self.flags['showModel'] = False
+        self.flags['showCursor'] = False
         # update opengl window
         self.redraw()
         fltk.Fl_check()
@@ -534,6 +575,8 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         self.flags['showModelWireframe'] = False
         self.flags['opacityMode'] = False
         self.flags['showModel'] = True
+        self.flags['showCursor'] = False
+        
         self.redraw()
         fltk.Fl_check()
         fltk.Fl_wait(0.5)
@@ -557,8 +600,10 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         iou = np.sum(intersect==255)/np.sum(union==255)
         print("IoU: ",iou)
         
+        for key in self.flags:
+            self.flags[key]= oldflags[key]
         # set flags to remain flags
-        self.flags = oldflags
+        # self.flags = oldflags
         
         # update opengl window
         self.redraw()

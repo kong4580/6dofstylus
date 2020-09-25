@@ -210,10 +210,11 @@ class Model():
                 # draw model from drawFunction
                 self.drawFunction()
                 
-                # disable light to draw model frame
-                GL.glDisable(GL.GL_LIGHTING)
-                drawFunc.coordinate()
-                GL.glEnable(GL.GL_LIGHTING)
+                if showFrame:
+                    # disable light to draw model frame
+                    GL.glDisable(GL.GL_LIGHTING)
+                    drawFunc.coordinate()
+                    GL.glEnable(GL.GL_LIGHTING)
                 
         # draw model frame
         if showFrame:

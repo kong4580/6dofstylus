@@ -18,6 +18,8 @@ def callback(samplingRate,gui):
 
     while gui.openglWindow.shown():
         # if recieve serial messages
+        
+        
         if srec.isActivate():
             command,rawData = srec.recieve()
             
@@ -28,6 +30,7 @@ def callback(samplingRate,gui):
                 # print(jointStates)
                 pose = stylus.getEndTransforms(jointStates)
                 # update gui
+                print(pose)
                 gui.updateUI(pose[1],buttonStates,scale=20,cursorTransform=pose[0])
                 
                 
@@ -36,7 +39,17 @@ def callback(samplingRate,gui):
             if command == 0xFE:
                 # get button states
                 pass
-        # gui.updateUI(None,None)
+        posed = [1.8910274110256107, -0.08082590295289216, 1.7729422791101308, 131.39114390458207, -9.084250675036458, 20.092014953117115]
+        posed2 = np.array([[-2.00116600e-01,  3.23762081e-01,  9.24733184e-01,
+         1.31391144e+02],
+       [ 9.76439826e-01, -1.18728081e-02,  2.15462997e-01,
+        -9.08425068e+00],
+       [ 8.07379281e-02,  9.46064031e-01, -3.13758244e-01,
+         2.00920150e+01],
+       [ 0.00000000e+00,  0.00000000e+00,  0.00000000e+00,
+         1.00000000e+00]])
+        gui.updateUI(posed,(False, False),scale=20,cursorTransform=posed2)
+        
         gui.updateFltk() 
         fltk.Fl_check()    
     uiCallback = partial(callback,samplingRate,gui)
