@@ -75,10 +75,7 @@ class CommonController(Handler):
             self.toggleFlags('resetModelTransform')
         if self.keyCha == 'l':
             self.flags['addLog'] = True
-            
-            
-        # if self.keyCha == 'm':
-        #     self.toggleFlags('resetModelTransform')
+        
             
         self.keyCha = None
 

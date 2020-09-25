@@ -383,82 +383,22 @@ class Gui():
            
     
     # main call back update ui
-    def updateUI(self,cursorPose,buttonStates,scale=20,cursorTransform=None):
+    def updateUI(self):
         
-        # convert pose format
-        ### now not use ###
-        cvtedPose = self.__cvtPose(cursorPose,self.cursorSpeed)
+            
+        self.checkModeEvent()
+        # update opengl window
+        self.openglWindow.redraw()
+        self.updateFltk()
+        # update side output value
+        self.__updateOutput(cvtedPose)
         
-        # add cursor pose to openglWindow class
-        ### now not use ###
-        self.openglWindow.readPose(cvtedPose)
-        
-        # read cursor transform from stylus and scaling
-        cursorTransform[0:3,3] = cursorTransform[0:3,3].copy() * 0.05
-        
-        # offset home position
-        cursorTransform[0,3] -= self.cfg["homeCfg"][0]
-        cursorTransform[1,3] -= self.cfg["homeCfg"][1]
-        cursorTransform[2,3] -= self.cfg["homeCfg"][2]
-        
-        # cursorTransform[0:3,3] = cursorTransform[0:3,3].copy() * self.cursorSpeed
-        # offset mouse mode
-        if self.openglWindow.flags['offsetMode']:
-            
-            # find delta transform between first transform that trigger mode and last transform that turn off this mode
-            self.offsetCursor = np.dot(cursorTransform,np.linalg.inv(self.openglWindow.cursorTransform.copy()))
-            
-            # offset only translation
-            # self.offsetCursor[0:3,0:3] = np.eye(3)
-            
-        else:
-            
-            # new cursor transform is
-            # inv(offsetCursor) * current cursor transform from stylus
-            # self.openglWindow.cursorTransform = np.dot(np.linalg.inv(self.offsetCursor),cursorTransform)
-            
-            self.checkModeEvent()
-            # update opengl window
-            self.openglWindow.redraw()
-            
-            # update side output value
-            self.__updateOutput(cvtedPose)
-            
-        # check left mouse is clicked
-        if buttonStates[0] == 1 and buttonStates[1] == 0:
-            
-            # pass
-            
-            # check what model is clicked
-            print("left click!")
-            selectedModel = self.selectModel()
-            
-            # show all model that is selected
-            for model in selectedModel:
-                print("selectModel = ",model.name)
-        
-        # check right mouse is clicked
-        elif buttonStates[0] == 0 and buttonStates[1] == 1: 
-            
-            # pass     
-            # realease model
-            print("releaseModel")
-            self.releaseModel()
             
         return
     
     def checkModeEvent(self):
         
         if self.openglWindow.flags['checkIoU']:
-            
-            # # create flags buffer remember current flags
-            # oldFlags = self.openglWindow.flags.copy()
-            
-            # # set model to solid
-            # self.openglWindow.flags['showModelWireframe']=False
-            
-            # # turn off opacity
-            # self.openglWindow.flags['showModel'] = True
             
             # calculate iou
             score = self.openglWindow.checkIoU()
@@ -494,6 +434,7 @@ class Gui():
             print("Enable test mode\nNumber of test: ",self.openglWindow.log['testNumber'])
             self.openglWindow.testMode(self.openglWindow.log['testNumber'])
             self.openglWindow.flags['testMode'] = False
+            
         fltk.Fl_check()
     
     
@@ -503,33 +444,7 @@ class Gui():
             a=float("{:.2f}".format(pos[i]))
             self.outputWidgetStorage[i].value(str(a))
     
-    # convert pose from stylus to opengl
-    # from [rotX, rotY, rotZ, tranX, tranY, tranZ]
-    # to [tranX, tranY, tranZ, rotX, rotY, rotZ]
-    # scaling with cursor speed 
-    ### now not use ###
-    def __cvtPose(self,pose,scale,offset=True):
-        
-        # init buffer
-        newPose = pose.copy()
-        real = [0]*9
-        
-        # switch position and convert radians to degrees
-        for i in range(len(newPose)):
-            
-            if i <3:
-                real[i+3] = ((newPose[i])*180)/(math.pi)
-            else:
-                real[i-3] = newPose[i]*scale
-        
-        # offset home postion
-        if offset:
-            real[0] -= self.cfg["homeCfg"][0]
-            real[1] -= self.cfg["homeCfg"][1]
-            real[2] -= self.cfg["homeCfg"][2]
-                  
-        # return convert pose
-        return real
+    
     
     # add model to opengl window class
     def addModel(self,name,drawFunction = None,position=(0,0,0),rotation=(0,0,0),obj=None):
@@ -537,47 +452,4 @@ class Gui():
         self.openglWindow.addModel(name,drawFunction,position,rotation,obj=obj)
         print("Done!")
     
-    # move model to specified position and rotation
-    ### now not use ###
-    def moveModel(self,name,pose=None,position=None,rotation=None):
-        
-        # if input is not pose massage
-        if pose!=None:
-            cvtedPose = self.__cvtPose(pose,scale=1,offset=False)
-            position = (cvtedPose[0],cvtedPose[1],cvtedPose[2])
-            rotation = (cvtedPose[3],cvtedPose[4],cvtedPose[5])
-            self.openglWindow.moveModel(name,position,rotation)
-        
-        # if input is position and rotation
-        elif position != None and rotation != None:
-            self.openglWindow.moveModel(name,position,rotation)
-            
-    # select model
-    def selectModel(self):
-        
-        # create selected model buffer
-        selectModel = []
-        
-        # run through all models in opengl window class
-        for model in self.openglWindow.modelDicts['model']:
-            
-            # if cursor position is in model
-            if model.isPointInsideConvexHull(self.openglWindow.cursor.centerPosition):
-                
-                # model is selected
-                model.isSelected = True
-                
-                # add model to selected model buffer
-                selectModel.append(model)
-        
-        # return selected model buffer
-        return selectModel
     
-    # release model
-    def releaseModel(self):
-        
-        # run through all models in opengl window class
-        for model in self.openglWindow.modelDicts['model']:
-            
-            # change model to not selected
-            model.isSelected = False
