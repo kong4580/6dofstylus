@@ -411,7 +411,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         
         # turn off opacity
         self.flags['opacityMode'] = False
-        
+        self.flags['showModelFrame'] = False
         # set model to show
         self.flags['showModel'] = False
         self.flags['showCursor'] = False
@@ -432,7 +432,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         self.flags['opacityMode'] = False
         self.flags['showModel'] = True
         self.flags['showCursor'] = False
-        
+        self.flags['showModelFrame'] = False
         self.redraw()
         fltk.Fl_check()
         # fltk.Fl_wait(0.5)
