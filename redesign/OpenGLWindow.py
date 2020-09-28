@@ -13,7 +13,7 @@ import csv
 
 import drawFunc
 from Model import Model,OBJ
-# from Controller import MainController,StylusController
+
 class OpenGLWindow(fltk.Fl_Gl_Window):
     
     # init opengl window class
@@ -86,8 +86,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         self.logFileName = "./testLogStylus.csv"
         
         self.ctl = None
-        self.addLog = False
-        self.logfinish = False
+        
     
     # open backdrop file
     def openBackdropFile(self, filename):
@@ -287,6 +286,20 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
             
             # start timer
             self.startLineupTime = time.time()
+            
+            # reset test mode
+            self.testNumber = 0  
+            self.log = {
+                        "testNumber":6,
+                        "iou":None,
+                        "avgIou":None,
+                        "totalTime":None,
+                        "modelPerSec":None
+                    }
+            self.flags['logFinish'] = False
+            self.flags['addLog'] = False
+            self.iouScore = np.array([])
+            self.openBackdropFile("backdropImg/backdrop_"+str(self.testNumber)+".jpg")
             
             # turn test mode flags to true
             self.flags['lineupTestMode'] = True
