@@ -226,7 +226,9 @@ class Model():
         if self.obj!=None:
         # set obb transform matrix
             self.obb.current_homo = self.currentM
-            
+            tl = np.eye(4)
+            tl[0:3,3] = np.array([-tuple(self.obb.centroid)[0],-tuple(self.obb.centroid)[1],-tuple(self.obb.centroid)[2]]).T
+            off = np.dot(self.currentM,tl)
             # transform obb point to current model transform
             for idx in range(len(self.obb.points)):
                 pointIdx = np.append(self.obb.points[idx].copy(),1)
@@ -239,7 +241,7 @@ class Model():
             # update model vertices position
             for idx in range(len(self.obj.vertices)):
                 verIdx = np.append(self.obj.vertices[idx].copy(),1)
-                self.obj.current_vertices[idx] = np.dot(self.currentM,verIdx.T)[0:3]
+                self.obj.current_vertices[idx] = np.dot(off,verIdx.T)[0:3]
     
     # update model position
     ### now not use ###

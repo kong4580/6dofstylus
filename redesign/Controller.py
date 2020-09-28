@@ -96,7 +96,7 @@ class StylusController(CommonController):
     def __init__(self,packData):
         super().__init__(packData)
         # set config
-        self.cfg={"homeCfg":(5.23747141, -0.01606842, -0.3270202)}
+        self.cfg={"homeCfg":(6.02190372, -0.06466488,  0.0184181)}
         self.transform = np.eye(4)
         self.cursor = packData['cursor']
         self.selectedModel = []
@@ -160,7 +160,7 @@ class StylusController(CommonController):
     def setTransform(self, cursorTransform):
         # read cursor transform from stylus and scaling
         cursorTransform[0:3,3] = cursorTransform[0:3,3].copy() * 0.05
-        
+        print(cursorTransform[0:3,3])
         # offset home position
         cursorTransform[0,3] -= self.cfg["homeCfg"][0]
         cursorTransform[1,3] -= self.cfg["homeCfg"][1]
