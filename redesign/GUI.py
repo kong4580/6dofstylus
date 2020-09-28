@@ -236,6 +236,17 @@ class Gui():
     # collect information from tester
     def loghandle(self):
         if self.addLog == True:
+            self.log = {
+                        "name":None,
+                        "department":None,
+                        "mayaFamiliar":None,
+                        "dominantHand":None,
+                        "testNumber":6,
+                        "iou":None,
+                        "avgIou":None,
+                        "totalTime":None,
+                        "modelPerSec":None
+                    }
             self.createlogWindow()
             self.addLog = False
             self.openglWindow.flags['addLog'] = False
@@ -260,12 +271,13 @@ class Gui():
         self.avgIou = fltk.Fl_Output(225,40,300,25,"Average IoU : ")
         self.avgIou.labelfont(fltk.FL_BOLD)
         self.avgIou.box(fltk.FL_NO_BOX) 
-        self.avgIou.value(str(round(self.log["avgIou"],2)))
-        self.modelPerSec = fltk.Fl_Output(225,70,300,25,"Model Per sec : ")
-        self.modelPerSec.labelfont(fltk.FL_BOLD)
-        self.modelPerSec.box(fltk.FL_NO_BOX) 
-        self.modelPerSec.value(str(round(self.log["modelPerSec"],2)))
-        self.scoreWindow.show()
+        if self.log["avgIou"] != None and self.log["modelPerSec"]!=None:
+            self.avgIou.value(str(round(self.log["avgIou"],2)))
+            self.modelPerSec = fltk.Fl_Output(225,70,300,25,"Model Per sec : ")
+            self.modelPerSec.labelfont(fltk.FL_BOLD)
+            self.modelPerSec.box(fltk.FL_NO_BOX) 
+            self.modelPerSec.value(str(round(self.log["modelPerSec"],2)))
+            self.scoreWindow.show()
         self.scoreWindow.end()
 
     # create log window
