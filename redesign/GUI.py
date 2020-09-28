@@ -72,10 +72,10 @@ class Gui():
         
     # init side output
     def __initOutputWidgetStorage(self):
-        self.outputWidgetStorage = self.__createOutputWidget()
+        # self.outputWidgetStorage = self.__createOutputWidget()
         self.cameraSliderBarWidget()
         self.cameraInputWidget()
-        # self.positionOutputWidget()
+        self.positionOutputWidget()
         # self.textWidget()
         self.testModeUIOff()
         self.testModeUIOn()
@@ -206,7 +206,6 @@ class Gui():
         for n in range(6) :
             output = self.__createOutputWidget(655,yWidgetPosition,145,25,self.nameLabel[n],self.sliderBarValue[n])
             yWidgetPosition = yWidgetPosition + 25
-            output.callback(self.__outputCB,n)
             self.storageOutput.append(output)
         
     # test mode text handle
@@ -220,11 +219,6 @@ class Gui():
 
     # update fltk from opengl 
     def updateFltk(self):
-        # for i in range(len(self.nameLabel)):
-            # self.storageArea[i].value(self.openglWindow.positionValue[i])
-            # self.storageInput[i].value(str(self.openglWindow.positionValue[i]))
-            # self.storageOutput[i].value(str(self.openglWindow.positionValue[i]))
-            # pass
         self.iouScore = [0,0,0,0,0,0]
         self.iouScore[:len(self.openglWindow.iouScore)] = self.openglWindow.iouScore
         for i in range(len(self.iouScore)):
@@ -232,7 +226,22 @@ class Gui():
         self.addLog = self.openglWindow.flags['addLog']
         self.loghandle()
         self.testModeUIHandle(self.openglWindow.flags['lineupTestMode'])
-
+        for i in range(len(self.cameravalue)):
+            self.storageCamera[i].value(self.openglWindow.cameravalue[i])
+            self.storageInput[i].value(str(self.openglWindow.cameravalue[i]))
+            # self.storageOutput[i].value(str(self.openglWindow.positionValue[i]))
+            # pass
+        model = self.openglWindow.modelDicts['model'][self.openglWindow.modelDicts['runModelIdx']]
+        r = R.from_matrix(model.currentM[0:3,0:3])
+        degree = r.as_euler('zyx', degrees=True)
+        self.storageOutput[0].value(str(round(model.currentM[0][3],2)))
+        self.storageOutput[1].value(str(round(model.currentM[1][3],2)))
+        self.storageOutput[2].value(str(round(model.currentM[2][3],2)))
+        self.storageOutput[3].value(str(round(degree[2],2)))
+        self.storageOutput[4].value(str(round(degree[1],2)))
+        self.storageOutput[5].value(str(round(degree[0],2)))
+        # self.storageInput[0].value[str(round(self.openglWindow.cameravalue[0],2))]
+        # print(self.openglWindow.cameravalue)
     # collect information from tester
     def loghandle(self):
         if self.addLog == True:
@@ -342,59 +351,7 @@ class Gui():
         self.cameravalue[v] = widgetValue
         self.openglWindow.getCameraFromSlider(v,widgetValue)
         self.openglWindow.redraw()
-
-    # model position output call back
-    def __outputCB(self,widget, v):
-        widgetValue = float(widget.value())
-        widget.value(str(widgetValue))
-        self.sliderBarValue[v] = widgetValue
-        self.openglWindow.getPositionFromSlider(v,widgetValue)
-        self.openglWindow.redraw()
-
-    # camera slider bar call back
-    def __sliderCameraCB(self,widget, v):
-        widgetValue = widget.value()
-        self.cameravalue[v] = widgetValue
-        self.storageInput[v].value(str(widgetValue))
-        self.openglWindow.getCameraFromSlider(v,widgetValue)
-        self.openglWindow.redraw()
-    
-    # camera input call back
-    def __inputCB(self,widget, v):
-        widgetValue = float(widget.value())
-        widget.value(str(widgetValue))
-        # self.storageArea[v].value(widgetValue)
-        self.cameravalue[v] = widgetValue
-        self.openglWindow.getCameraFromSlider(v,widgetValue)
-        self.openglWindow.redraw()
-
-    # model position output call back
-    def __outputCB(self,widget, v):
-        widgetValue = float(widget.value())
-        widget.value(str(widgetValue))
-        self.sliderBarValue[v] = widgetValue
-        self.openglWindow.getPositionFromSlider(v,widgetValue)
-        self.openglWindow.redraw()
-
-    # draw side output
-    def __createOutputWidget(self):
-        
-        # side output area
-        storage_area = []
-        
-        # create text box
-        name=["TransX", "TransY", "TransZ", "RotX", "RotY", "RotZ","OriX","OriY","OriZ"]
-        y=0
-        for n in range(6):
-            output = fltk.Fl_Output(660,y,60,25,name[n])
-            y = y + 25
-            output.align(fltk.FL_ALIGN_LEFT)
-            output.value("0")
-            storage_area.append(output)
-        return storage_area
-           
-           
-    
+                
     # main call back update ui
     def updateUI(self):
         
@@ -412,7 +369,7 @@ class Gui():
     def checkModeEvent(self):
         
         if self.openglWindow.flags['checkIoU']:
-            
+            self.openglWindow.cameravalue=[1,0,0,1,1,1]
             # calculate iou
             score = self.openglWindow.checkIoU()
             
