@@ -412,8 +412,9 @@ class Gui():
     def checkModeEvent(self):
         
         if self.openglWindow.flags['checkIoU']:
-            
+            self.openglWindow.cameravalue = [1,0,0,1,1,1]
             # calculate iou
+            
             score = self.openglWindow.checkIoU()
             
             # update flags states from flags buffer
