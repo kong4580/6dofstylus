@@ -280,12 +280,12 @@ class MouseController(CommonController):
             self.selectedModel = self.selectModel()
         if self.selectedModel != []:
             model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
-            if event == fltk.FL_MOUSEWHEEL:
-                newM = self.mouseWheel()
-            if event == fltk.FL_DRAG:
-                newM = self.mouseDrag()
-            else:
-                newM = model.currentM
+            newM = model.currentM
+            if model.isSelected:
+                if event == fltk.FL_MOUSEWHEEL:
+                    newM = self.mouseWheel()
+                if event == fltk.FL_DRAG:
+                    newM = self.mouseDrag()
             # print(newM)
             model.moveModel(newM)
         if self.flags['resetModelTransform']:
@@ -312,7 +312,7 @@ class MouseController(CommonController):
         recentY = self.yMousePosition - self.lastPosY
         self.lastPosX = self.xMousePosition
         self.lastPosY = self.yMousePosition 
-        print(self.xMousePosition,self.yMousePosition)
+        # print(self.xMousePosition,self.yMousePosition)
     
         ratioX = -(5*(self.windowWidth/10)/(self.positionValue[2] -10))
         ratioY = -(5*(self.windowHeight/10)/(self.positionValue[2] -10))
@@ -378,10 +378,10 @@ class MouseController(CommonController):
         return selectModel
 
     def mouseSelectedCheck(self):
-        print(self.windowHeight)
+        # print(self.windowHeight)
         self.depth = GL.glReadPixels(self.xMousePosition,self.windowHeight - self.yMousePosition, 1,1,GL.GL_DEPTH_COMPONENT,GL.GL_UNSIGNED_BYTE)
         self.color = GL.glReadPixels(self.xMousePosition,self.windowHeight - self.yMousePosition, 1,1,GL.GL_RGBA,GL.GL_UNSIGNED_BYTE)
-        print(self.depth[0],self.color[0],self.color[1],self.color[2])
+        # print(self.depth[0],self.color[0],self.color[1],self.color[2])
         if self.color[0] == 0 and self.color[1] == 0 and self.color[2] == 0:
             mouseSelected = False
         else:
