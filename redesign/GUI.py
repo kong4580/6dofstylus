@@ -371,6 +371,7 @@ class Gui():
         if self.openglWindow.flags['checkIoU']:
             self.openglWindow.cameravalue=[1,0,0,1,1,1]
             self.openglWindow.redraw()
+            fltk.Fl_wait(0.5)
             # calculate iou
             
             score = self.openglWindow.checkIoU()

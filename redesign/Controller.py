@@ -76,7 +76,6 @@ class CommonController(Handler):
         if self.keyCha == ord('d'):
             
             self.toggleFlags('checkIoU')
-        
         if self.keyCha == ord('p'):
             
             self.toggleFlags('testMode')
@@ -288,6 +287,7 @@ class MouseController(CommonController):
                     newM = self.mouseDrag()
             # print(newM)
             model.moveModel(newM)
+        self.runCommonEvent()
         if self.flags['resetModelTransform']:
             for model in self.modelDicts['model']:
             # model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
@@ -300,7 +300,10 @@ class MouseController(CommonController):
                 self.flags['resetModelTransform'] = False
                 newM = model.currentM
                 model.moveModel(newM)
-        self.runCommonEvent()
+        if self.flags['checkIoU']:
+            for model in self.modelDicts['model']:
+                model.isSelected = False
+        
     def mouseWheel(self):
         if self.flags['mouseMode'] == 'trans': #translate mode
             self.positionValue[2] = self.positionValue[2] + 0.1*(fltk.Fl.event_dy())
