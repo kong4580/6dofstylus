@@ -54,7 +54,7 @@ class Model():
         self.show = True
         
     # draw model with transform matrix
-    def drawMatrixModel(self, showFrame=True, enableLight = True,wireFrame = False, opacity = False):
+    def drawMatrixModel(self, showFrame=True, enableLight = True,wireFrame = False, opacity = False,mode = 'trans'):
         
         # start transform matrix in model view
         GL.glMatrixMode(GL.GL_MODELVIEW)
@@ -63,7 +63,9 @@ class Model():
         
         # apply transform to model
         GL.glLoadMatrixf(self.currentM.T)
-       
+        if self.obj!=None:
+            # print(tuple(self.obb.current_centroid))
+            GL.glTranslatef(-tuple(self.obb.centroid)[0],-tuple(self.obb.centroid)[1],-tuple(self.obb.centroid)[2])
         
         # if model is obj firl
         if self.obj!=None:
@@ -154,7 +156,22 @@ class Model():
                 GL.glDisable(GL.GL_BLEND)
                 GL.glPopAttrib()
             
-            
+            # draw model frame
+                if showFrame:
+                    GL.glTranslatef(tuple(self.obb.centroid)[0],tuple(self.obb.centroid)[1],tuple(self.obb.centroid)[2])
+                    GL.glDisable(GL.GL_LIGHTING)
+                    drawFunc.coordinate()
+                    # print(mode)
+                    # if mode == 'trans':
+                    #     drawFunc.coordinate()
+                    if mode == 'rotX':
+                        drawFunc.drawCircleX()
+                    elif mode == 'rotY':
+                        drawFunc.drawCircleY()
+                    elif mode == 'rotZ':
+                        drawFunc.drawCircleZ()
+                    GL.glEnable(GL.GL_LIGHTING)
+                    # drawFunc.coordinate()
         # if model is not obj file    
         else:
             
@@ -170,9 +187,7 @@ class Model():
                     drawFunc.coordinate()
                     GL.glEnable(GL.GL_LIGHTING)
                 
-        # draw model frame
-        if showFrame:
-            drawFunc.coordinate()
+        
                 
         GL.glPopMatrix()
         
@@ -202,6 +217,7 @@ class Model():
         # create new transform matrix
         # tNew = tOld * inputMatrix
         nmatrix = np.dot(transform,matrix)
+        
         # set current model matrix from modelview matrix
         self.currentM = nmatrix
         

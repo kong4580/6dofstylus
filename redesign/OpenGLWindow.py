@@ -71,7 +71,9 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
                       'logFinish':False,
                       'checkIoU':False,
                       'showCursor':True,
-                      'testMode':False}
+                      'testMode':False,
+                      'showModelFrame':False,
+                      'mouseMode':'trans'}
         
         # logger parameter
         self.log = {
@@ -211,16 +213,20 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
             model.show = self.flags['showModel']
             
             # draw model with transform matrix
-            model.drawMatrixModel(showFrame=False,wireFrame = self.flags['showModelWireframe'], opacity = self.flags['opacityMode'])
+            model.drawMatrixModel(showFrame=self.flags['showModelFrame'],wireFrame = self.flags['showModelWireframe'], opacity = self.flags['opacityMode'],mode=self.flags['mouseMode'])
                 
                 
                 
     # handle function of opengl window class
     def handle(self,event):
-        
+        self.ctl.setWindowWidthHeight(self.w(),self.h())
         self.ctl.readEvent(event)
+        # return fltk.Fl_Gl_Window.handle(self, event)
+        if event == fltk.FL_PUSH:
+            return 1
+        else:
+            return fltk.Fl_Gl_Window.handle(self, event)
 
-        return fltk.Fl_Gl_Window.handle(self, event)
         
         #     # FOR CREATE BACKDROP IMAGE
             

@@ -12,7 +12,7 @@ from Stylus import Stylus
 from GUI import Gui
 import drawFunc
 from Model import Model,OBJ
-from Controller import MainController,StylusController
+from Controller import MainController,StylusController,MouseController
 
 def callback(samplingRate,gui):
 
@@ -114,13 +114,24 @@ if __name__ == '__main__':
     gui = Gui()
     mainController = MainController()
     
-    packData = {'flags':gui.openglWindow.flags,
+    
+    mode = 'mouse'
+    if mode == 'mouse':
+        packData = {'flags':gui.openglWindow.flags,
+                'modelDicts':gui.openglWindow.modelDicts,
+                'log':gui.log,
+                'height':gui.openglWindow.h(),
+                'width':gui.openglWindow.w(),
+                }
+        deviceController = MouseController(packData)
+
+    else:
+        packData = {'flags':gui.openglWindow.flags,
                 'modelDicts':gui.openglWindow.modelDicts,
                 'log':gui.log,
                 'cursor':gui.openglWindow.cursor}
-    
-    stylusController = StylusController(packData)
-    mainController.registerController(stylusController)
+        deviceController = StylusController(packData)
+    mainController.registerController(deviceController)
     device = mainController.getController()
     # run GUI
     openGUI(samplingRate)

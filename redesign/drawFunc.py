@@ -2,7 +2,7 @@ from OpenGL.GL import *
 from OpenGL.GLUT import *
 from OpenGL.GLU import *
 import time
-
+import math
 RedColorVector = (1,0,0)
 GreenColorVector = (0,1,0)
 BlueColorVector = (0,0,1)
@@ -100,3 +100,42 @@ def drawTeapot():
     glutWireTeapot(2)
     end = time.time()
     print("time =",end - start)
+def drawCircleZ():
+    ratio = 5
+    num = 600
+    glColor3f(0.0,0.0,1.0)
+    glLineWidth(10)
+    glBegin(GL_LINE_LOOP)
+    for i in range(num):
+        angle = 2 * math.pi * i / 300
+        x = math.cos(angle)*ratio
+        y = math.sin(angle)*ratio
+        glVertex3d(x,y,0)
+    glEnd()
+    glLineWidth(1)
+def drawCircleX():
+    ratio = 5
+    num = 600
+    glLineWidth(10)
+    glColor3f(1.0,0.0,0.0)
+    glBegin(GL_LINE_LOOP)
+    for i in range(num):
+        angle = 2 * math.pi * i / 300
+        x = math.cos(angle)*ratio
+        y = math.sin(angle)*ratio
+        glVertex3d(0,x,y)
+    glEnd()
+    glLineWidth(1)
+def drawCircleY():
+    ratio = 5
+    num = 600
+    glLineWidth(10)
+    glColor3f(0.0,1.0,0.0)
+    glBegin(GL_LINE_LOOP)
+    for i in range(num):
+        angle = 2 * math.pi * i / 300
+        x = math.cos(angle)*ratio
+        y = math.sin(angle)*ratio
+        glVertex3d(x,0,y)
+    glEnd()
+    glLineWidth(1)
