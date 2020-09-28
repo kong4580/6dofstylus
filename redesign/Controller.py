@@ -289,16 +289,17 @@ class MouseController(CommonController):
             # print(newM)
             model.moveModel(newM)
         if self.flags['resetModelTransform']:
-            model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+            for model in self.modelDicts['model']:
+            # model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
 
-            # set model position to home position ( identity )
-            model.currentM = np.eye(4)
-            self.positionValue = [0,0,0,0,0,0]
-            
-            # turn off reset flags
-            self.flags['resetModelTransform'] = False
-            newM = model.currentM
-            model.moveModel(newM)
+                # set model position to home position ( identity )
+                model.currentM = np.eye(4)
+                self.positionValue = [0,0,0,0,0,0]
+                
+                # turn off reset flags
+                self.flags['resetModelTransform'] = False
+                newM = model.currentM
+                model.moveModel(newM)
         self.runCommonEvent()
     def mouseWheel(self):
         if self.flags['mouseMode'] == 'trans': #translate mode

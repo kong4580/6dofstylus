@@ -239,6 +239,7 @@ class Gui():
             self.createlogWindow()
             self.addLog = False
             self.openglWindow.flags['addLog'] = False
+            self.addLog = False
         if self.openglWindow.flags['logFinish'] == True:
             # print(self.openglWindow.log)
             self.log.update(self.openglWindow.log)
