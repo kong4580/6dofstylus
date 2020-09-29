@@ -134,7 +134,10 @@ class StylusController(CommonController):
         self.transform = np.eye(4)
         self.cursor = packData['cursor']
         self.selectedModel = []
-        
+        self.hOpenGlToBase = np.array([[0,1,0,0],
+                                  [0,0,1,0],
+                                  [1,0,0,0],
+                                  [0,0,0,1]])
     def runEvent(self,event):
         self.runCommonEvent()
         if event == 999: # move cursor
@@ -204,6 +207,7 @@ class StylusController(CommonController):
         cursorTransform[0,3] -= self.cfg["homeCfg"][0]
         cursorTransform[1,3] -= self.cfg["homeCfg"][1]
         cursorTransform[2,3] -= self.cfg["homeCfg"][2]
+        cursorTransform = np.dot(self.hOpenGlToBase,cursorTransform)
         self.transform = cursorTransform.copy()
     
     def selectModel(self):
@@ -450,9 +454,10 @@ class StylusController2(StylusController):
         cursorTransform[0,3] -= self.cfg["homeCfg"][0]
         cursorTransform[1,3] -= self.cfg["homeCfg"][1]
         cursorTransform[2,3] -= self.cfg["homeCfg"][2]
-        
         self.readImuQuat(imuQuat)
         cursorTransform[0:3,0:3] = self.imuTrans[0:3,0:3].copy()
+        cursorTransform = np.dot(self.hOpenGlToBase,cursorTransform)
+        
         self.transform = cursorTransform.copy()
     
     def initImu(self,quat):

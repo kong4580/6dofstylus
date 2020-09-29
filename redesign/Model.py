@@ -193,33 +193,9 @@ class Model():
         
         
     def moveModel(self,matrix):
-        # if model is cursor
-        if self.name == 'cursor':
-            
-            # transform axis form stylus to opengl axis
-            transform = np.array([[0,1,0,0],
-                                  [0,0,1,0],
-                                  [1,0,0,0],
-                                  [0,0,0,1]])
-            # transform = np.array([[0,-1,0,0],
-            #                     [0,0,1,0],
-            #                     [-1,0,0,0],
-            #                     [0,0,0,1]])
-            # transform = np.eye(4)
-            
-
-        # if model is not cursor
-        else:
-            
-            # set transform matrix to identity 4*4
-            transform = np.eye(4)
-        
-        # create new transform matrix
-        # tNew = tOld * inputMatrix
-        nmatrix = np.dot(transform,matrix)
         
         # set current model matrix from modelview matrix
-        self.currentM = nmatrix
+        self.currentM = matrix
         
         # set model center position
         self.centerPosition = self.currentM[0:3,3]
