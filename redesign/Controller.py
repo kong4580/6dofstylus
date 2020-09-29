@@ -186,7 +186,9 @@ class StylusController(CommonController):
                 self.buttonNum = 2
                 print("releaseModel")
                 model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
-                self.addHistory(model.currentM)
+                if model.isSelected:
+                    self.addHistory(model.currentM)
+                
                 self.releaseModel()
             else:
                 self.push = False
@@ -197,7 +199,7 @@ class StylusController(CommonController):
     def setTransform(self, cursorTransform):
         # read cursor transform from stylus and scaling
         cursorTransform[0:3,3] = cursorTransform[0:3,3].copy() * 0.05
-        print(cursorTransform[0:3,3])
+        
         # offset home position
         cursorTransform[0,3] -= self.cfg["homeCfg"][0]
         cursorTransform[1,3] -= self.cfg["homeCfg"][1]

@@ -25,6 +25,7 @@ def callback(samplingRate,gui):
             # print(rawData)
             # update joint state command
             if command == 0xFF:
+                print(mode)
                 # get joint states and button states
                 jointStates,buttonStates = srec.readCommand(command,rawData)
                 # print(jointStates)
@@ -110,7 +111,7 @@ if __name__ == '__main__':
     mainController = MainController()
     
     
-    mode = 'stylus2'
+    mode = 'stylus'
     if mode == 'mouse':
         packData = {'flags':gui.openglWindow.flags,
                 'modelDicts':gui.openglWindow.modelDicts,
@@ -135,7 +136,7 @@ if __name__ == '__main__':
         
         # init serial
         print("Init Stylus Serial ... ",end="")
-        srec = StylusReciever(baudrate = 9600,port = port,timeout = serialTimeOut) 
+        srec = StylusReciever(baudrate = 115200,port = port,timeout = serialTimeOut) 
         print("Done !")
     
         packData = {'flags':gui.openglWindow.flags,
