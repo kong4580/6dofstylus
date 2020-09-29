@@ -105,8 +105,9 @@ class StylusReciever():
                 dummy = 15
             return dummy
         
-        convertedData = [None]*6
-        for i in range(0,12,2):
+        convertedData = [None]*(len(data)//2)
+        # print(len(data))
+        for i in range(0,len(data),2):
             
             # High byte
             if len(hex(data[i]))==3:
@@ -128,6 +129,8 @@ class StylusReciever():
                 
             # convert data
             convertedData[i//2] = highByte + lowByte
+            maxInt = 2**(8*2-1)-1
+            convertedData[i//2] = convertedData[i//2] - (2*(maxInt+1) if convertedData[i//2] > maxInt else 0)
         return convertedData
     
     def getButtonState(self,data):
@@ -157,9 +160,25 @@ class StylusReciever():
                 
             return jointStates,buttonStates
         if command == 0xFE:
+            jointRawData = rawData[:6]
+            imuRawData = rawData[6:-2]
+            calibrateRawData = rawData[-2]
+            buttonStateRawData = rawData[-1]
             
-            # get button states
-            pass
+            jointStates = self.encDataCvt(jointRawData)
+            for idx,j in enumerate(jointStates):
+                jointStates[idx] = j*(2*pi)/4096
+            imuData = self.encDataCvt(imuRawData)
+            buttonStates = self.getButtonState(buttonStateRawData)
+            
+            imuNpData = np.array(imuData)/1000
+            
+            if calibrateRawData == 7:
+                calibrateState = True
+            else:
+                calibrateState = False
+            return jointStates,imuNpData,calibrateState,buttonStates
+            
         
 
 if __name__ == '__main__':

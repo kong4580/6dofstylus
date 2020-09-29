@@ -105,6 +105,24 @@ class Stylus():
         rz = r.as_euler('xyz')[2]
         return fk
     
+class Stylus2(Stylus):
+    
+    def __init__(self):
+        super().__init__()
+    
+    def getEndTransforms(self,q):
+        q= np.array(q)
+        
+        q[0] = q[0] -pi 
+        q[1] = q[1] - pi 
+        q[2] = q[2] - pi 
+        
+        
+        q = q - np.asarray([-0.02147573, -0.02300971, -0.01994175])
+        q = np.append(q,[0])
+        fk = self.forwardKinematics(q.tolist(),wrt=(0,3))[-1,:,:]
+        return fk
+        
 if __name__ == '__main__':
     stylus = Stylus()
     q = [0,0,0,0,0,0]

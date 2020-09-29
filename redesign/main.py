@@ -7,12 +7,12 @@ from math import pi
 from functools import partial
 
 from StylusReciever import StylusReciever
-from Stylus import Stylus
+from Stylus import Stylus,Stylus2
 
 from GUI import Gui
 import drawFunc
 from Model import Model,OBJ
-from Controller import MainController,StylusController,MouseController
+from Controller import MainController,StylusController,MouseController,StylusController2
 
 def callback(samplingRate,gui):
 
@@ -20,9 +20,9 @@ def callback(samplingRate,gui):
         # if recieve serial messages
         
         
-        if srec.isActivate():
+        if mode != 'mouse' and srec.isActivate():
             command,rawData = srec.recieve()
-            
+            # print(rawData)
             # update joint state command
             if command == 0xFF:
                 # get joint states and button states
@@ -46,10 +46,19 @@ def callback(samplingRate,gui):
             # update button state command    
             if command == 0xFE:
                 # get button states
+                jointStates,imuData,calibrateState,buttonStates = srec.readCommand(command,rawData)
+                pose = stylus.getEndTransforms(jointStates)
+                if calibrateState:
+                    print("imu calibrate finish")
+                device.setTransform(pose,imuData)
+                gui.openglWindow.ctl.readEvent(999)
                 
-                data = srec.encDataCvt(rawData[:-1])
-                print(data)
-        
+                if buttonStates[0] == True and buttonStates[1] == False:
+                    gui.openglWindow.ctl.readEvent(1001)
+                elif buttonStates[0] == False and buttonStates[1] == True:
+                    gui.openglWindow.ctl.readEvent(1002)
+                else:
+                    gui.openglWindow.ctl.readEvent(1000)
         try:
             gui.updateUI()
         except:
@@ -94,30 +103,14 @@ def openGUI(samplingRate = 0.005):
 
 if __name__ == '__main__':
     
-    # declare port
-    # port = '/dev/pts/2' # ubuntu port
-    port = '/dev/ttyUSB0' # arduino port
-    
-    # declare constants
     samplingRate = 0.005
-    serialTimeOut = 0.0005
-    
-    # init stylus
-    print("Init Stylus ... ",end="")
-    stylus = Stylus() 
-    print("Done !")
-    
-    # init serial
-    print("Init Stylus Serial ... ",end="")
-    srec = StylusReciever(baudrate = 115200,port = port,timeout = serialTimeOut) 
-    print("Done !")
     
     # init GUI
     gui = Gui()
     mainController = MainController()
     
     
-    mode = 'stylus'
+    mode = 'stylus2'
     if mode == 'mouse':
         packData = {'flags':gui.openglWindow.flags,
                 'modelDicts':gui.openglWindow.modelDicts,
@@ -127,12 +120,55 @@ if __name__ == '__main__':
                 }
         deviceController = MouseController(packData)
 
-    else:
+    elif mode == 'stylus':
+         # declare port
+        # port = '/dev/pts/2' # ubuntu port
+        port = '/dev/ttyUSB0' # arduino port
+        
+        # declare constants
+        serialTimeOut = 0.0005
+        
+        # init stylus
+        print("Init Stylus ... ",end="")
+        stylus = Stylus() 
+        print("Done !")
+        
+        # init serial
+        print("Init Stylus Serial ... ",end="")
+        srec = StylusReciever(baudrate = 9600,port = port,timeout = serialTimeOut) 
+        print("Done !")
+    
         packData = {'flags':gui.openglWindow.flags,
                 'modelDicts':gui.openglWindow.modelDicts,
                 'log':gui.log,
                 'cursor':gui.openglWindow.cursor}
         deviceController = StylusController(packData)
+        
+    elif mode == 'stylus2':
+         # declare port
+        # port = '/dev/pts/2' # ubuntu port
+        port = '/dev/ttyUSB0' # arduino port
+        
+        # declare constants
+        
+        serialTimeOut = 0.0005
+        
+        # init stylus
+        print("Init Stylus ... ",end="")
+        stylus = Stylus2() 
+
+        print("Done !")
+        
+        # init serial
+        print("Init Stylus Serial ... ",end="")
+        srec = StylusReciever(baudrate = 115200,port = port,timeout = serialTimeOut) 
+        print("Done !")
+    
+        packData = {'flags':gui.openglWindow.flags,
+                'modelDicts':gui.openglWindow.modelDicts,
+                'log':gui.log,
+                'cursor':gui.openglWindow.cursor}
+        deviceController = StylusController2(packData)
     mainController.registerController(deviceController)
     device = mainController.getController()
     # run GUI

@@ -423,3 +423,44 @@ class MouseController(CommonController):
         else:
             mouseSelected = True
         return mouseSelected
+
+class StylusController2(StylusController):
+    def __init__(self,packData):
+        super().__init__(packData)
+        self.hBaseToWorld = np.eye(4)
+        self.isImuInit = False
+        self.imuTrans = np.eye(4)
+    def runEvent(self,event):
+        if self.keyCha == ord('k'):
+            self.isImuInit = True
+            
+        
+        super().runEvent(event)
+        
+    def setTransform(self, cursorTransform,imuQuat):
+        # read cursor transform from stylus and scaling
+        cursorTransform[0:3,3] = cursorTransform[0:3,3].copy() * 0.05
+       
+        # offset home position
+        cursorTransform[0,3] -= self.cfg["homeCfg"][0]
+        cursorTransform[1,3] -= self.cfg["homeCfg"][1]
+        cursorTransform[2,3] -= self.cfg["homeCfg"][2]
+        
+        self.readImuQuat(imuQuat)
+        cursorTransform[0:3,0:3] = self.imuTrans[0:3,0:3].copy()
+        self.transform = cursorTransform.copy()
+    
+    def initImu(self,quat):
+        h = np.eye(4)
+        r = R.from_quat(quat)
+        h[0:3,0:3] = r.as_matrix()
+        self.hBaseToWorld = np.linalg.inv(h.copy())
+    def readImuQuat(self,quat):
+        if not self.isImuInit:
+            self.initImu(quat)
+        else:
+            
+            hWorldToImu = np.eye(4)
+            r = R.from_quat(quat)
+            hWorldToImu[0:3,0:3] = r.as_matrix()
+            self.imuTrans = np.dot(self.hBaseToWorld,hWorldToImu)
