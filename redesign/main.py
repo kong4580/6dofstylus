@@ -46,7 +46,9 @@ def callback(samplingRate,gui):
             # update button state command    
             if command == 0xFE:
                 # get button states
-                pass
+                
+                data = srec.encDataCvt(rawData[:-1])
+                print(data)
         
         try:
             gui.updateUI()
@@ -93,8 +95,8 @@ def openGUI(samplingRate = 0.005):
 if __name__ == '__main__':
     
     # declare port
-    port = '/dev/pts/2' # ubuntu port
-    # port = '/dev/ttyUSB0' # arduino port
+    # port = '/dev/pts/2' # ubuntu port
+    port = '/dev/ttyUSB0' # arduino port
     
     # declare constants
     samplingRate = 0.005
@@ -107,7 +109,7 @@ if __name__ == '__main__':
     
     # init serial
     print("Init Stylus Serial ... ",end="")
-    srec = StylusReciever(baudrate = 9600,port = port,timeout = serialTimeOut) 
+    srec = StylusReciever(baudrate = 115200,port = port,timeout = serialTimeOut) 
     print("Done !")
     
     # init GUI
@@ -115,7 +117,7 @@ if __name__ == '__main__':
     mainController = MainController()
     
     
-    mode = 'mouse'
+    mode = 'stylus'
     if mode == 'mouse':
         packData = {'flags':gui.openglWindow.flags,
                 'modelDicts':gui.openglWindow.modelDicts,

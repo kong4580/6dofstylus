@@ -49,6 +49,7 @@ class StylusReciever():
         # check start bytes
         start[0] =  self.readRaw()
         if start[0] == None:
+            
             return -1,-1
         elif  start[0]== 0xFE:
             start[1] =  self.readRaw()
@@ -80,6 +81,7 @@ class StylusReciever():
                 else: # data is wrong
                     return -1,-1
             else:
+                
                 return -1,-1
         else:
             return -1,-1

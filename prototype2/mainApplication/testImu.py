@@ -371,7 +371,7 @@ if __name__ == "__main__":
                 # imuData,calibState = srec.readCommand(command,rawData)
                 data = srec.encDataCvt(rawData[:-1])
                 npData = np.array(data)/1000
-                # print(npData)
+                print(data)
                 try:
                     myGLWindow.readImuQuat(npData)
                 except:
