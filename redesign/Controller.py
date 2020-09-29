@@ -164,7 +164,8 @@ class StylusController(CommonController):
                     
                     # turn off reset flags
                     self.flags['resetModelTransform'] = False
-                
+                    self.addHistory(model.currentM)
+
                 # model position is remain position
                 newM = model.currentM
             model.moveModel(newM)
@@ -184,6 +185,8 @@ class StylusController(CommonController):
                 self.release = False
                 self.buttonNum = 2
                 print("releaseModel")
+                model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+                self.addHistory(model.currentM)
                 self.releaseModel()
             else:
                 self.push = False
