@@ -49,13 +49,35 @@ class CommonController(Handler):
         self.log = packData['log']
         self.windowHeight = None
         self.windowWidth = None
-    
+        self.history = {'moveHistory':[np.eye(4)],
+                        'moveHistoryPosition':0}
+        
     def toggleFlags(self,flags):
         self.flags[flags] = not self.flags[flags]
         # return self.flags
         
-    
+    def undo(self):
+        if self.history['moveHistoryPosition'] > 0:
+            self.history['moveHistoryPosition'] -= 1
+            model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+            model.moveModel(self.history['moveHistory'][self.history['moveHistoryPosition']])
+            print(self.history)
+            
+        else:
+            print("nothing to undo")
+    def addHistory(self,history):
+        self.history['moveHistoryPosition']+=1
         
+        if len(self.history['moveHistory']) == self.history['moveHistoryPosition']:
+            # This is a new event in hisory
+            self.history['moveHistory'].append(history)
+        else:
+            # This occurs if there was one of more UNDOs and then a new
+            # execute command happened. In case of UNDO, the history_position
+            # changes, and executing new commands purges any history after
+            # the current position"""
+            self.history['moveHistory'] = self.history['moveHistory'][:self.history['moveHistoryPosition']+1]
+            self.history['moveHistory'][self.history['moveHistoryPosition']] = history
     def runCommonEvent(self):
         # print(self.keyCha)
         
@@ -74,18 +96,19 @@ class CommonController(Handler):
             self.flags['showCursor'] = not self.flags['snapMode']
         
         if self.keyCha == ord('d'):
-            
             self.toggleFlags('checkIoU')
+            
         if self.keyCha == ord('p'):
-            
             self.toggleFlags('testMode')
-        if self.keyCha == ord('m'):
             
+        if self.keyCha == ord('m'):
             self.toggleFlags('resetModelTransform')
-            # print(self.flags['resetModelTransform'])
+
         if self.keyCha == ord('l'):
             self.flags['addLog'] = True
         
+        if self.keyCha == ord('t'):
+            self.undo()
             
         self.keyCha = None
         return 1
@@ -259,8 +282,10 @@ class MouseController(CommonController):
         self.flags['mouseMode']= 'trans'
         
     def runEvent(self,event):
+        
         self.xMousePosition = fltk.Fl.event_x()
         self.yMousePosition = fltk.Fl.event_y()
+        
         if self.keyCha == ord('w'):
             self.flags['mouseMode'] = 'trans'
         if self.keyCha == ord('z'):
@@ -272,11 +297,9 @@ class MouseController(CommonController):
         if event == fltk.FL_PUSH:
             self.lastPosX = self.xMousePosition
             self.lastPosY = self.yMousePosition
-            # self.push = True
-            # self.release = False
-            # self.buttonNum = 1
             print("left click!")
             self.selectedModel = self.selectModel()
+            
         if self.selectedModel != []:
             model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
             newM = model.currentM
@@ -285,14 +308,17 @@ class MouseController(CommonController):
                     newM = self.mouseWheel()
                 if event == fltk.FL_DRAG:
                     newM = self.mouseDrag()
-            # print(newM)
+                if event == fltk.FL_RELEASE:
+                    
+                    self.addHistory(newM)
+                    
+                    print(self.history)
             model.moveModel(newM)
-            # return
             
         self.runCommonEvent()
+        
         if self.flags['resetModelTransform']:
             for model in self.modelDicts['model']:
-            # model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
 
                 # set model position to home position ( identity )
                 model.currentM = np.eye(4)
@@ -301,7 +327,11 @@ class MouseController(CommonController):
                 # turn off reset flags
                 self.flags['resetModelTransform'] = False
                 newM = model.currentM
+                
                 model.moveModel(newM)
+            self.addHistory(newM)
+            
+                
         if self.flags['checkIoU']:
             for model in self.modelDicts['model']:
                 model.isSelected = False
