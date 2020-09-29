@@ -61,10 +61,19 @@ class CommonController(Handler):
             self.history['moveHistoryPosition'] -= 1
             model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
             model.moveModel(self.history['moveHistory'][self.history['moveHistoryPosition']])
-            print(self.history)
             
         else:
             print("nothing to undo")
+            
+    def redo(self):
+        if self.history['moveHistoryPosition']+1 < len(self.history['moveHistory']):
+            self.history['moveHistoryPosition'] += 1
+            model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+            model.moveModel(self.history['moveHistory'][self.history['moveHistoryPosition']])
+            
+        else:
+            print("nothing to redo")
+           
     def addHistory(self,history):
         self.history['moveHistoryPosition']+=1
         
@@ -109,7 +118,10 @@ class CommonController(Handler):
         
         if self.keyCha == ord('t'):
             self.undo()
-            
+        
+        if self.keyCha == ord('y'):
+            self.redo()
+             
         self.keyCha = None
         return 1
 
