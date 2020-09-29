@@ -269,13 +269,9 @@ class StylusController(CommonController):
 class MouseController(CommonController):
     def __init__(self,packData):
         super().__init__(packData)
-        # set config
-        # self.cfg={"homeCfg":(5.23747141, -0.01606842, -0.3270202)}
         self.flags['showCursor'] = False
         self.flags['showModelFrame'] = True
         self.transform = np.eye(4)
-        # self.positionValue = [0.0,0.0,0.0,0.0,0.0,0.0]
-        # self.rotationM = np.asarray([[1,0,0],[0,1,0],[0,0,1]])
         self.selectedModel = []
         self.windowHeight = packData['height']
         self.windowWidth = packData['width']
@@ -342,7 +338,6 @@ class MouseController(CommonController):
             newM[2][3] = newM[2][3] + 0.1*(fltk.Fl.event_dy())
         else:
             newM = self.rotationMatrixTransform(self.flags['mouseMode'],fltk.Fl.event_dy())
-        # newM = self.transformM()
         return newM
     def mouseDrag(self):
         recentX = self.xMousePosition - self.lastPosX
@@ -379,19 +374,8 @@ class MouseController(CommonController):
                     newM = self.rotationMatrixTransform(self.flags['mouseMode'],-degree)    
             self.lastX = recentX
             self.lastY = recentY
-        # newM = self.transformM()
         return newM
-    # def transformM(self):
-    #     r = R.from_matrix(self.rotationM)
-    #     degree = r.as_euler('xyz', degrees=True)
-    #     self.positionValue[3] = degree[0]
-    #     self.positionValue[4] = degree[1]
-    #     self.positionValue[5] = degree[2]
-    #     self.positionMatrix = [[self.rotationM[0][0],self.rotationM[0][1],self.rotationM[0][2],self.positionValue[0]],
-    #                  [self.rotationM[1][0],self.rotationM[1][1],self.rotationM[1][2],self.positionValue[1]],
-    #                  [self.rotationM[2][0],self.rotationM[2][1],self.rotationM[2][2],self.positionValue[2]],
-    #                  [0,0,0,1]]
-    #     return self.positionMatrix
+
     def rotationMatrixTransform(self,rotationAxis,deg):
         model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
         newM = model.currentM.copy()
