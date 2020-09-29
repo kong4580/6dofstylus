@@ -111,7 +111,7 @@ if __name__ == '__main__':
     mainController = MainController()
     
     
-    mode = 'stylus'
+    mode = 'mouse'
     if mode == 'mouse':
         packData = {'flags':gui.openglWindow.flags,
                 'modelDicts':gui.openglWindow.modelDicts,
