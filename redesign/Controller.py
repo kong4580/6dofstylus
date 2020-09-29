@@ -274,8 +274,8 @@ class MouseController(CommonController):
         self.flags['showCursor'] = False
         self.flags['showModelFrame'] = True
         self.transform = np.eye(4)
-        self.positionValue = [0.0,0.0,0.0,0.0,0.0,0.0]
-        self.rotationM = np.asarray([[1,0,0],[0,1,0],[0,0,1]])
+        # self.positionValue = [0.0,0.0,0.0,0.0,0.0,0.0]
+        # self.rotationM = np.asarray([[1,0,0],[0,1,0],[0,0,1]])
         self.selectedModel = []
         self.windowHeight = packData['height']
         self.windowWidth = packData['width']
@@ -322,7 +322,7 @@ class MouseController(CommonController):
 
                 # set model position to home position ( identity )
                 model.currentM = np.eye(4)
-                self.positionValue = [0,0,0,0,0,0]
+                # self.positionValue = [0,0,0,0,0,0]
                 
                 # turn off reset flags
                 self.flags['resetModelTransform'] = False
@@ -336,11 +336,13 @@ class MouseController(CommonController):
             for model in self.modelDicts['model']:
                 model.isSelected = False
     def mouseWheel(self):
+        model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+        newM = model.currentM.copy()
         if self.flags['mouseMode'] == 'trans': #translate mode
-            self.positionValue[2] = self.positionValue[2] + 0.1*(fltk.Fl.event_dy())
+            newM[2][3] = newM[2][3] + 0.1*(fltk.Fl.event_dy())
         else:
-            self.rotationMatrixTransform(self.flags['mouseMode'],fltk.Fl.event_dy())
-        newM = self.transformM()
+            newM = self.rotationMatrixTransform(self.flags['mouseMode'],fltk.Fl.event_dy())
+        # newM = self.transformM()
         return newM
     def mouseDrag(self):
         recentX = self.xMousePosition - self.lastPosX
@@ -348,15 +350,16 @@ class MouseController(CommonController):
         self.lastPosX = self.xMousePosition
         self.lastPosY = self.yMousePosition 
         # print(self.xMousePosition,self.yMousePosition)
-    
-        ratioX = -(5*(self.windowWidth/10)/(self.positionValue[2] -10))
-        ratioY = -(5*(self.windowHeight/10)/(self.positionValue[2] -10))
-
+        model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+        newM = model.currentM.copy()
+        ratioX = -(5*(self.windowWidth/10)/(newM[2][3] -10))
+        ratioY = -(5*(self.windowHeight/10)/(newM[2][3] -10))
+        
         if self.flags['mouseMode'] == 'trans':
-            xTranslatePosition = recentX/ratioX + self.positionValue[0]
-            yTranslatePosition = -(recentY/ratioY) + self.positionValue[1]
-            self.positionValue[0] = xTranslatePosition
-            self.positionValue[1] = yTranslatePosition
+            xTranslatePosition = recentX/ratioX + newM[0][3]
+            yTranslatePosition = -(recentY/ratioY) + newM[1][3]
+            newM[0][3] = xTranslatePosition
+            newM[1][3] = yTranslatePosition
             self.lastX = recentX
             self.lastY = recentY
         #drag to rotate
@@ -366,41 +369,43 @@ class MouseController(CommonController):
             degree = math.sqrt(dx*dx+dy*dy)
             if self.flags['mouseMode']!= 'rotZ':
                 if dx+dy>0:
-                    self.rotationMatrixTransform(self.flags['mouseMode'],degree)
+                    newM =self.rotationMatrixTransform(self.flags['mouseMode'],degree)
                 else:
-                    self.rotationMatrixTransform(self.flags['mouseMode'],-degree)
+                    newM = self.rotationMatrixTransform(self.flags['mouseMode'],-degree)
             else:
                 if dx+dy<0:
-                    self.rotationMatrixTransform(self.flags['mouseMode'],degree)
+                    newM = self.rotationMatrixTransform(self.flags['mouseMode'],degree)
                 else:
-                    self.rotationMatrixTransform(self.flags['mouseMode'],-degree)    
+                    newM = self.rotationMatrixTransform(self.flags['mouseMode'],-degree)    
             self.lastX = recentX
             self.lastY = recentY
-        newM = self.transformM()
+        # newM = self.transformM()
         return newM
-    def transformM(self):
-        r = R.from_matrix(self.rotationM)
-        degree = r.as_euler('xyz', degrees=True)
-        self.positionValue[3] = degree[0]
-        self.positionValue[4] = degree[1]
-        self.positionValue[5] = degree[2]
-        self.positionMatrix = [[self.rotationM[0][0],self.rotationM[0][1],self.rotationM[0][2],self.positionValue[0]],
-                     [self.rotationM[1][0],self.rotationM[1][1],self.rotationM[1][2],self.positionValue[1]],
-                     [self.rotationM[2][0],self.rotationM[2][1],self.rotationM[2][2],self.positionValue[2]],
-                     [0,0,0,1]]
-        return self.positionMatrix
+    # def transformM(self):
+    #     r = R.from_matrix(self.rotationM)
+    #     degree = r.as_euler('xyz', degrees=True)
+    #     self.positionValue[3] = degree[0]
+    #     self.positionValue[4] = degree[1]
+    #     self.positionValue[5] = degree[2]
+    #     self.positionMatrix = [[self.rotationM[0][0],self.rotationM[0][1],self.rotationM[0][2],self.positionValue[0]],
+    #                  [self.rotationM[1][0],self.rotationM[1][1],self.rotationM[1][2],self.positionValue[1]],
+    #                  [self.rotationM[2][0],self.rotationM[2][1],self.rotationM[2][2],self.positionValue[2]],
+    #                  [0,0,0,1]]
+    #     return self.positionMatrix
     def rotationMatrixTransform(self,rotationAxis,deg):
+        model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+        newM = model.currentM.copy()
         degree = deg*0.005
         degreeXMatrix = np.asarray([[1,0,0],[0,math.cos(degree),-math.sin(degree)],[0,math.sin(degree),math.cos(degree)]])
         degreeYMatrix = np.asarray([[math.cos(degree),0,math.sin(degree)],[0,1,0],[-math.sin(degree),0,math.cos(degree)]])
         degreeZMatrix = np.asarray([[math.cos(degree),-math.sin(degree),0],[math.sin(degree),math.cos(degree),0],[0,0,1]])
         if rotationAxis == 'rotX':
-            self.rotationM = np.dot(self.rotationM,degreeXMatrix)
+            newM[0:3,0:3] = np.dot(newM[0:3,0:3],degreeXMatrix)
         elif rotationAxis == 'rotY':
-            self.rotationM = np.dot(self.rotationM,degreeYMatrix)
+            newM[0:3,0:3] = np.dot(newM[0:3,0:3],degreeYMatrix)
         elif rotationAxis == 'rotZ':
-            self.rotationM = np.dot(self.rotationM,degreeZMatrix)
-
+            newM[0:3,0:3] = np.dot(newM[0:3,0:3],degreeZMatrix)
+        return newM
     def selectModel(self):
         selectModel = []
         model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
