@@ -127,6 +127,7 @@ if __name__ == '__main__':
                 'log':gui.log,
                 'height':gui.openglWindow.h(),
                 'width':gui.openglWindow.w(),
+                'camera':gui.openglWindow.cameravalue
                 }
         deviceController = MouseController(packData)
 
