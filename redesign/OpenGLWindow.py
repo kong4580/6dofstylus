@@ -169,7 +169,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         # set area of screen
         # implement zoom and tramslate view
         # minX, maxX, minY, maxY, minZ, maxZ
-        GL.glFrustum(((-1*(self.w()/self.h()))/self.cameravalue[0])-self.cameravalue[1], ((1*(self.w()/self.h()))/self.cameravalue[0])-self.cameravalue[1], -1/self.cameravalue[0]-self.cameravalue[2], 1/self.cameravalue[0]-self.cameravalue[2], 1, 100) 
+        GL.glFrustum(((-1*(self.w()/self.h()))/self.cameravalue[0])-self.cameravalue[1], ((1*(self.w()/self.h()))/self.cameravalue[0])-self.cameravalue[1], -1/self.cameravalue[0]-self.cameravalue[2], 1/self.cameravalue[0]-self.cameravalue[2], 1, 100)
 
         #offset camera view
         GL.glTranslatef(0,-5,0)

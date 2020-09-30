@@ -303,93 +303,130 @@ class MouseController(CommonController):
         self.selectedModel = []
         self.windowHeight = packData['height']
         self.windowWidth = packData['width']
+        self.cameraValue = packData['camera']
         self.flags['mouseMode']= 'trans'
         
     def runEvent(self,event):
         
+        # mouse position
         self.xMousePosition = fltk.Fl.event_x()
         self.yMousePosition = fltk.Fl.event_y()
         
+        # select mode to move
         if self.keyCha == ord('w'):
             self.flags['mouseMode'] = 'trans'
+
         if self.keyCha == ord('z'):
             self.flags['mouseMode'] = 'rotZ'
+
         if self.keyCha == ord('x'):
             self.flags['mouseMode'] = 'rotX'
+
         if self.keyCha == ord('c'):
             self.flags['mouseMode'] = 'rotY'
+
+        # check model selection when mouse click
         if event == fltk.FL_PUSH:
             self.lastPosX = self.xMousePosition
             self.lastPosY = self.yMousePosition
-            print("left click!")
+            # print("left click!")
             self.selectedModel = self.selectModel()
-            
+
+        # run when there is something selected   
         if self.selectedModel != []:
             model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
             newM = model.currentM
+
+            # move method when model is selected 
             if model.isSelected:
+
+                # mousewheel event
                 if event == fltk.FL_MOUSEWHEEL:
                     newM = self.mouseWheel()
+
+                #mouse drag event
                 if event == fltk.FL_DRAG:
                     newM = self.mouseDrag()
-                if event == fltk.FL_RELEASE:
-                    
+
+                # store model position after release mouse# model is selected
                     self.addHistory(newM)
-                    
-                    print(self.history)
+                    # print(self.history)
+            # move model with new matrix
             model.moveModel(newM)
             
+        # run common controller event 
         self.runCommonEvent()
         
+        # reset model
         if self.flags['resetModelTransform']:
             for model in self.modelDicts['model']:
 
                 # set model position to home position ( identity )
                 model.currentM = np.eye(4)
-                # self.positionValue = [0,0,0,0,0,0]
-                
+        
                 # turn off reset flags
                 self.flags['resetModelTransform'] = False
+
+                # set new matrix model
                 newM = model.currentM
                 
+                # move model to the new matrix model
                 model.moveModel(newM)
             self.addHistory(newM)
             
-                
+        # every model will be deselected during checking Iou
         if self.flags['checkIoU']:
             for model in self.modelDicts['model']:
                 model.isSelected = False
+
+    # mouse wheel moving method
     def mouseWheel(self):
         model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
         newM = model.currentM.copy()
-        if self.flags['mouseMode'] == 'trans': #translate mode
+
+        # translate in z axis
+        if self.flags['mouseMode'] == 'trans':
             newM[2][3] = newM[2][3] + 0.1*(fltk.Fl.event_dy())
+        
+        # rotate model
         else:
             newM = self.rotationMatrixTransform(self.flags['mouseMode'],fltk.Fl.event_dy())
         return newM
+
+    # mouse drag moving method
     def mouseDrag(self):
+
+        # get the distance when mouse moving from one point to another point
         recentX = self.xMousePosition - self.lastPosX
         recentY = self.yMousePosition - self.lastPosY
+
+        #store the current por=sition to calculate  distance for the next position
         self.lastPosX = self.xMousePosition
         self.lastPosY = self.yMousePosition 
         # print(self.xMousePosition,self.yMousePosition)
+
         model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
         newM = model.currentM.copy()
+
+        # calculate ratio from mouse to window
         ratioX = -(5*(self.windowWidth/10)/(newM[2][3] -10))
         ratioY = -(5*(self.windowHeight/10)/(newM[2][3] -10))
         
+        # drag to translate
         if self.flags['mouseMode'] == 'trans':
             xTranslatePosition = recentX/ratioX + newM[0][3]
             yTranslatePosition = -(recentY/ratioY) + newM[1][3]
             newM[0][3] = xTranslatePosition
             newM[1][3] = yTranslatePosition
-            self.lastX = recentX
-            self.lastY = recentY
-        #drag to rotate
+            
+        # drag to rotate
         if self.flags['mouseMode'] != 'trans':
+            # calculate displacement of mouse moving
             dx = recentX
             dy = -recentY
             degree = math.sqrt(dx*dx+dy*dy)
+
+            # get new rotation matrix
             if self.flags['mouseMode']!= 'rotZ':
                 if dx+dy>0:
                     newM =self.rotationMatrixTransform(self.flags['mouseMode'],degree)
@@ -400,44 +437,109 @@ class MouseController(CommonController):
                     newM = self.rotationMatrixTransform(self.flags['mouseMode'],degree)
                 else:
                     newM = self.rotationMatrixTransform(self.flags['mouseMode'],-degree)    
-            self.lastX = recentX
-            self.lastY = recentY
+
         return newM
 
+    # calculate rotation matrix to rotate around current local axis
     def rotationMatrixTransform(self,rotationAxis,deg):
         model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
         newM = model.currentM.copy()
+
+        # decrease degree size
         degree = deg*0.005
+
+        # calculate rotation matrix
         degreeXMatrix = np.asarray([[1,0,0],[0,math.cos(degree),-math.sin(degree)],[0,math.sin(degree),math.cos(degree)]])
         degreeYMatrix = np.asarray([[math.cos(degree),0,math.sin(degree)],[0,1,0],[-math.sin(degree),0,math.cos(degree)]])
         degreeZMatrix = np.asarray([[math.cos(degree),-math.sin(degree),0],[math.sin(degree),math.cos(degree),0],[0,0,1]])
+
+        # rotate condition
         if rotationAxis == 'rotX':
             newM[0:3,0:3] = np.dot(newM[0:3,0:3],degreeXMatrix)
         elif rotationAxis == 'rotY':
             newM[0:3,0:3] = np.dot(newM[0:3,0:3],degreeYMatrix)
         elif rotationAxis == 'rotZ':
             newM[0:3,0:3] = np.dot(newM[0:3,0:3],degreeZMatrix)
+
         return newM
+
+    # check model selection
     def selectModel(self):
+        # create selected model buffer
         selectModel = []
         model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
-        if self.mouseSelectedCheck() == True:
+
+        # check selection
+        if self.mouseSelectedCheck() == model.modelId or self.mouseSelectedCheck() == True:
+
+            # model is selected
             model.isSelected = True
+
+            #add to selected model buffer
             selectModel.append(model)
         else:
+
+            #model is deselected
             model.isSelected = False
-            selectModel = []
+
         return selectModel
 
+    # mouse click selection checking
     def mouseSelectedCheck(self):
-        # print(self.windowHeight)
+
+        # read pixel color and depth
         self.depth = GL.glReadPixels(self.xMousePosition,self.windowHeight - self.yMousePosition, 1,1,GL.GL_DEPTH_COMPONENT,GL.GL_UNSIGNED_BYTE)
         self.color = GL.glReadPixels(self.xMousePosition,self.windowHeight - self.yMousePosition, 1,1,GL.GL_RGBA,GL.GL_UNSIGNED_BYTE)
-        # print(self.depth[0],self.color[0],self.color[1],self.color[2])
+        
+        # color checking
+        # if it's black mouse doesn't select anything
         if self.color[0] == 0 and self.color[1] == 0 and self.color[2] == 0:
             mouseSelected = False
         else:
             mouseSelected = True
+
+        model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+
+        # SET CAMERA VIEW
+        vp = GL.glGetIntegerv(GL.GL_VIEWPORT)
+        
+        # set matrix mode to projection matrix
+        GL.glMatrixMode(GL.GL_PROJECTION)
+        GL.glLoadIdentity()
+
+        # pick position
+        GLU.gluPickMatrix(self.xMousePosition, vp[3] - self.yMousePosition, 1, 1, vp)
+
+        # set viewport for select mode
+        GL.glFrustum(((-1*(self.windowWidth/self.windowHeight))/self.cameraValue[0])-self.cameraValue[1], ((1*(self.windowWidth/self.windowHeight))/self.cameraValue[0])-self.cameraValue[1], -1/self.cameraValue[0]-self.cameraValue[2], 1/self.cameraValue[0]-self.cameraValue[2], 1, 100)
+        GL.glTranslatef(0,-5,0)
+        GL.glTranslatef(0,0,-10)
+
+        # set buffer size
+        sel = GL.glSelectBuffer(100)
+
+        # rebder mode
+        GL.glRenderMode(GL.GL_SELECT)
+
+        # select buffer initial
+        GL.glInitNames()
+        GL.glPushName(0)
+
+        # model view mode
+        GL.glMatrixMode(GL.GL_MODELVIEW)
+
+        # draw model in select mode
+        model.drawMatrixModel(selectedMode = True)
+
+        # return model id
+        hits = GL.glRenderMode(GL.GL_RENDER)
+
+        # if mouse select something
+        if hits != []:
+            modelselected = hits[0].names[0]
+        else:
+            modelselected = 0
+
         return mouseSelected
 
 class StylusController2(StylusController):
