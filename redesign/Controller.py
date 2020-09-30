@@ -87,6 +87,10 @@ class CommonController(Handler):
             # the current position"""
             self.history['moveHistory'] = self.history['moveHistory'][:self.history['moveHistoryPosition']+1]
             self.history['moveHistory'][self.history['moveHistoryPosition']] = history
+    
+    def clearHistory(self):
+        self.history = {'moveHistory':[np.eye(4)],
+                        'moveHistoryPosition':0}
     def runCommonEvent(self):
         # print(self.keyCha)
         
@@ -106,6 +110,8 @@ class CommonController(Handler):
         
         if self.keyCha == ord('d'):
             self.toggleFlags('checkIoU')
+            if self.flags['lineupTestMode']:
+                self.clearHistory()
             
         if self.keyCha == ord('p'):
             self.toggleFlags('testMode')
@@ -161,18 +167,19 @@ class StylusController(CommonController):
                 
                 # if reset mode trigger
                 if self.flags['resetModelTransform']:
+                    for m in self.modelDicts['model']:
+                        
+                        # set model position to home position ( identity )
+                        m.currentM = np.eye(4)
+                        
+                        # turn off reset flags
+                        self.flags['resetModelTransform'] = False
+                    self.addHistory(m.currentM)
                     
-                    # set model position to home position ( identity )
-                    model.currentM = np.eye(4)
-                    
-                    # turn off reset flags
-                    self.flags['resetModelTransform'] = False
-                    self.addHistory(model.currentM)
-
                 # model position is remain position
                 newM = model.currentM
             model.moveModel(newM)
-            
+        
         if event >= 1000:
             key = event%1000
             if key == 1:
@@ -431,6 +438,18 @@ class MouseController(CommonController):
             mouseSelected = False
         else:
             mouseSelected = True
+
+        sel = GL.glSelectBuffer(8)
+        GL.glRenderMode(GL.GL_SELECT)
+        GL.glInitNames()
+        GL.glPushName(0)
+        GL.glMatrixMode(GL.GL_PROJECTION)
+
+        GL.glLoadIdentity()
+        vp = GL.glGetIntegerv(GL.GL_VIEWPORT)
+        GLU.gluPickMatrix(self.xMousePosition, vp[3] - self.yMousePosition -1, 1, 1, vp)
+        GL.glMatrixMode(GL.GL_MODELVIEW)
+        
         return mouseSelected
 
 class StylusController2(StylusController):

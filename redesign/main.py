@@ -24,7 +24,7 @@ def callback(samplingRate,gui):
             command,rawData = srec.recieve()
             # print(rawData)
             # update joint state command
-            if command == 0xFF:
+            if command == 0xFF and mode == 'stylus':
                 print(mode)
                 # get joint states and button states
                 jointStates,buttonStates = srec.readCommand(command,rawData)
@@ -45,7 +45,7 @@ def callback(samplingRate,gui):
                 
                 
             # update button state command    
-            if command == 0xFE:
+            if command == 0xFE and mode == 'stylus2':
                 # get button states
                 jointStates,imuData,calibrateState,buttonStates = srec.readCommand(command,rawData)
                 pose = stylus.getEndTransforms(jointStates)
@@ -76,9 +76,9 @@ def openGUI(samplingRate = 0.005):
     gui.openglWindow.ctl = mainController
     # add model
     teapot = OBJ('./teapot.obj',scale=1)
-    gui.addModel('teapot',teapot.initOBJ,obj=teapot)
+    gui.addModel('teapot',1,teapot.initOBJ,obj=teapot)
     bunny = OBJ('./bunny.obj',scale=20)
-    gui.addModel('bunny',bunny.initOBJ,obj=bunny)
+    gui.addModel('bunny',2,bunny.initOBJ,obj=bunny)
     
     # open GUI window
     gui.window.show()
@@ -103,15 +103,24 @@ def openGUI(samplingRate = 0.005):
     return fltk.Fl_run()
 
 if __name__ == '__main__':
-    
+    if len(sys.argv) < 2:
+        print("Please enter device name !!")
+        print("### device name = mouse, stylus, stylus2 ###")
+        sys.exit()
+        
+    # get input mode from terminal
+    mode = sys.argv[1]
+    print("\n Start Program with:",mode,"\n")
+    # declare ui samplingRate
     samplingRate = 0.005
     
     # init GUI
     gui = Gui()
+    
+    # init controller
     mainController = MainController()
     
     
-    mode = 'mouse'
     if mode == 'mouse':
         packData = {'flags':gui.openglWindow.flags,
                 'modelDicts':gui.openglWindow.modelDicts,
