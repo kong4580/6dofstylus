@@ -210,7 +210,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
             model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
             # set show or not show model
             model.show = self.flags['showModel']
-            
+              
             # draw model with transform matrix
             model.drawMatrixModel(showFrame=self.flags['showModelFrame'],wireFrame = self.flags['showModelWireframe'], opacity = self.flags['opacityMode'],mode=self.flags['mouseMode'])
                 
@@ -265,10 +265,10 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
             
                 
     # add model to opengl window class
-    def addModel(self,name,drawFunction=None,position=(0,0,0),rotation=(0,0,0),obj=None):
+    def addModel(self,name,modelId,drawFunction=None,position=(0,0,0),rotation=(0,0,0),obj=None):
         
         # create model class
-        model = Model(name,drawFunction,position,rotation,obj=obj)
+        model = Model(name,modelId,drawFunction,position,rotation,obj=obj)
         
         # add model to model dicts
         self.modelDicts['model'].append(model)
@@ -462,6 +462,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         # self.flags = oldflags
         
         # update opengl window
+        # self.flags['resetModelTransform'] =True
         self.redraw()
         fltk.Fl_check()
         

@@ -82,28 +82,31 @@ class Stylus():
         return tforms
     
     def getEndTransforms(self,q):
-        q= np.array(q)
-        
-        q[0] = q[0] -pi 
-        q[1] = q[1] - pi 
-        q[2] = q[2] - pi 
-        q[3] = q[3] - pi 
-        q[4] = q[4] - pi 
-        q[5] = q[5] - pi 
-        
-        q = q - np.asarray([-0.02147573, -0.02300971, -0.01994175,  0.04141748,  0.02454369, -0.12885439]).T
-        
-        
-        fk = self.forwardKinematics(q.tolist())[-1,:,:]
-        
-        offsetZ = 0
-        x,y,z = fk[0,3],fk[1,3],fk[2,3]+offsetZ
-        r = R.from_matrix(fk[0:3,0:3])
-        # print(r.as_matrix())
-        rx = r.as_euler('xyz')[0]
-        ry = r.as_euler('xyz')[1]
-        rz = r.as_euler('xyz')[2]
-        return fk
+        if len(q) != 6:
+            return np.eye(4)
+        else:
+            q= np.array(q)
+            
+            q[0] = q[0] -pi 
+            q[1] = q[1] - pi 
+            q[2] = q[2] - pi 
+            q[3] = q[3] - pi 
+            q[4] = q[4] - pi 
+            q[5] = q[5] - pi 
+            
+            q = q - np.asarray([-0.02147573, -0.02300971, -0.01994175,  0.04141748,  0.02454369, -0.12885439]).T
+            
+            
+            fk = self.forwardKinematics(q.tolist())[-1,:,:]
+            
+            offsetZ = 0
+            x,y,z = fk[0,3],fk[1,3],fk[2,3]+offsetZ
+            r = R.from_matrix(fk[0:3,0:3])
+            # print(r.as_matrix())
+            rx = r.as_euler('xyz')[0]
+            ry = r.as_euler('xyz')[1]
+            rz = r.as_euler('xyz')[2]
+            return fk
     
 class Stylus2(Stylus):
     
@@ -111,17 +114,20 @@ class Stylus2(Stylus):
         super().__init__()
     
     def getEndTransforms(self,q):
-        q= np.array(q)
-        
-        q[0] = q[0] -pi 
-        q[1] = q[1] - pi 
-        q[2] = q[2] - pi 
-        
-        
-        q = q - np.asarray([-0.02147573, -0.02300971, -0.01994175])
-        q = np.append(q,[0])
-        fk = self.forwardKinematics(q.tolist(),wrt=(0,3))[-1,:,:]
-        return fk
+        if len(q) != 3:
+            return np.eye(4)
+        else:
+            q= np.array(q)
+            
+            q[0] = q[0] -pi 
+            q[1] = q[1] - pi 
+            q[2] = q[2] - pi 
+            
+            
+            q = q - np.asarray([-0.02147573, -0.02300971, -0.01994175])
+            q = np.append(q,[0])
+            fk = self.forwardKinematics(q.tolist(),wrt=(0,3))[-1,:,:]
+            return fk
         
 if __name__ == '__main__':
     stylus = Stylus()
