@@ -14,7 +14,7 @@ from Obb import OBB
 class Model():
     
     # init model class
-    def __init__(self,name,modelId,drawFunction = None,position=(0,0,0),rotation=(0,0,0),obj=None,m =np.eye(4),selectedMode = False):
+    def __init__(self,name,modelId,drawFunction = None,position=(0,0,0),rotation=(0,0,0),obj=None,m =np.eye(4)):
         
         # model name
         self.name = name
@@ -54,7 +54,7 @@ class Model():
         self.show = True
         
     # draw model with transform matrix
-    def drawMatrixModel(self, showFrame=True, enableLight = True,wireFrame = False, opacity = False,mode = 'trans'):
+    def drawMatrixModel(self, showFrame=True, enableLight = True,wireFrame = False, opacity = False,mode = 'trans',selectedMode = False):
         
         # start transform matrix in model view
         GL.glMatrixMode(GL.GL_MODELVIEW)
