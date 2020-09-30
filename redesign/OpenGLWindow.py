@@ -265,10 +265,10 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
             
                 
     # add model to opengl window class
-    def addModel(self,name,drawFunction=None,position=(0,0,0),rotation=(0,0,0),obj=None):
+    def addModel(self,name,modelId,drawFunction=None,position=(0,0,0),rotation=(0,0,0),obj=None):
         
         # create model class
-        model = Model(name,drawFunction,position,rotation,obj=obj)
+        model = Model(name,modelId,drawFunction,position,rotation,obj=obj)
         
         # add model to model dicts
         self.modelDicts['model'].append(model)
