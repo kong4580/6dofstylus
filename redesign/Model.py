@@ -14,11 +14,11 @@ from Obb import OBB
 class Model():
     
     # init model class
-    def __init__(self,name,drawFunction = None,position=(0,0,0),rotation=(0,0,0),obj=None,m =np.eye(4)):
+    def __init__(self,name,modelId,drawFunction = None,position=(0,0,0),rotation=(0,0,0),obj=None,m =np.eye(4),selectedMode = False):
         
         # model name
         self.name = name
-        
+        self.modelId = modelId
         # model position
         self.centerPosition = position
         
@@ -142,6 +142,8 @@ class Model():
                     GL.glDisable(GL.GL_LIGHTING)
                     
                 # draw model
+                if selectedMode:
+                    GL.glLoadName(self.modelId)
                 GL.glCallList(self.obj.gl_list)
                 
                 # if disable lighting

@@ -76,9 +76,9 @@ def openGUI(samplingRate = 0.005):
     gui.openglWindow.ctl = mainController
     # add model
     teapot = OBJ('./teapot.obj',scale=1)
-    gui.addModel('teapot',teapot.initOBJ,obj=teapot)
+    gui.addModel('teapot',1,teapot.initOBJ,obj=teapot)
     bunny = OBJ('./bunny.obj',scale=20)
-    gui.addModel('bunny',bunny.initOBJ,obj=bunny)
+    gui.addModel('bunny',2,bunny.initOBJ,obj=bunny)
     
     # open GUI window
     gui.window.show()
