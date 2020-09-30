@@ -420,9 +420,9 @@ class Gui():
     
     
     # add model to opengl window class
-    def addModel(self,name,drawFunction = None,position=(0,0,0),rotation=(0,0,0),obj=None):
+    def addModel(self,name,modelId,drawFunction = None,position=(0,0,0),rotation=(0,0,0),obj=None):
         print("Add model name",name)
-        self.openglWindow.addModel(name,drawFunction,position,rotation,obj=obj)
+        self.openglWindow.addModel(name,modelId,drawFunction,position,rotation,obj=obj)
         print("Done!")
     
     
