@@ -54,31 +54,35 @@ class CommonController(Handler):
         self.windowHeight = packData['height']
         self.windowWidth = packData['width']
         self.cameraValue = packData['camera']
+        
     def toggleFlags(self,flags):
         self.flags[flags] = not self.flags[flags]
-        # return self.flags
+        
         
     def undo(self):
+        
         if self.history['moveHistoryPosition'] > 0:
             self.history['moveHistoryPosition'] -= 1
             model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
             model.moveModel(self.history['moveHistory'][self.history['moveHistoryPosition']])
-            
         else:
             print("nothing to undo")
             
     def redo(self):
+        
         if self.history['moveHistoryPosition']+1 < len(self.history['moveHistory']):
             self.history['moveHistoryPosition'] += 1
             model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
             model.moveModel(self.history['moveHistory'][self.history['moveHistoryPosition']])
-            
         else:
             print("nothing to redo")
            
     def addHistory(self,history):
+        
+        # update history position
         self.history['moveHistoryPosition']+=1
         
+        # if history is uptodate
         if len(self.history['moveHistory']) == self.history['moveHistoryPosition']:
             # This is a new event in hisory
             self.history['moveHistory'].append(history)
@@ -86,7 +90,7 @@ class CommonController(Handler):
             # This occurs if there was one of more UNDOs and then a new
             # execute command happened. In case of UNDO, the history_position
             # changes, and executing new commands purges any history after
-            # the current position"""
+            # the current position
             self.history['moveHistory'] = self.history['moveHistory'][:self.history['moveHistoryPosition']+1]
             self.history['moveHistory'][self.history['moveHistoryPosition']] = history
     
@@ -136,12 +140,14 @@ class CommonController(Handler):
             modelselected = hits[0].names[0]
         else:
             modelselected = 0
-        return modelselected
-    def runCommonEvent(self):
-        # print(self.keyCha)
         
+        # return selectedModel id
+        return modelselected
+    
+    def runCommonEvent(self):
+
         if self.keyCha == ord('q'):
-            # print("aa")
+
             self.toggleFlags('showModel')
             
         if self.keyCha == ord('1'):
@@ -181,6 +187,7 @@ class CommonController(Handler):
 class StylusController(CommonController):
     def __init__(self,packData):
         super().__init__(packData)
+        
         # set config
         self.cfg={"homeCfg":(6.02190372, -0.06466488,  0.0184181)}
         self.transform = np.eye(4)
@@ -190,10 +197,14 @@ class StylusController(CommonController):
                                   [0,0,1,0],
                                   [1,0,0,0],
                                   [0,0,0,1]])
-        self.b = None
-        self.invB = None
+
     def runEvent(self,event):
+        
+        # Run common event
         self.runCommonEvent()
+        
+        # Check specific event for stylus
+        
         if event == 999: # move cursor
             self.cursor.moveModel(self.transform)
             model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
@@ -203,7 +214,7 @@ class StylusController(CommonController):
                 
                 # move model follow cursor
                 # now use only newM because use transform matrix to draw model
-                newM = self.followCursor(model,self.cursor,mode = "buffer")
+                newM = self.followCursor(model,self.cursor)
             
             # if model is not selected
             else:
@@ -227,26 +238,38 @@ class StylusController(CommonController):
                 newM = model.currentM
             model.moveModel(newM)
         
-        if event >= 1000:
+        if event >= 1000: # check button status
+            
+            # Get button key
             key = event%1000
+            
+            # LEFT CLICK
             if key == 1:
                 self.push = True
                 self.release = False
                 self.buttonNum = 1
+                
                 print("left click!")
+                
+                # Check select model
                 self.selectedModel = self.selectModel(mode = "buffer")
                 
-                
+            # RIGHT CLICK
             elif key == 2:
                 self.push = True
                 self.release = False
                 self.buttonNum = 2
-                print("releaseModel")
+                
+                # add History log
                 model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
                 if model.isSelected:
                     self.addHistory(model.currentM)
-                
+                    
+                # Release model
                 self.releaseModel()
+                print("releaseModel")
+            
+            # REALEASE ALL BUTTON
             else:
                 self.push = False
                 self.release = True
@@ -322,10 +345,11 @@ class StylusController(CommonController):
         return False
     
     # move model follow cursor
-    def followCursor(self,model,cursor,mode = "convex"):
+    def followCursor(self,model,cursor,mode = "centermodel"):
         
-        
-        if mode == "convex":
+        # move object with cursor is origin
+        if mode == "cursor":
+            
             # if not init
             if type(model.cursorM) == type(None):
                 
@@ -341,7 +365,10 @@ class StylusController(CommonController):
             # calculate new model transformation
             newM = np.eye(4)
             newM = np.dot(deltaTransform,model.startclickM)
-        elif mode == "buffer":
+        
+        # move object with center model is origin
+        elif mode == "centermodel":
+            
             # if not init
             if type(model.cursorM) == type(None):
                 
@@ -351,57 +378,67 @@ class StylusController(CommonController):
                 # remember model transform matrix when first clicked
                 model.startclickM = model.currentM.copy()
                 
-                self.b = np.eye(4)
-                self.b[0,3] = -model.startclickM[0,3]
-                self.b[1,3] = -model.startclickM[1,3]
-                self.b[2,3] = -model.startclickM[2,3]
-                self.invB = np.eye(4)
-                self.invB[0,3] = model.startclickM[0,3]
-                self.invB[1,3] = model.startclickM[1,3]
-                self.invB[2,3] = model.startclickM[2,3]
-            # hC0M = np.dot(np.linalg.inv(model.cursorM),self.b)
+                # remember offset from model currenM
+                model.offsetTran = np.eye(4)
+                model.offsetTran[0,3] = -model.startclickM[0,3]
+                model.offsetTran[1,3] = -model.startclickM[1,3]
+                model.offsetTran[2,3] = -model.startclickM[2,3]
+                model.invOffsetTran = np.eye(4)
+                model.invOffsetTran[0,3] = model.startclickM[0,3]
+                model.invOffsetTran[1,3] = model.startclickM[1,3]
+                model.invOffsetTran[2,3] = model.startclickM[2,3]
+
+            ## hNewM = hInvCurrentMOffsetTrans * deltaCntoC0 * hInvCurrentMOffsetTrans * hCurrentM
+            ## newM  = model.invOffsetTran * tranCnC0 * rotCnC0 * model.offsetTran * model.startclickM
+            ## newM  = model.invOffsetTran * tranCn * inv(tranC0) * rotCn * inv(rotC0) * model.offsetTran * model.startclickM
+            
+            # Split rot and trans from hC0 (model.cursorM)
             rotc0 = np.eye(4)
             rotc0[0:3,0:3] = model.cursorM[0:3,0:3].copy()
             tranc0 = np.eye(4)
             tranc0[0:3,3] = model.cursorM[0:3,3].copy()
             
+            # Split rot and trans from hCn (cursor.currentM)
             rotcn = np.eye(4)
             rotcn[0:3,0:3] = cursor.currentM[0:3,0:3].copy()
             trancn = np.eye(4)
             trancn[0:3,3] = cursor.currentM[0:3,3].copy()
             
+            # Find hCnC0 wuth split inverse
             rotC0CnM = np.dot(rotcn,np.linalg.inv(rotc0))
             tranC0CnM = np.dot(trancn,np.linalg.inv(tranc0))
             hCnC0M = np.dot(tranC0CnM,rotC0CnM)
             
-            # hCnC0M = np.dot(model.cursorM,np.linalg.inv(cursor.currentM))
-            
-            
-            # hC0M = np.dot(hC0M,invT)
-            # model.startclickM[0:3,0:3] = hC0M[0:3,0:3]
-            # hC0M[0,3] = 0
-            # hC0M[1,3] = 0
-            # hC0M[2,3] = 0
-            
-            newM = np.dot(self.invB,hCnC0M)
-            
-            newM = np.dot(newM,self.b)
+            # Cal NewM
+            newM = np.dot(model.invOffsetTran,hCnC0M)
+            newM = np.dot(newM,model.offsetTran)
             newM = np.dot(newM,model.startclickM)
-            # newM = np.dot(newM,invT)
+            
         # return new model transform
         return newM
     
+    # Cal stylus cursor 3d coordinate to 2d screen coordinate
     def getCursor2DPos(self):
+        
+        ### OpenGl matrix 
+        ### Vproj = Mproj * Mmodelview * VscaleCam * Vmodel
+        ### Vproj = Vproj/VscaleCam
+        ### Vscreen = Vstartviewport + Vendviewport * (Vprojx,y + 1)/2
+        
+        # Get projection matrix
         proj = GL.glGetFloatv(GL.GL_PROJECTION_MATRIX).T
         
+        # Get Vproj
         t = np.dot(proj,self.cursor.currentM)
         t = np.dot(t,np.array([[0,0,0,10]]).T)
-
         newT = t/t[3,0]
 
+        # Get Vscreen
         vp = GL.glGetIntegerv(GL.GL_VIEWPORT)
         wx = vp[0]+vp[2]*(newT[0]+1)/2
         wy = vp[1]+vp[3]*(newT[1]+1)/2
+        
+        # return screen coordinates
         return wx,vp[3]-wy
 
 class MouseController(CommonController):

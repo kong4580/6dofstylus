@@ -45,7 +45,8 @@ class Model():
         self.cursorM = None
         self.currentM = m
         self.startclickM = None
-        
+        self.offsetTran = None
+        self.invOffsetTran = None
         # model opacity
         self.opacityValue = 1
         
