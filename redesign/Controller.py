@@ -637,7 +637,7 @@ class MouseController(CommonController):
         # read pixel color and depth
         self.depth = GL.glReadPixels(self.xMousePosition,self.windowHeight - self.yMousePosition, 1,1,GL.GL_DEPTH_COMPONENT,GL.GL_UNSIGNED_BYTE)
         self.color = GL.glReadPixels(self.xMousePosition,self.windowHeight - self.yMousePosition, 1,1,GL.GL_RGBA,GL.GL_UNSIGNED_BYTE)
-        
+        mouseSelected = False
         # color checking
         # if it's black mouse doesn't select anything
         if self.color[0] == 0 and self.color[1] == 0 and self.color[2] == 0:
@@ -647,6 +647,7 @@ class MouseController(CommonController):
             
         if mouseSelected == False:
             mouseSelected = self.selectObjectWithBuffer(self.xMousePosition,self.yMousePosition)
+        print(mouseSelected)
 
         return mouseSelected
 
