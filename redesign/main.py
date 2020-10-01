@@ -25,7 +25,7 @@ def callback(samplingRate,gui):
             # print(rawData)
             # update joint state command
             if command == 0xFF and mode == 'stylus':
-                print(mode)
+                # print(mode)
                 # get joint states and button states
                 jointStates,buttonStates = srec.readCommand(command,rawData)
                 # print(jointStates)
@@ -152,7 +152,10 @@ if __name__ == '__main__':
         packData = {'flags':gui.openglWindow.flags,
                 'modelDicts':gui.openglWindow.modelDicts,
                 'log':gui.log,
-                'cursor':gui.openglWindow.cursor}
+                'cursor':gui.openglWindow.cursor,
+                'height':gui.openglWindow.h(),
+                'width':gui.openglWindow.w(),
+                'camera':gui.openglWindow.cameravalue}
         deviceController = StylusController(packData)
         
     elif mode == 'stylus2':
@@ -178,7 +181,10 @@ if __name__ == '__main__':
         packData = {'flags':gui.openglWindow.flags,
                 'modelDicts':gui.openglWindow.modelDicts,
                 'log':gui.log,
-                'cursor':gui.openglWindow.cursor}
+                'cursor':gui.openglWindow.cursor,
+                'height':gui.openglWindow.h(),
+                'width':gui.openglWindow.w(),
+                'camera':gui.openglWindow.cameravalue}
         deviceController = StylusController2(packData)
     mainController.registerController(deviceController)
     device = mainController.getController()

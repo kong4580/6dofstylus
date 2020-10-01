@@ -51,7 +51,9 @@ class CommonController(Handler):
         self.windowWidth = None
         self.history = {'moveHistory':[np.eye(4)],
                         'moveHistoryPosition':0}
-        
+        self.windowHeight = packData['height']
+        self.windowWidth = packData['width']
+        self.cameraValue = packData['camera']
     def toggleFlags(self,flags):
         self.flags[flags] = not self.flags[flags]
         # return self.flags
@@ -91,6 +93,50 @@ class CommonController(Handler):
     def clearHistory(self):
         self.history = {'moveHistory':[np.eye(4)],
                         'moveHistoryPosition':0}
+    
+    def selectObjectWithBuffer(self,xPos,yPos):
+        model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+
+        # SET CAMERA VIEW
+        vp = GL.glGetIntegerv(GL.GL_VIEWPORT)
+        
+        # set matrix mode to projection matrix
+        GL.glMatrixMode(GL.GL_PROJECTION)
+        GL.glLoadIdentity()
+
+        # pick position
+        GLU.gluPickMatrix(xPos, vp[3] - yPos, 1, 1, vp)
+
+        # set viewport for select mode
+        GL.glFrustum(((-1*(self.windowWidth/self.windowHeight))/self.cameraValue[0])-self.cameraValue[1], ((1*(self.windowWidth/self.windowHeight))/self.cameraValue[0])-self.cameraValue[1], -1/self.cameraValue[0]-self.cameraValue[2], 1/self.cameraValue[0]-self.cameraValue[2], 1, 100)
+        GL.glTranslatef(0,-5,0)
+        GL.glTranslatef(0,0,-10)
+
+        # set buffer size
+        sel = GL.glSelectBuffer(100)
+
+        # rebder mode
+        GL.glRenderMode(GL.GL_SELECT)
+
+        # select buffer initial
+        GL.glInitNames()
+        GL.glPushName(0)
+
+        # model view mode
+        GL.glMatrixMode(GL.GL_MODELVIEW)
+
+        # draw model in select mode
+        model.drawMatrixModel(selectedMode = True)
+
+        # return model id
+        hits = GL.glRenderMode(GL.GL_RENDER)
+
+        # if mouse select something
+        if hits != []:
+            modelselected = hits[0].names[0]
+        else:
+            modelselected = 0
+        return modelselected
     def runCommonEvent(self):
         # print(self.keyCha)
         
@@ -144,11 +190,12 @@ class StylusController(CommonController):
                                   [0,0,1,0],
                                   [1,0,0,0],
                                   [0,0,0,1]])
+        self.b = None
+        self.invB = None
     def runEvent(self,event):
         self.runCommonEvent()
         if event == 999: # move cursor
             self.cursor.moveModel(self.transform)
-            
             model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
             
             # if model is selected
@@ -156,7 +203,7 @@ class StylusController(CommonController):
                 
                 # move model follow cursor
                 # now use only newM because use transform matrix to draw model
-                newM = self.followCursor(model,self.cursor)
+                newM = self.followCursor(model,self.cursor,mode = "buffer")
             
             # if model is not selected
             else:
@@ -187,7 +234,7 @@ class StylusController(CommonController):
                 self.release = False
                 self.buttonNum = 1
                 print("left click!")
-                self.selectedModel = self.selectModel()
+                self.selectedModel = self.selectModel(mode = "buffer")
                 
                 
             elif key == 2:
@@ -217,8 +264,7 @@ class StylusController(CommonController):
         cursorTransform = np.dot(self.hOpenGlToBase,cursorTransform)
         self.transform = cursorTransform.copy()
     
-    def selectModel(self):
-        
+    def selectModel(self,mode = "convex"):
         
         # create selected model buffer
         selectModel = []
@@ -226,15 +272,25 @@ class StylusController(CommonController):
         
         # run through all models in opengl window class
         # for model in self.modelDicts['model']:
-            
+        
             # if cursor position is in model
-        if self.isPointInsideConvexHull(model,self.cursor.centerPosition):
-            
-            # model is selected
-            model.isSelected = True
-            
-            # add model to selected model buffer
-            selectModel.append(model)
+        if mode == "convex":
+            if self.isPointInsideConvexHull(model,self.cursor.centerPosition):
+                
+                # model is selected
+                model.isSelected = True
+                
+                # add model to selected model buffer
+                selectModel.append(model)
+        elif mode == "buffer":
+            cX,cY =self.getCursor2DPos()
+            modelId = self.selectObjectWithBuffer(cX,cY)
+            if modelId == model.modelId:
+                # model is selected
+                model.isSelected = True
+                
+                # add model to selected model buffer
+                selectModel.append(model)
         
         # return selected model buffer
         return selectModel
@@ -266,33 +322,87 @@ class StylusController(CommonController):
         return False
     
     # move model follow cursor
-    def followCursor(self,model,cursor):
+    def followCursor(self,model,cursor,mode = "convex"):
         
-        # if not init
-        if model.cursorPose == None or type(model.cursorM) == type(None):
+        
+        if mode == "convex":
+            # if not init
+            if type(model.cursorM) == type(None):
+                
+                # remember cursor transform matrix when first clicked
+                model.cursorM = cursor.currentM.copy()
+                
+                # remember model transform matrix when first clicked
+                model.startclickM = model.currentM.copy()
+            # print(cursor.currentM)
+            # calcualte delta TRANSFORM of cursor that first clicked and current cursor transform
+            deltaTransform = np.dot(cursor.currentM,np.linalg.inv(model.cursorM))
             
-            # remember rotattion and position
-            ### now not use ###
-            model.cursorPose = cursor.rotation
-            model.currentRotation = model.rotation
+            # calculate new model transformation
+            newM = np.eye(4)
+            newM = np.dot(deltaTransform,model.startclickM)
+        elif mode == "buffer":
+            # if not init
+            if type(model.cursorM) == type(None):
+                
+                # remember cursor transform matrix when first clicked
+                model.cursorM = cursor.currentM.copy()
+                
+                # remember model transform matrix when first clicked
+                model.startclickM = model.currentM.copy()
+                
+                self.b = np.eye(4)
+                self.b[0,3] = -model.startclickM[0,3]
+                self.b[1,3] = -model.startclickM[1,3]
+                self.b[2,3] = -model.startclickM[2,3]
+                self.invB = np.eye(4)
+                self.invB[0,3] = model.startclickM[0,3]
+                self.invB[1,3] = model.startclickM[1,3]
+                self.invB[2,3] = model.startclickM[2,3]
+            # hC0M = np.dot(np.linalg.inv(model.cursorM),self.b)
+            rotc0 = np.eye(4)
+            rotc0[0:3,0:3] = model.cursorM[0:3,0:3].copy()
+            tranc0 = np.eye(4)
+            tranc0[0:3,3] = model.cursorM[0:3,3].copy()
             
-            # remember cursor transform matrix when first clicked
-            model.cursorM = cursor.currentM.copy()
+            rotcn = np.eye(4)
+            rotcn[0:3,0:3] = cursor.currentM[0:3,0:3].copy()
+            trancn = np.eye(4)
+            trancn[0:3,3] = cursor.currentM[0:3,3].copy()
             
-            # remember model transform matrix when first clicked
-            model.startclickM = model.currentM.copy()
-        
-        # print(cursor.currentM)
-        # calcualte delta TRANSFORM of cursor that first clicked and current cursor transform
-        deltaTransform = np.dot(cursor.currentM,np.linalg.inv(model.cursorM))
-        
-        # calculate new model transformation
-        newM = np.eye(4)
-        newM = np.dot(deltaTransform,model.startclickM)
-        
-        
+            rotC0CnM = np.dot(rotcn,np.linalg.inv(rotc0))
+            tranC0CnM = np.dot(trancn,np.linalg.inv(tranc0))
+            hCnC0M = np.dot(tranC0CnM,rotC0CnM)
+            
+            # hCnC0M = np.dot(model.cursorM,np.linalg.inv(cursor.currentM))
+            
+            
+            # hC0M = np.dot(hC0M,invT)
+            # model.startclickM[0:3,0:3] = hC0M[0:3,0:3]
+            # hC0M[0,3] = 0
+            # hC0M[1,3] = 0
+            # hC0M[2,3] = 0
+            
+            newM = np.dot(self.invB,hCnC0M)
+            
+            newM = np.dot(newM,self.b)
+            newM = np.dot(newM,model.startclickM)
+            # newM = np.dot(newM,invT)
         # return new model transform
         return newM
+    
+    def getCursor2DPos(self):
+        proj = GL.glGetFloatv(GL.GL_PROJECTION_MATRIX).T
+        
+        t = np.dot(proj,self.cursor.currentM)
+        t = np.dot(t,np.array([[0,0,0,10]]).T)
+
+        newT = t/t[3,0]
+
+        vp = GL.glGetIntegerv(GL.GL_VIEWPORT)
+        wx = vp[0]+vp[2]*(newT[0]+1)/2
+        wy = vp[1]+vp[3]*(newT[1]+1)/2
+        return wx,vp[3]-wy
 
 class MouseController(CommonController):
     def __init__(self,packData):
@@ -301,9 +411,9 @@ class MouseController(CommonController):
         self.flags['showModelFrame'] = True
         self.transform = np.eye(4)
         self.selectedModel = []
-        self.windowHeight = packData['height']
-        self.windowWidth = packData['width']
-        self.cameraValue = packData['camera']
+        # self.windowHeight = packData['height']
+        # self.windowWidth = packData['width']
+        # self.cameraValue = packData['camera']
         self.flags['mouseMode']= 'trans'
         
     def runEvent(self,event):
@@ -469,7 +579,7 @@ class MouseController(CommonController):
         selectModel = []
         model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
 
-        # check selection
+        # check selection    
         if self.mouseSelectedCheck() == model.modelId or self.mouseSelectedCheck() == True:
 
             # model is selected
@@ -497,48 +607,9 @@ class MouseController(CommonController):
             mouseSelected = False
         else:
             mouseSelected = True
-
-        model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
-
-        # SET CAMERA VIEW
-        vp = GL.glGetIntegerv(GL.GL_VIEWPORT)
-        
-        # set matrix mode to projection matrix
-        GL.glMatrixMode(GL.GL_PROJECTION)
-        GL.glLoadIdentity()
-
-        # pick position
-        GLU.gluPickMatrix(self.xMousePosition, vp[3] - self.yMousePosition, 1, 1, vp)
-
-        # set viewport for select mode
-        GL.glFrustum(((-1*(self.windowWidth/self.windowHeight))/self.cameraValue[0])-self.cameraValue[1], ((1*(self.windowWidth/self.windowHeight))/self.cameraValue[0])-self.cameraValue[1], -1/self.cameraValue[0]-self.cameraValue[2], 1/self.cameraValue[0]-self.cameraValue[2], 1, 100)
-        GL.glTranslatef(0,-5,0)
-        GL.glTranslatef(0,0,-10)
-
-        # set buffer size
-        sel = GL.glSelectBuffer(100)
-
-        # rebder mode
-        GL.glRenderMode(GL.GL_SELECT)
-
-        # select buffer initial
-        GL.glInitNames()
-        GL.glPushName(0)
-
-        # model view mode
-        GL.glMatrixMode(GL.GL_MODELVIEW)
-
-        # draw model in select mode
-        model.drawMatrixModel(selectedMode = True)
-
-        # return model id
-        hits = GL.glRenderMode(GL.GL_RENDER)
-
-        # if mouse select something
-        if hits != []:
-            modelselected = hits[0].names[0]
-        else:
-            modelselected = 0
+            
+        if mouseSelected == False:
+            mouseSelected = self.selectObjectWithBuffer(self.xMousePosition,self.yMousePosition)
 
         return mouseSelected
 

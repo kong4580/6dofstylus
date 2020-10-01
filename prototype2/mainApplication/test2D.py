@@ -57,10 +57,82 @@ class MyGLWindow( fltk.Fl_Gl_Window ):
         GL.glPushMatrix()
         GL.glLoadIdentity()
         
-        newM = np.eye(4)
-        newM[0,3] = 8
-        newM[1,3] = 1
-        newM[2,3] = 3
+        rotM = np.array([[1,0,0,0],
+                         [0,1,0,0],
+                         [0,0,1,0],
+                         [0,0,0,1]])
+        tranM = np.array([[1,0,0,2],
+                         [0,1,0,0],
+                         [0,0,1,0],
+                         [0,0,0,1]])
+        hM = np.dot(tranM,rotM)
+        
+        rotc0M = np.array([[0,-1,0,0],
+                         [1,0,0,0],
+                         [0,0,1,0],
+                         [0,0,0,1]])
+        tranc0M = np.array([[1,0,0,-2],
+                         [0,1,0,0],
+                         [0,0,1,0],
+                         [0,0,0,1]])
+        c0M = np.dot(tranc0M,rotc0M)
+        # c0mM = np.dot(np.linalg.inv(c0M),hM)
+        # invc0mtranM = np.array([[1,0,0,0],
+        #                     [0,1,0,4],
+        #                     [0,0,1,0],
+        #                     [0,0,0,1]])
+        # reOri = np.dot(invc0mtranM,c0mM)
+        # print(c0mM)
+        # # cnM = np.array([[1,0,0,-5],
+        # #                  [0, 1,0,0],
+        # #                  [0,0,1,0],
+        # #                  [0,0,0,1]])
+        
+        rotcnM = np.array([[1,0,0,0],
+                         [0,0,-1,0],
+                         [0,1,0,0],
+                         [0,0,0,1]])
+        trancnM = np.array([[1,0,0,-2],
+                            [0,1,0,1],
+                            [0,0,1,3],
+                            [0,0,0,1]])
+        cnM = np.dot(trancnM,rotcnM)
+        invcnM = np.dot(np.linalg.inv(trancnM),np.linalg.inv(rotcnM))
+        # rotnM = np.array([[1,0,0,0],
+        #                     [0,0,-1,0],
+        #                     [0,1,0,0],
+        #                     [0,0,0,1]])
+        # # cnM = np.eye(4)
+        # deltacM = np.dot(np.linalg.inv(c0M),cnM)
+        # rotmm = np.eye(4)
+        # rotmm[0:3,0:3] = deltacM[0:3,0:3]
+        # newM = np.dot(cnM,c0mM)
+        # invcnc0mtranM = np.array([[1,0,0,-4],
+        #                     [0,1,0,2],
+        #                     [0,0,1,0],
+        #                     [0,0,0,1]])
+        # print(newM)
+        # dM = np.dot(np.linalg.inv(c0M),invcnc0mtranM)
+        # newM = np.dot(newM,invcnc0mtranM)
+        # newM = np.dot(newM,hM)
+        offset = np.eye(4)
+        offset[0,3] = -hM[0,3]
+        offset[1,3] = -hM[1,3]
+        offset[2,3] = -hM[2,3]
+        offsetBack = offset.copy()
+        offsetBack[0,3] =hM[0,3]
+        offsetBack[1,3] =hM[1,3]
+        offsetBack[2,3] =hM[2,3]
+        
+        # c0cnM = np.dot(np.linalg.inv(c0M),cnM)
+        rotc0cnM = np.dot(rotcnM,np.linalg.inv(rotc0M))
+        tranc0cnM = np.dot(trancnM,np.linalg.inv(tranc0M))
+        c0cnM = np.dot(tranc0cnM,rotc0cnM)
+        newM = np.dot(c0cnM,offset)
+        newM = np.dot(offsetBack,newM)
+        newM = np.dot(newM,hM)
+        print(c0cnM,newM)
+        # newM = np.dot(newM,np.linalg.inv(invc0mtranM))
         self.teapot.drawMatrixModel(newM,showFrame=False)
         GL.glPopMatrix()
         proj = GL.glGetFloatv(GL.GL_PROJECTION_MATRIX).T
