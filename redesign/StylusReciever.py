@@ -172,10 +172,28 @@ class StylusReciever():
             buttonStates = self.getButtonState(buttonStateRawData)
             
             imuNpData = np.array(imuData)/1000
+            state = [False, False, False]
             
-            if calibrateRawData == 7:
+            
+            
+            if calibrateRawData >= 4:
+                state[0] = True
+                calibrateRawData -= 4
+                
+            if calibrateRawData >= 2:
+                state[1] = True
+                calibrateRawData -= 2
+                
+            if calibrateRawData >= 1:
+                state[2] = True
+                calibrateRawData -= 1
+            
+            if state[0] and state[1] and state[2]:
                 calibrateState = True
             else:
+                
+                print( "MagnetState:",state[0],"AccState:",state[1],"GyroState:",state[2])
+                print("Please Calibrate")
                 calibrateState = False
             return jointStates,imuNpData,calibrateState,buttonStates
             
