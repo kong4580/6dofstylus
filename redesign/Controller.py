@@ -130,7 +130,7 @@ class CommonController(Handler):
         GL.glMatrixMode(GL.GL_MODELVIEW)
 
         # draw model in select mode
-        model.drawMatrixModel(selectedMode = True)
+        model.drawMatrixModel(selectedMode = True,mode = self.flags['mouseMode'])
 
         # return model id
         hits = GL.glRenderMode(GL.GL_RENDER)
@@ -637,14 +637,14 @@ class MouseController(CommonController):
         # read pixel color and depth
         self.depth = GL.glReadPixels(self.xMousePosition,self.windowHeight - self.yMousePosition, 1,1,GL.GL_DEPTH_COMPONENT,GL.GL_UNSIGNED_BYTE)
         self.color = GL.glReadPixels(self.xMousePosition,self.windowHeight - self.yMousePosition, 1,1,GL.GL_RGBA,GL.GL_UNSIGNED_BYTE)
-        mouseSelected = False
         # color checking
         # if it's black mouse doesn't select anything
         if self.color[0] == 0 and self.color[1] == 0 and self.color[2] == 0:
             mouseSelected = False
         else:
             mouseSelected = True
-            
+        mouseSelected = False
+        
         if mouseSelected == False:
             mouseSelected = self.selectObjectWithBuffer(self.xMousePosition,self.yMousePosition)
         print(mouseSelected)

@@ -57,23 +57,23 @@ class Model():
     # draw model with transform matrix
     def drawMatrixModel(self, showFrame=True, enableLight = True,wireFrame = False, opacity = False,mode = 'trans',selectedMode = False):
         
-        # start transform matrix in model view
-        GL.glMatrixMode(GL.GL_MODELVIEW)
-        GL.glPushMatrix()
-        GL.glLoadIdentity()
         
-        # apply transform to model
-        GL.glLoadMatrixf(self.currentM.T)
-        if self.obj!=None:
-            # print(tuple(self.obb.current_centroid))
-            GL.glTranslatef(-tuple(self.obb.centroid)[0],-tuple(self.obb.centroid)[1],-tuple(self.obb.centroid)[2])
         
         # if model is obj firl
         if self.obj!=None:
             
             # if model show flags is true
             if self.show:
-                
+                # start transform matrix in model view
+                GL.glMatrixMode(GL.GL_MODELVIEW)
+                GL.glPushMatrix()
+                GL.glLoadIdentity()
+
+                # apply transform to model
+                GL.glLoadMatrixf(self.currentM.T)
+                if self.obj!=None:
+                    # print(tuple(self.obb.current_centroid))
+                    GL.glTranslatef(-tuple(self.obb.centroid)[0],-tuple(self.obb.centroid)[1],-tuple(self.obb.centroid)[2])
                 # if show OBB
                 if self.obb.show:
                     
@@ -158,22 +158,26 @@ class Model():
                 # reset attribute to remain attribute
                 GL.glDisable(GL.GL_BLEND)
                 GL.glPopAttrib()
-            
+                GL.glPopMatrix()
+
             # draw model frame
                 if showFrame:
-                    GL.glTranslatef(tuple(self.obb.centroid)[0],tuple(self.obb.centroid)[1],tuple(self.obb.centroid)[2])
-                    GL.glDisable(GL.GL_LIGHTING)
-                    drawFunc.coordinate()
+                    if mode == 'trans':
+                        self.drawFrame(drawFunc.drawAxisX,101,selectedMode)
+                        self.drawFrame(drawFunc.drawAxisY,102,selectedMode)
+                        self.drawFrame(drawFunc.drawAxisZ,103,selectedMode)
                     # print(mode)
                     # if mode == 'trans':
                     #     drawFunc.coordinate()
-                    if mode == 'rotX':
-                        drawFunc.drawCircleX()
-                    elif mode == 'rotY':
-                        drawFunc.drawCircleY()
-                    elif mode == 'rotZ':
-                        drawFunc.drawCircleZ()
-                    GL.glEnable(GL.GL_LIGHTING)
+                    if mode == 'rot':
+                        self.drawFrame(drawFunc.drawCircleX,201,selectedMode)
+
+                        self.drawFrame(drawFunc.drawCircleY,202,selectedMode)
+
+                        self.drawFrame(drawFunc.drawCircleZ,203,selectedMode)
+                        
+                        # drawFunc.drawCircleZ()
+                    # GL.glEnable(GL.GL_LIGHTING)
                     # drawFunc.coordinate()
         # if model is not obj file    
         else:
@@ -192,8 +196,22 @@ class Model():
                 
         
                 
-        GL.glPopMatrix()
+        # GL.glPopMatrix()
+    
+    def drawFrame(self,drawFrameFunc,frameId,selectedMode=False):
+        GL.glMatrixMode(GL.GL_MODELVIEW)
+        GL.glPushMatrix()
+        GL.glLoadIdentity()
         
+        # apply transform to model
+        GL.glLoadMatrixf(self.currentM.T)
+        GL.glDisable(GL.GL_LIGHTING)
+        if selectedMode:
+            GL.glLoadName(frameId)
+        drawFrameFunc()
+
+        GL.glEnable(GL.GL_LIGHTING)
+        GL.glPopMatrix()
         
     def moveModel(self,matrix):
         
