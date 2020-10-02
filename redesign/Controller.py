@@ -137,9 +137,9 @@ class CommonController(Handler):
 
         # if mouse select something
         if hits != []:
-            modelselected = hits[0].names[0]
+            modelselected = hits[-1].names[0]
             # for i in hits:
-                # print(i.names[0],"print")
+            #     print(i.names[0],"print")
         else:
             modelselected = 0
         
@@ -450,9 +450,6 @@ class MouseController(CommonController):
         self.flags['showModelFrame'] = True
         self.transform = np.eye(4)
         self.selectedModel = []
-        # self.windowHeight = packData['height']
-        # self.windowWidth = packData['width']
-        # self.cameraValue = packData['camera']
         self.flags['mouseMode']= 'trans'
         self.rotationAxis = None
     def runEvent(self,event):
@@ -460,7 +457,8 @@ class MouseController(CommonController):
         # mouse position
         self.xMousePosition = fltk.Fl.event_x()
         self.yMousePosition = fltk.Fl.event_y()
-        
+        # print(self.xMousePosition,self.yMousePosition)
+        # print(self.selectObjectWithBuffer(self.xMousePosition,self.yMousePosition))
         # select mode to move
         if self.keyCha == ord('w'):
             self.flags['mouseMode'] = 'trans'
@@ -468,12 +466,9 @@ class MouseController(CommonController):
         if self.keyCha == ord('e'):
             self.flags['mouseMode'] = 'rot'
 
-        # if self.keyCha == ord('x'):
-        #     self.flags['mouseMode'] = 'rotX'
-
-        # if self.keyCha == ord('c'):
-        #     self.flags['mouseMode'] = 'rotY'
-
+        # if event == fltk.FL_MOVE:
+            # print(self.xMousePosition,self.yMousePosition)
+            # print(self.selectObjectWithBuffer(self.xMousePosition,self.yMousePosition))
         # check model selection when mouse click
         if event == fltk.FL_PUSH:
             self.lastPosX = self.xMousePosition
@@ -623,7 +618,7 @@ class MouseController(CommonController):
 
             # model is selected
             model.isSelected = True
-            print("model")
+            # print("model")
             #add to selected model buffer
             selectModel.append(model)
         elif self.mouseSelectedCheck() == 201:
@@ -642,14 +637,14 @@ class MouseController(CommonController):
 
             #model is deselected
             model.isSelected = False
-        print(self.rotationAxis)
+        # print(self.rotationAxis)
         return selectModel
 
     # mouse click selection checking
     def mouseSelectedCheck(self):
 
         # read pixel color and depth
-        self.depth = GL.glReadPixels(self.xMousePosition,self.windowHeight - self.yMousePosition, 1,1,GL.GL_DEPTH_COMPONENT,GL.GL_UNSIGNED_BYTE)
+        # self.depth = GL.glReadPixels(self.xMousePosition,self.windowHeight - self.yMousePosition, 1,1,GL.GL_DEPTH_COMPONENT,GL.GL_UNSIGNED_BYTE)
         self.color = GL.glReadPixels(self.xMousePosition,self.windowHeight - self.yMousePosition, 1,1,GL.GL_RGBA,GL.GL_UNSIGNED_BYTE)
         # color checking
         # if it's black mouse doesn't select anything
@@ -661,7 +656,7 @@ class MouseController(CommonController):
         
         if mouseSelected == False:
             mouseSelected = self.selectObjectWithBuffer(self.xMousePosition,self.yMousePosition)
-        print(mouseSelected)
+        # print(mouseSelected)
 
         return mouseSelected
 
