@@ -184,7 +184,13 @@ class Model():
             
             # if model is show
             if self.show:
-                
+                # start transform matrix in model view
+                GL.glMatrixMode(GL.GL_MODELVIEW)
+                GL.glPushMatrix()
+                GL.glLoadIdentity()
+
+                # apply transform to model
+                GL.glLoadMatrixf(self.currentM.T)
                 # draw model from drawFunction
                 self.drawFunction()
                 
@@ -193,6 +199,7 @@ class Model():
                     GL.glDisable(GL.GL_LIGHTING)
                     drawFunc.coordinate()
                     GL.glEnable(GL.GL_LIGHTING)
+                GL.glPopMatrix()
                 
         
                 

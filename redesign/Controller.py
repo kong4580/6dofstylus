@@ -655,16 +655,24 @@ class StylusController2(StylusController):
     def __init__(self,packData):
         super().__init__(packData)
         self.hBaseToWorld = np.eye(4)
+        self.hOpenGlToImu = np.array([[-1,0,0,0],
+                                  [0,0,-1,0],
+                                  [0,-1,0,0],
+                                  [0,0,0,1]])
+        
         self.isImuInit = False
         self.imuTrans = np.eye(4)
+        
     def runEvent(self,event):
         if self.keyCha == ord('k'):
+            print("Init Imu..")
             self.isImuInit = True
+            print("Finish !!")
             
-        
         super().runEvent(event)
         
     def setTransform(self, cursorTransform,imuQuat):
+        
         # read cursor transform from stylus and scaling
         cursorTransform[0:3,3] = cursorTransform[0:3,3].copy() * 0.05
        
@@ -672,17 +680,28 @@ class StylusController2(StylusController):
         cursorTransform[0,3] -= self.cfg["homeCfg"][0]
         cursorTransform[1,3] -= self.cfg["homeCfg"][1]
         cursorTransform[2,3] -= self.cfg["homeCfg"][2]
-        self.readImuQuat(imuQuat)
-        cursorTransform[0:3,0:3] = self.imuTrans[0:3,0:3].copy()
+        # cursorTransform[0:3,3] = cursorTransform[0:3,3].copy() * 1
+        
+        # get translation from dof 1 to enf
         cursorTransform = np.dot(self.hOpenGlToBase,cursorTransform)
+        
+        # get endeffector from orientation
+        self.readImuQuat(imuQuat)
+        
+        cursorTransform[0:3,0:3] = self.imuTrans[0:3,0:3].copy()
+        cursorTransform[0:3,0:3] = np.dot(self.hOpenGlToImu[0:3,0:3],cursorTransform[0:3,0:3])
+        cursorTransform[0:3,0:3] = np.dot(cursorTransform[0:3,0:3],self.hOpenGlToImu[0:3,0:3].T)
         
         self.transform = cursorTransform.copy()
     
     def initImu(self,quat):
+        
         h = np.eye(4)
         r = R.from_quat(quat)
         h[0:3,0:3] = r.as_matrix()
+        
         self.hBaseToWorld = np.linalg.inv(h.copy())
+        
     def readImuQuat(self,quat):
         if not self.isImuInit:
             self.initImu(quat)

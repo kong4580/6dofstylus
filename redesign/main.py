@@ -49,8 +49,9 @@ def callback(samplingRate,gui):
                 # get button states
                 jointStates,imuData,calibrateState,buttonStates = srec.readCommand(command,rawData)
                 pose = stylus.getEndTransforms(jointStates)
-                if calibrateState:
-                    print("imu calibrate finish")
+                if calibrateState and not device.isImuInit:
+                    print("IMU calibrate finish")
+                    print("Set home position then press k ")
                 device.setTransform(pose,imuData)
                 gui.openglWindow.ctl.readEvent(999)
                 
