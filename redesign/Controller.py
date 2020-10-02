@@ -660,6 +660,19 @@ class MouseController(CommonController):
 
         return mouseSelected
 
+    def mouseMotion(self,x,y):
+        curPos = self.trackball_ptov(x,y,self.winWidth,self.winHeight)
+        dx = curPos[0] - self.lastPos[0]
+        dy = curPos[1] - self.lastPos[1]
+        dz = curPos[2] - self.lastPos[2]
+        if dx or dy or dz:
+            self.angle = 90 * math.sqrt(dx*dx + dy*dy + dz*dz)
+            self.axis[0] = self.lastPos[1] * curPos[2] - self.lastPos[2]*curPos[1]
+            self.axis[1] = self.lastPos[2] * curPos[0] - self.lastPos[0]*curPos[2]
+            self.axis[2] = self.lastPos[0] * curPos[1] - self.lastPos[1]*curPos[0]
+            self.lastPos[0] = curPos[0]
+            self.lastPos[1] = curPos[1]
+            self.lastPos[2] = curPos[2]
 class StylusController2(StylusController):
     def __init__(self,packData):
         super().__init__(packData)
