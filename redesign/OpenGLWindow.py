@@ -131,7 +131,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
 
     # main opengl window callback 
     def draw(self):
-        
+        GLUT.glutInit(sys.argv)
         # add lighting to opengl window class
         self.lighting()
         

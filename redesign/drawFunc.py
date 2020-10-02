@@ -49,25 +49,37 @@ def coordinate():
 
 def drawAxisY():
     glColor3f(0.0,1.0,0.0) # green y
-    glBegin(GL_LINES)
-    # x aix
-    glVertex3f(0, 0, 0.0)
-    glVertex3f(0.0, 4.0, 0.0)
-    glEnd()
+    length = 4
+    radius = 0.25
+    glRotatef(-90,1,0,0)
+    glTranslatef(0,0,length)
+    # glTranslatef(-radius,0,0)
+    glutSolidCone(radius,length/4,10,10)
+    glTranslatef(0,0,-length)
+    glutSolidCylinder(radius/2,length,10,10)
+    
 
 def drawAxisZ():
     glColor3f(0.0,0.0,1.0) # blue z
-    glBegin(GL_LINES)
-    glVertex3f(0.0, 0, 0.0)
-    glVertex3f(0.0, 0.0, 4.0)
-    glEnd()
+    length = 4
+    radius = 0.25
+    # glTranslatef(-radius,0,0)
+    glRotatef(90,0,0,1)
+    glTranslatef(0,0,length)
+    glutSolidCone(radius,length/4,10,10)
+    glTranslatef(0,0,-length)
+    glutSolidCylinder(radius/2,length,10,10)
 
 def drawAxisX():
     glColor3f(1.0,0.0,0.0) # red x
-    glBegin(GL_LINES)
-    glVertex3f(0.0, 0.0 ,0 )
-    glVertex3f(4.0, 0.0 ,0.0 )
-    glEnd()
+    length = 4
+    radius = 0.25
+    # glTranslatef(-radius,0,0)
+    glRotatef(90,0,1,0)
+    glTranslatef(0,0,length)
+    glutSolidCone(radius,length/4,10,10)
+    glTranslatef(0,0,-length)
+    glutSolidCylinder(radius/2,length,10,10)
 
 def DrawCube():
     glBegin(GL_QUADS)
@@ -124,41 +136,19 @@ def drawTeapot():
     end = time.time()
     print("time =",end - start)
 def drawCircleZ():
-    ratio = 5
-    num = 600
     glColor3f(0.0,0.0,1.0)
-    glLineWidth(10)
-    glBegin(GL_LINE_LOOP)
-    for i in range(num):
-        angle = 2 * math.pi * i / 300
-        x = math.cos(angle)*ratio
-        y = math.sin(angle)*ratio
-        glVertex3d(x,y,0)
-    glEnd()
-    glLineWidth(1)
+    inner = 0.1
+    outer = 5
+    glutSolidTorus(inner,outer,10,100)
 def drawCircleX():
-    ratio = 5
-    num = 600
-    glLineWidth(10)
     glColor3f(1.0,0.0,0.0)
-    glBegin(GL_LINE_LOOP)
-    for i in range(num):
-        angle = 2 * math.pi * i / 300
-        x = math.cos(angle)*ratio
-        y = math.sin(angle)*ratio
-        glVertex3d(0,x,y)
-    glEnd()
-    glLineWidth(1)
+    glRotatef(90,0,1,0)
+    inner = 0.1
+    outer = 5
+    glutSolidTorus(inner,outer,10,100)
 def drawCircleY():
-    ratio = 5
-    num = 600
-    glLineWidth(10)
     glColor3f(0.0,1.0,0.0)
-    glBegin(GL_LINE_LOOP)
-    for i in range(num):
-        angle = 2 * math.pi * i / 300
-        x = math.cos(angle)*ratio
-        y = math.sin(angle)*ratio
-        glVertex3d(x,0,y)
-    glEnd()
-    glLineWidth(1)
+    glRotatef(90,1,0,0)
+    inner = 0.1
+    outer = 5
+    glutSolidTorus(inner,outer,10,100)

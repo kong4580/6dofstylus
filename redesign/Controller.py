@@ -109,7 +109,7 @@ class CommonController(Handler):
         GL.glLoadIdentity()
 
         # pick position
-        GLU.gluPickMatrix(xPos, vp[3] - yPos, 1, 1, vp)
+        GLU.gluPickMatrix(xPos, vp[3] - yPos, 3, 3, vp)
 
         # set viewport for select mode
         GL.glFrustum(((-1*(self.windowWidth/self.windowHeight))/self.cameraValue[0])-self.cameraValue[1], ((1*(self.windowWidth/self.windowHeight))/self.cameraValue[0])-self.cameraValue[1], -1/self.cameraValue[0]-self.cameraValue[2], 1/self.cameraValue[0]-self.cameraValue[2], 1, 100)
@@ -138,6 +138,8 @@ class CommonController(Handler):
         # if mouse select something
         if hits != []:
             modelselected = hits[0].names[0]
+            # for i in hits:
+                # print(i.names[0],"print")
         else:
             modelselected = 0
         
@@ -452,7 +454,7 @@ class MouseController(CommonController):
         # self.windowWidth = packData['width']
         # self.cameraValue = packData['camera']
         self.flags['mouseMode']= 'trans'
-        
+        self.rotationAxis = None
     def runEvent(self,event):
         
         # mouse position
@@ -463,14 +465,14 @@ class MouseController(CommonController):
         if self.keyCha == ord('w'):
             self.flags['mouseMode'] = 'trans'
 
-        if self.keyCha == ord('z'):
-            self.flags['mouseMode'] = 'rotZ'
+        if self.keyCha == ord('e'):
+            self.flags['mouseMode'] = 'rot'
 
-        if self.keyCha == ord('x'):
-            self.flags['mouseMode'] = 'rotX'
+        # if self.keyCha == ord('x'):
+        #     self.flags['mouseMode'] = 'rotX'
 
-        if self.keyCha == ord('c'):
-            self.flags['mouseMode'] = 'rotY'
+        # if self.keyCha == ord('c'):
+        #     self.flags['mouseMode'] = 'rotY'
 
         # check model selection when mouse click
         if event == fltk.FL_PUSH:
@@ -567,23 +569,23 @@ class MouseController(CommonController):
             newM[1][3] = yTranslatePosition
             
         # drag to rotate
-        if self.flags['mouseMode'] != 'trans':
+        elif self.flags['mouseMode'] == 'rot':
             # calculate displacement of mouse moving
             dx = recentX
             dy = -recentY
             degree = math.sqrt(dx*dx+dy*dy)
 
             # get new rotation matrix
-            if self.flags['mouseMode']!= 'rotZ':
+            if self.rotationAxis != 'rotZ':
                 if dx+dy>0:
-                    newM =self.rotationMatrixTransform(self.flags['mouseMode'],degree)
+                    newM =self.rotationMatrixTransform(self.rotationAxis,degree)
                 else:
-                    newM = self.rotationMatrixTransform(self.flags['mouseMode'],-degree)
+                    newM = self.rotationMatrixTransform(self.rotationAxis,-degree)
             else:
                 if dx+dy<0:
-                    newM = self.rotationMatrixTransform(self.flags['mouseMode'],degree)
+                    newM = self.rotationMatrixTransform(self.rotationAxis,degree)
                 else:
-                    newM = self.rotationMatrixTransform(self.flags['mouseMode'],-degree)    
+                    newM = self.rotationMatrixTransform(self.rotationAxis,-degree)    
 
         return newM
 
@@ -615,20 +617,32 @@ class MouseController(CommonController):
         # create selected model buffer
         selectModel = []
         model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
-
+        # self.rotationAxis = None
         # check selection    
         if self.mouseSelectedCheck() == model.modelId or self.mouseSelectedCheck() == True:
 
             # model is selected
             model.isSelected = True
-
+            print("model")
             #add to selected model buffer
+            selectModel.append(model)
+        elif self.mouseSelectedCheck() == 201:
+            self.rotationAxis = 'rotX'
+            model.isSelected = True
+            selectModel.append(model)
+        elif self.mouseSelectedCheck() == 202:
+            self.rotationAxis = 'rotY'
+            model.isSelected = True
+            selectModel.append(model)
+        elif self.mouseSelectedCheck() == 203:
+            self.rotationAxis = 'rotZ'
+            model.isSelected = True
             selectModel.append(model)
         else:
 
             #model is deselected
             model.isSelected = False
-
+        print(self.rotationAxis)
         return selectModel
 
     # mouse click selection checking
