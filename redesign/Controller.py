@@ -452,6 +452,9 @@ class MouseController(CommonController):
         self.selectedModel = []
         self.flags['mouseMode']= 'trans'
         self.rotationAxis = None
+        self.lastPos = [0.0,0.0,0.0]
+        self.axis = [0,0,0]
+        self.angle = 0
     def runEvent(self,event):
         
         # mouse position
@@ -475,6 +478,7 @@ class MouseController(CommonController):
             self.lastPosY = self.yMousePosition
             # print("left click!")
             self.selectedModel = self.selectModel()
+            self.lastPos = self.trackballPtov(self.xMousePosition,self.windowHeight - self.yMousePosition,self.windowWidth,self.windowHeight)
 
         # run when there is something selected   
         if self.selectedModel != []:
@@ -580,7 +584,9 @@ class MouseController(CommonController):
                 if dx+dy<0:
                     newM = self.rotationMatrixTransform(self.rotationAxis,degree)
                 else:
-                    newM = self.rotationMatrixTransform(self.rotationAxis,-degree)    
+                    newM = self.rotationMatrixTransform(self.rotationAxis,-degree)
+            self.mouseMotion(self.xMousePosition,self.windowHeight - self.yMousePosition)
+            # newM = self.rotationMatrixTransform(self.rotationAxis,0) 
 
         return newM
 
@@ -588,7 +594,7 @@ class MouseController(CommonController):
     def rotationMatrixTransform(self,rotationAxis,deg):
         model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
         newM = model.currentM.copy()
-
+        newR = model.currentM.copy()
         # decrease degree size
         degree = deg*0.005
 
@@ -598,14 +604,29 @@ class MouseController(CommonController):
         degreeZMatrix = np.asarray([[math.cos(degree),-math.sin(degree),0],[math.sin(degree),math.cos(degree),0],[0,0,1]])
 
         # rotate condition
+        # self.angle = self.angle*0.01
         if rotationAxis == 'rotX':
-            newM[0:3,0:3] = np.dot(newM[0:3,0:3],degreeXMatrix)
+            
+            # print(self.matrixM(self.angle,-self.axis[0],0,0,newM),"track")
+            # newM[0:3,0:3] = np.dot(newM[0:3,0:3],degreeXMatrix)
+            # newR = 
+            newR[0:3,0:3] = np.dot(newR[0:3,0:3],self.matrixM(self.angle,self.axis[0],0,0))
+            # print(newM,"before")
+            # print(np.linalg.det(newM[0:3,0:3]))
+            # print(newR,"after")
+            # print(np.linalg.det(newR[0:3,0:3]))
         elif rotationAxis == 'rotY':
-            newM[0:3,0:3] = np.dot(newM[0:3,0:3],degreeYMatrix)
+            # newM[0:3,0:3] = np.dot(newM[0:3,0:3],degreeYMatrix)
+            newR[0:3,0:3] = np.dot(newR[0:3,0:3],self.matrixM(self.angle,0,self.axis[1],0))
+            # newM[0:3,0:3] =  self.matrixM(self.angle,0,-self.axis[1],0,newM)
         elif rotationAxis == 'rotZ':
-            newM[0:3,0:3] = np.dot(newM[0:3,0:3],degreeZMatrix)
+            # newM[0:3,0:3] = np.dot(newM[0:3,0:3],degreeZMatrix)
+            # newM[0:3,0:3] =  self.matrixM(self.angle,0,0,self.axis[2],newM)
+            newR[0:3,0:3] = np.dot(newR[0:3,0:3],self.matrixM(self.angle,0,0,self.axis[2]))
+        else:
+            newR[0:3,0:3] = np.dot(newR[0:3,0:3],self.matrixM(self.angle,-self.axis[0],self.axis[1],self.axis[2]))
 
-        return newM
+        return newR
 
     # check model selection
     def selectModel(self):
@@ -618,6 +639,7 @@ class MouseController(CommonController):
 
             # model is selected
             model.isSelected = True
+            self.rotationAxis = 'None'
             # print("model")
             #add to selected model buffer
             selectModel.append(model)
@@ -631,6 +653,15 @@ class MouseController(CommonController):
             selectModel.append(model)
         elif self.mouseSelectedCheck() == 203:
             self.rotationAxis = 'rotZ'
+            model.isSelected = True
+            selectModel.append(model)
+        elif self.mouseSelectedCheck() == 101:
+            model.isSelected = True
+            selectModel.append(model)
+        elif self.mouseSelectedCheck() == 102:
+            model.isSelected = True
+            selectModel.append(model)
+        elif self.mouseSelectedCheck() == 103:
             model.isSelected = True
             selectModel.append(model)
         else:
@@ -661,18 +692,103 @@ class MouseController(CommonController):
         return mouseSelected
 
     def mouseMotion(self,x,y):
-        curPos = self.trackball_ptov(x,y,self.winWidth,self.winHeight)
+        curPos = self.trackballPtov(x,y,self.windowWidth,self.windowHeight)
         dx = curPos[0] - self.lastPos[0]
         dy = curPos[1] - self.lastPos[1]
         dz = curPos[2] - self.lastPos[2]
         if dx or dy or dz:
-            self.angle = 90 * math.sqrt(dx*dx + dy*dy + dz*dz)
+            # self.angle = 90 * math.sqrt(dx*dx + dy*dy + dz*dz)
+            self.angle = math.acos(np.dot(curPos,self.lastPos)/(np.linalg.norm(curPos)*np.linalg.norm(self.lastPos)))
+            # print(angles,self.angle)
             self.axis[0] = self.lastPos[1] * curPos[2] - self.lastPos[2]*curPos[1]
             self.axis[1] = self.lastPos[2] * curPos[0] - self.lastPos[0]*curPos[2]
             self.axis[2] = self.lastPos[0] * curPos[1] - self.lastPos[1]*curPos[0]
             self.lastPos[0] = curPos[0]
             self.lastPos[1] = curPos[1]
             self.lastPos[2] = curPos[2]
+        self.lastPos = self.trackballPtov(x,y,self.windowWidth,self.windowHeight)
+    def matrixM(self,angle,x,y,z):
+        v = [x,y,z]
+        matrix = np.eye(3)
+        if v!= [0,0,0]:
+            # print(v)
+            vec = np.asarray(v)
+            # print(np.linalg.norm(vec),"norm")
+            a = np.linalg.norm(vec)
+            # print(math.sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]),"mag")
+
+            if a!=1:
+                v[0] /= a 
+                v[1] /= a
+                v[2] /= a
+            # print(v)
+            vec2 = np.asarray(v)
+            # print(np.linalg.norm(vec2),"norm")
+            x = vec2[0]
+            y = vec2[1]
+            z = vec2[2]
+            c = math.cos(angle)
+            s = math.sin(angle)
+            t = 1-c
+            matrix[0][0] = x*x*t + c
+            matrix[0][1] = x*y*t - z*s
+            matrix[0][2] = x*z*t + y*s
+            matrix[1][0] = y*x*t + z*s
+            matrix[1][1] = y*y*t + c
+            matrix[1][2] = y*z*t - x*s
+            matrix[2][0] = x*z*t - y*s
+            matrix[2][1] = y*z*t + x*s
+            matrix[2][2] = z*z*t + c
+            
+        # ans = np.dot(newM[0:3,0:3],matrix)
+        # print(np.linalg.det(matrix))
+        return matrix
+    def matrixFromAxisAngle(self,angle ,x,y,z):
+        m  = np.eye(3)
+        c = math.cos(angle)
+        s = math.sin(angle)
+        t = 1.0 - c
+        #  if axis is not already normalised then uncomment this
+        magnitude = math.sqrt(x*x + y*y + z*z)
+        if (magnitude!=1): #throw error
+            x /= magnitude
+            y /= magnitude
+            z /= magnitude
+
+        m[0][0] = c + x*x*t
+        m[1][1] = c + y*y*t
+        m[2][2] = c + z*z*t
+
+
+        tmp1 = x*y*t
+        tmp2 = z*s
+        m[1][0] = tmp1 + tmp2
+        m[0][1] = tmp1 - tmp2
+        tmp1 = x*z*t
+        tmp2 = y*s
+        m[2][0] = tmp1 - tmp2
+        m[0][2] = tmp1 + tmp2    
+        tmp1 = y*z*t
+        tmp2 = x*s
+        m[2][1] = tmp1 + tmp2
+        m[1][2] = tmp1 - tmp2
+        return m
+    def trackballPtov(self,x,y,width,height):
+        v = [0,0,0]
+        v[0] = (2*x - width)/width
+        v[1] = (height - 2*y)/height
+        d = math.sqrt((v[0]*v[0]+v[1]*v[1]))
+        if d<1:
+            d=1
+        
+        v[2] = math.cos((math.pi/2)*d)
+        a = 1/math.sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2])
+        v[0] = v[0]*a 
+        v[1] = v[1]*a
+        v[2] = v[2]*a
+        v = np.asarray(v)
+        print(v)
+        return v
 class StylusController2(StylusController):
     def __init__(self,packData):
         super().__init__(packData)

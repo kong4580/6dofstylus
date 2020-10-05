@@ -219,6 +219,17 @@ class Gui():
 
     # update fltk from opengl 
     def updateFltk(self):
+        model = self.openglWindow.modelDicts['model'][self.openglWindow.modelDicts['runModelIdx']]
+        # print(model)
+        r = R.from_matrix(model.currentM[0:3,0:3])
+        degree = r.as_euler('zyx', degrees=True)
+        self.storageOutput[0].value(str(round(model.currentM[0][3],2)))
+        self.storageOutput[1].value(str(round(model.currentM[1][3],2)))
+        self.storageOutput[2].value(str(round(model.currentM[2][3],2)))
+        self.storageOutput[3].value(str(round(degree[2],2)))
+        self.storageOutput[4].value(str(round(degree[1],2)))
+        self.storageOutput[5].value(str(round(degree[0],2)))
+        # print("what")
         self.iouScore = [0,0,0,0,0,0]
         self.iouScore[:len(self.openglWindow.iouScore)] = self.openglWindow.iouScore
         for i in range(len(self.iouScore)):
@@ -231,15 +242,7 @@ class Gui():
             self.storageInput[i].value(str(self.openglWindow.cameravalue[i]))
             # self.storageOutput[i].value(str(self.openglWindow.positionValue[i]))
             # pass
-        model = self.openglWindow.modelDicts['model'][self.openglWindow.modelDicts['runModelIdx']]
-        r = R.from_matrix(model.currentM[0:3,0:3])
-        degree = r.as_euler('zyx', degrees=True)
-        self.storageOutput[0].value(str(round(model.currentM[0][3],2)))
-        self.storageOutput[1].value(str(round(model.currentM[1][3],2)))
-        self.storageOutput[2].value(str(round(model.currentM[2][3],2)))
-        self.storageOutput[3].value(str(round(degree[2],2)))
-        self.storageOutput[4].value(str(round(degree[1],2)))
-        self.storageOutput[5].value(str(round(degree[0],2)))
+        
         # self.storageInput[0].value[str(round(self.openglWindow.cameravalue[0],2))]
         # print(self.openglWindow.cameravalue)
     # collect information from tester
