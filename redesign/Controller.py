@@ -11,6 +11,7 @@ class Handler():
         self.buttonNum = None
         
         self.keyCha = None
+        self.keyHold = None
         
 class MainController(Handler):
     def __init__(self):
@@ -31,7 +32,14 @@ class MainController(Handler):
            
     def readEvent(self,event):
         for ctl in self.controllerList:
-            
+            # print(fltk.Fl.event_alt(),fltk.FL_ALT,fltk.Fl.event_key(),event,fltk.FL_KEYBOARD )
+            if not fltk.Fl.event_alt() or(fltk.Fl.event_alt() and  (fltk.Fl.event_key() == 65513)):
+                ctl.resetKey()
+                ctl.keyHold = None
+            elif event == fltk.FL_SHORTCUT and fltk.Fl.event_alt():
+                
+                
+                ctl.keyHold = fltk.Fl.event_key()
             
             if event == fltk.FL_KEYUP:
                 # print(fltk.Fl.event_key())
@@ -54,7 +62,8 @@ class CommonController(Handler):
         self.windowHeight = packData['height']
         self.windowWidth = packData['width']
         self.cameraValue = packData['camera']
-        
+        self.fineRot = False
+        self.fineTran = False
     def toggleFlags(self,flags):
         self.flags[flags] = not self.flags[flags]
         
@@ -93,7 +102,9 @@ class CommonController(Handler):
             # the current position
             self.history['moveHistory'] = self.history['moveHistory'][:self.history['moveHistoryPosition']+1]
             self.history['moveHistory'][self.history['moveHistoryPosition']] = history
-    
+    def resetKey(self):
+        self.fineRot = False
+        self.fineTran = False
     def clearHistory(self):
         self.history = {'moveHistory':[np.eye(4)],
                         'moveHistoryPosition':0}
@@ -160,8 +171,7 @@ class CommonController(Handler):
         
         if self.keyCha == ord('s'):
             self.toggleFlags('snapMode')
-            self.flags['showCursor'] = not self.flags['snapMode']
-        
+            
         if self.keyCha == ord('d'):
             self.toggleFlags('checkIoU')
             if self.flags['lineupTestMode']:
@@ -181,7 +191,22 @@ class CommonController(Handler):
         
         if self.keyCha == ord('y'):
             self.redo()
-             
+            
+        # select mode to move
+        if self.keyCha == ord('w'):
+            self.flags['mouseMode'] = 'trans'
+
+        if self.keyCha == ord('e'):
+            self.flags['mouseMode'] = 'rot'
+        
+        if self.keyHold == ord('e'):
+            
+            self.fineRot = True
+        if self.keyHold == ord('w'):
+            
+            self.fineTran = True
+        
+        
         self.keyCha = None
         return 1
 
@@ -199,24 +224,30 @@ class StylusController(CommonController):
                                   [0,0,1,0],
                                   [1,0,0,0],
                                   [0,0,0,1]])
-
+        self.cursorSpeed = 1
+        self.speed = 0.1
     def runEvent(self,event):
         
         # Run common event
         self.runCommonEvent()
-        
         # Check specific event for stylus
         
+        self.flags['showCursor'] = not self.flags['snapMode']
+
         if event == 999: # move cursor
             self.cursor.moveModel(self.transform)
             model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
             
             # if model is selected
             if model.isSelected:
-                
+                speed = 1
+                print(self.fineTran)
                 # move model follow cursor
                 # now use only newM because use transform matrix to draw model
                 newM = self.followCursor(model,self.cursor)
+                
+                    
+                    
             
             # if model is not selected
             else:
@@ -347,10 +378,10 @@ class StylusController(CommonController):
         return False
     
     # move model follow cursor
-    def followCursor(self,model,cursor,mode = "centermodel"):
+    def followCursor(self,model,cursor,origin = "centermodel"):
         
         # move object with cursor is origin
-        if mode == "cursor":
+        if origin == "cursor":
             
             # if not init
             if type(model.cursorM) == type(None):
@@ -369,10 +400,10 @@ class StylusController(CommonController):
             newM = np.dot(deltaTransform,model.startclickM)
         
         # move object with center model is origin
-        elif mode == "centermodel":
+        elif origin == "centermodel":
             
             # if not init
-            if type(model.cursorM) == type(None):
+            if type(model.cursorM) == type(None) or ((self.fineRot or self.fineTran) and self.cursorSpeed != self.speed) or ((not (self.fineRot or self.fineTran)) and self.cursorSpeed != 1):
                 
                 # remember cursor transform matrix when first clicked
                 model.cursorM = cursor.currentM.copy()
@@ -393,7 +424,11 @@ class StylusController(CommonController):
             ## hNewM = hInvCurrentMOffsetTrans * deltaCntoC0 * hInvCurrentMOffsetTrans * hCurrentM
             ## newM  = model.invOffsetTran * tranCnC0 * rotCnC0 * model.offsetTran * model.startclickM
             ## newM  = model.invOffsetTran * tranCn * inv(tranC0) * rotCn * inv(rotC0) * model.offsetTran * model.startclickM
-            
+            if self.fineRot or self.fineTran:
+                
+                self.cursorSpeed = self.speed
+            else:
+                self.cursorSpeed = 1
             # Split rot and trans from hC0 (model.cursorM)
             rotc0 = np.eye(4)
             rotc0[0:3,0:3] = model.cursorM[0:3,0:3].copy()
@@ -409,6 +444,23 @@ class StylusController(CommonController):
             # Find hCnC0 wuth split inverse
             rotC0CnM = np.dot(rotcn,np.linalg.inv(rotc0))
             tranC0CnM = np.dot(trancn,np.linalg.inv(tranc0))
+            
+            rotvec = R.from_matrix(rotC0CnM[0:3,0:3])
+            angle = rotvec.magnitude()
+            
+            if angle ==0:
+                angle = 0.00000000000000000001
+            rotvecOld = rotvec.as_rotvec()/angle
+            
+            rotvecNew = R.from_rotvec(angle*self.cursorSpeed*rotvecOld)
+            rotC0CnM[0:3,0:3] = rotvecNew.as_matrix()
+            
+            tranC0CnM[0,3] = tranC0CnM[0,3].copy() * self.cursorSpeed
+            tranC0CnM[1,3] = tranC0CnM[1,3].copy() * self.cursorSpeed
+            tranC0CnM[2,3] = tranC0CnM[2,3].copy() * self.cursorSpeed
+            
+            
+            
             hCnC0M = np.dot(tranC0CnM,rotC0CnM)
             
             # Cal NewM
@@ -416,6 +468,15 @@ class StylusController(CommonController):
             newM = np.dot(newM,model.offsetTran)
             newM = np.dot(newM,model.startclickM)
             
+            if self.fineRot:
+                newM[0,3] = model.startclickM[0,3]
+                newM[1,3] = model.startclickM[1,3]
+                newM[2,3] = model.startclickM[2,3]
+            elif self.fineTran:
+                print("s",self.fineTran)
+                newM[0:3,0:3] = model.startclickM[0:3,0:3]
+                
+                
         # return new model transform
         return newM
     
@@ -461,12 +522,7 @@ class MouseController(CommonController):
         self.xMousePosition = fltk.Fl.event_x()
         self.yMousePosition = fltk.Fl.event_y()
         
-        # select mode to move
-        if self.keyCha == ord('w'):
-            self.flags['mouseMode'] = 'trans'
-
-        if self.keyCha == ord('e'):
-            self.flags['mouseMode'] = 'rot'
+        
 
         # if self.keyCha == ord('x'):
         #     self.flags['mouseMode'] = 'rotX'
@@ -505,7 +561,7 @@ class MouseController(CommonController):
             
         # run common controller event 
         self.runCommonEvent()
-        
+        self.flags['showModelFrame'] = not self.flags['snapMode']
         # reset model
         if self.flags['resetModelTransform']:
             for model in self.modelDicts['model']:
@@ -598,9 +654,15 @@ class MouseController(CommonController):
         degree = deg*0.005
 
         # calculate rotation matrix
-        degreeXMatrix = np.asarray([[1,0,0],[0,math.cos(degree),-math.sin(degree)],[0,math.sin(degree),math.cos(degree)]])
-        degreeYMatrix = np.asarray([[math.cos(degree),0,math.sin(degree)],[0,1,0],[-math.sin(degree),0,math.cos(degree)]])
-        degreeZMatrix = np.asarray([[math.cos(degree),-math.sin(degree),0],[math.sin(degree),math.cos(degree),0],[0,0,1]])
+        degreeXMatrix = np.asarray([[1,0,0],
+                                    [0,math.cos(degree),-math.sin(degree)],
+                                    [0,math.sin(degree),math.cos(degree)]])
+        degreeYMatrix = np.asarray([[math.cos(degree),0,math.sin(degree)],
+                                    [0,1,0],
+                                    [-math.sin(degree),0,math.cos(degree)]])
+        degreeZMatrix = np.asarray([[math.cos(degree),-math.sin(degree),0],
+                                    [math.sin(degree),math.cos(degree),0],
+                                    [0,0,1]])
 
         # rotate condition
         if rotationAxis == 'rotX':
