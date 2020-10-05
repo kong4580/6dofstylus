@@ -445,14 +445,20 @@ class StylusController(CommonController):
             rotC0CnM = np.dot(rotcn,np.linalg.inv(rotc0))
             tranC0CnM = np.dot(trancn,np.linalg.inv(tranc0))
             
+            print(rotC0CnM,tranC0CnM)
             rotvec = R.from_matrix(rotC0CnM[0:3,0:3])
-            angle = rotvec.magnitude()
-            
+            rotyvec = R.from_rotvec(rotC0CnM[0:3,1])
+            rotyvec=R.from_matrix(np.linalg.inv(rotyvec.as_matrix()))
+            print(rotvec.as_euler('zxy'))
+            # angle = rotvec.magnitude()
+            angle = rotvec.as_euler('yxz')[0]
             if angle ==0:
                 angle = 0.00000000000000000001
-            rotvecOld = rotvec.as_rotvec()/angle
+            # rotvecOld = rotvec.as_rotvec()/angle
             
-            rotvecNew = R.from_rotvec(angle*self.cursorSpeed*rotvecOld)
+            # rotvecNew = R.from_rotvec(angle*self.cursorSpeed*rotvecOld)
+            rotvecNew = R.from_rotvec(angle*rotyvec.as_rotvec())
+            
             rotC0CnM[0:3,0:3] = rotvecNew.as_matrix()
             
             tranC0CnM[0,3] = tranC0CnM[0,3].copy() * self.cursorSpeed
