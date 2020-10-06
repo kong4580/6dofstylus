@@ -610,7 +610,7 @@ class MouseController(CommonController):
             # print(self.matrixM(self.angle,-self.axis[0],0,0,newM),"track")
             # newM[0:3,0:3] = np.dot(newM[0:3,0:3],degreeXMatrix)
             # newR = 
-            newR[0:3,0:3] = np.dot(newR[0:3,0:3],self.matrixM(self.angle,self.axis[0],0,0))
+            newR[0:3,0:3] = np.dot(newR[0:3,0:3],self.matrixM(self.angle,-self.axis[0],0,0))
             # print(newM,"before")
             # print(np.linalg.det(newM[0:3,0:3]))
             # print(newR,"after")
@@ -774,21 +774,66 @@ class MouseController(CommonController):
         m[1][2] = tmp1 - tmp2
         return m
     def trackballPtov(self,x,y,width,height):
+        # oX,oY = self.getModel2DOrigin()
+        r = 0.75
         v = [0,0,0]
-        v[0] = (2*x - width)/width
-        v[1] = (height - 2*y)/height
-        d = math.sqrt((v[0]*v[0]+v[1]*v[1]))
-        if d<1:
-            d=1
+        # if(x <= -width/2):
+        #     x = -width/2 + 1
+        # elif(x >= width/2):
+        #     x = width/2 - 1
+        # if(y <= -height/2):
+        #     y = -height/2 + 1
+        # elif(y >= height/2):
+        #     y = height/2 - 1
+        # if(oX <= -width/2):
+        #     oX = -width/2 + 1
+        # elif(oX >= width/2):
+        #     oX = width/2 - 1
+        # if(oY <= -height/2):
+        #     oY = -height/2 + 1
+        # elif(oY >= height/2):
+        #     oY = height/2 - 1
+        v[0] = (2*(x) - width)/width
+        v[1] = (height - 2*(y))/height
+        # v[0] = math.sqrt((x-oX)*(x-oX))
+        # v[1] = math.sqrt((y-oY)*(y-oY))
+        # v[0] = x
+        # v[1] = y
+        # d = math.sqrt((v[0]*v[0]+v[1]*v[1]))
+        # if d<1:
+        #     d=1
         
-        v[2] = math.cos((math.pi/2)*d)
+        sqr = (v[0]*v[0]+v[1]*v[1])
+        if sqr <= (r*r/2):
+            v[2] = math.sqrt(r*r-sqr)
+        else:
+            v[2] = (r*r/2)/math.sqrt(sqr)
+        # v[2] = math.cos((math.pi/2)*d)
         a = 1/math.sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2])
         v[0] = v[0]*a 
         v[1] = v[1]*a
         v[2] = v[2]*a
         v = np.asarray(v)
-        print(v)
+        # print(v)
         return v
+    def getModel2DOrigin(self):
+        
+        model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+        matrix = model.currentM
+        proj = GL.glGetFloatv(GL.GL_PROJECTION_MATRIX).T
+        
+        # Get Vproj
+        t = np.dot(proj,matrix)
+        t = np.dot(t,np.array([[0,0,0,10]]).T)
+        newT = t/t[3,0]
+
+        # Get Vscreen
+        vp = GL.glGetIntegerv(GL.GL_VIEWPORT)
+        wx = vp[0]+vp[2]*(newT[0]+1)/2
+        wy = vp[1]+vp[3]*(newT[1]+1)/2
+        
+        # return screen coordinates
+        return wx,vp[3]-wy
 class StylusController2(StylusController):
     def __init__(self,packData):
         super().__init__(packData)
