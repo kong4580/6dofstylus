@@ -57,8 +57,6 @@ class Model():
     # draw model with transform matrix
     def drawMatrixModel(self, showFrame=True, enableLight = True,wireFrame = False, opacity = False,mode = 'trans',selectedMode = False):
         
-        
-        
         # if model is obj firl
         if self.obj!=None:
             
