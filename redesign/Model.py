@@ -14,7 +14,7 @@ from Obb import OBB
 class Model():
     
     # init model class
-    def __init__(self,name,modelId,drawFunction = None,position=(0,0,0),rotation=(0,0,0),obj=None,m =np.eye(4)):
+    def __init__(self,name,modelId,drawFunction = None,argv=None,position=(0,0,0),rotation=(0,0,0),obj=None,m =np.eye(4)):
         
         # model name
         self.name = name
@@ -27,7 +27,7 @@ class Model():
         
         # model draw function
         self.drawFunction = drawFunction
-        
+        self.argv = argv
         # model obj file
         self.obj = obj
         
@@ -190,13 +190,22 @@ class Model():
                 # apply transform to model
                 GL.glLoadMatrixf(self.currentM.T)
                 # draw model from drawFunction
-                self.drawFunction()
+                self.drawFunction(self.argv)
+                # turn off back face
+                # GL.glEnable(GL.GL_CULL_FACE)
+                # GL.glCullFace(GL.GL_BACK)
+                
+                # draw model in line mode
+                GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_LINE)
                 
                 if showFrame:
                     # disable light to draw model frame
                     GL.glDisable(GL.GL_LIGHTING)
                     drawFunc.coordinate()
                     GL.glEnable(GL.GL_LIGHTING)
+                # GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL)
+                # GL.glDisable(GL.GL_CULL_FACE)
+                    
                 GL.glPopMatrix()
                 
         
@@ -484,3 +493,110 @@ class OBJ():
         
         glEndList()
         
+class Transform():
+    def __init__(self):
+        self.parent = []
+        self.child = []
+        self.parentToLocal = np.eye(4)
+        # self.worldToLocal = self.getWorldToLocal()
+    
+    @property
+    def worldToLocal(self):
+        if len(self.parent) > 0:
+            for i in self.parent:
+                wTL = np.dot(i.worldToLocal , self.parentToLocal)
+        else:
+            wTL = self.parentToLocal
+        
+        return wTL
+
+    @property
+    def getDist(self):
+        from scipy.spatial import distance
+        if len(self.parent) > 0:
+            for i in self.parent:
+                # d = i.worldToLocal[0:3,3] - self.worldToLocal[0:3,3]
+                return distance.euclidean( self.worldToLocal[0:3,3].T,i.worldToLocal[0:3,3].T)
+        else:
+            return 0
+    @property
+    def pointTo(self):
+        if len(self.parent) > 0:
+            vAB = self.worldToLocal[0:3,3]-self.parent[0].worldToLocal[0:3,3]
+            print("v",vAB)
+            newM = np.eye(4)
+            newM[0:3,0] = (vAB.T.copy())/self.getDist
+            if newM[0,0] > 0:
+                sign0 = 1
+            else:
+                sign0 = -1
+            
+            if newM[1,0] > 0:
+                sign1 = 1
+            else:
+                sign1 = -1
+                
+            newM[0,1] = sign0 * abs(newM[1,0])
+            newM[1,1] = -1 *sign1 * abs(newM[0,0])
+            newM[0:3,2] = np.cross(newM[0:3,0].copy(), newM[0:3,1].copy())
+            newM[0:3,3] = self.worldToLocal[0:3,3].T.copy()
+            return newM
+        else:
+            return self.worldToLocal
+    
+    def apply(self,transform):
+        
+        rotM = np.eye(4)
+        tranM = np.eye(4)
+        
+        
+        rotM[0:3,0:3] = transform[0:3,0:3]
+        tranM[0:3,3] = transform[0:3,3]
+        
+        
+        newT = np.dot(tranM,self.worldToLocal)
+        newT = np.dot(newT,rotM)
+        
+        if len(self.parent) > 0:
+            
+            oldTParent =np.linalg.inv(self.parent[0].worldToLocal)
+        else:
+            oldTParent = np.eye(4)
+            
+        self.parentToLocal = np.dot(oldTParent,newT)
+        
+    
+    def goUnder(self,transform):
+        self.parent.append(transform)
+        transform.child.append(self)
+if __name__ == "__main__":
+    a = Transform()
+    b = Transform()
+    c = Transform()
+    b.parentToLocal[0,3] = 2
+    a.parentToLocal[0,3] = 0
+    c.parentToLocal[0,3] = 9
+    
+    b.goUnder(a)
+    # b.parent.append(a)
+    # a.child.append(b)
+    # a.parentToLocal[1,3] = 5
+    b.apply(np.array([[0,-1,0,0],
+                        [1,0,0,0],
+                        [0,0,1,0],
+                        [0,0,0,1]]))
+    a.apply(np.array([[0,-1,0,5],
+                        [1,0,0,2],
+                        [0,0,1,0],
+                        [0,0,0,1]]))
+    # a.parentToLocal = np.dot(np.array([[0,-1,0,0],
+    #                                      [1,0,0,0],
+    #                                      [0,0,1,0],
+    #                                      [0,0,0,1]]),a.parentToLocal)
+    c.goUnder(b)
+    
+    
+    print(b.worldToLocal)
+    
+    print(a.worldToLocal)
+    
