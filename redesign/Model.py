@@ -10,12 +10,57 @@ from scipy.spatial.transform import Rotation as R
 
 import drawFunc 
 from Obb import OBB
+class Transform():
+    def __init__(self):
+        self.parent = []
+        self.child = []
+        self.parentToLocal = np.eye(4)
+        
+    
+    @property
+    def worldToLocal(self):
+        if len(self.parent) > 0:
+            for i in self.parent:
+                wTL = np.dot(i.worldToLocal , self.parentToLocal)
+        else:
+            wTL = self.parentToLocal
+        
+        return wTL
 
-class Model():
+    
+    
+    
+    def apply(self,transform):
+        
+        rotM = np.eye(4)
+        tranM = np.eye(4)
+        
+        
+        rotM[0:3,0:3] = transform[0:3,0:3]
+        tranM[0:3,3] = transform[0:3,3]
+        
+        
+        newT = np.dot(tranM,self.worldToLocal)
+        newT = np.dot(newT,rotM)
+        
+        if len(self.parent) > 0:
+            
+            oldTParent =np.linalg.inv(self.parent[0].worldToLocal)
+        else:
+            oldTParent = np.eye(4)
+            
+        self.parentToLocal = np.dot(oldTParent,newT)
+        
+    
+    def goUnder(self,transform):
+        self.parent.append(transform)
+        transform.child.append(self)
+        
+class Model(Transform):
     
     # init model class
-    def __init__(self,name,modelId,drawFunction = None,argv=None,position=(0,0,0),rotation=(0,0,0),obj=None,m =np.eye(4)):
-        
+    def __init__(self,name,modelId,drawFunction = None,position=(0,0,0),rotation=(0,0,0),obj=None,m =np.eye(4)):
+        super().__init__()
         # model name
         self.name = name
         self.modelId = modelId
@@ -27,7 +72,7 @@ class Model():
         
         # model draw function
         self.drawFunction = drawFunction
-        self.argv = argv
+        
         # model obj file
         self.obj = obj
         
@@ -53,7 +98,10 @@ class Model():
         # model flags
         self.isSelected = False
         self.show = True
-        
+    
+    @property
+    def argv(self):
+        return 0
     # draw model with transform matrix
     def drawMatrixModel(self, showFrame=True, enableLight = True,wireFrame = False, opacity = False,mode = 'trans',selectedMode = False):
         
@@ -188,20 +236,33 @@ class Model():
                 GL.glLoadIdentity()
 
                 # apply transform to model
-                GL.glLoadMatrixf(self.currentM.T)
-                # draw model from drawFunction
-                self.drawFunction(self.argv)
+                GL.glLoadMatrixf(self.renderM.T)
+                # # draw model from drawFunction
+                # if self.argv == None:
+                #     a = 0
+                # else:
+                #     a = self.argv
+                # if selectedMode:
+                #     # GL.glLoadName(self.modelId)
+                #     mID = self.modelId
+                # else:
+                #     mID = None
+                #     # self.gl_list
+                # # GL.glCallList(self.gl_list)
+                # self.drawFunction(a,mID)
+                self.drawFunction()
+                
                 # turn off back face
                 # GL.glEnable(GL.GL_CULL_FACE)
                 # GL.glCullFace(GL.GL_BACK)
                 
                 # draw model in line mode
-                GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_LINE)
+                # GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_LINE)
                 
                 if showFrame:
                     # disable light to draw model frame
                     GL.glDisable(GL.GL_LIGHTING)
-                    drawFunc.coordinate()
+                    self.drawFrame(drawFunc.coordinate,10,selectedMode)
                     GL.glEnable(GL.GL_LIGHTING)
                 # GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL)
                 # GL.glDisable(GL.GL_CULL_FACE)
@@ -253,7 +314,10 @@ class Model():
             for idx in range(len(self.obj.vertices)):
                 verIdx = np.append(self.obj.vertices[idx].copy(),1)
                 self.obj.current_vertices[idx] = np.dot(off,verIdx.T)[0:3]
-    
+                
+    @property
+    def renderM(self):
+        return self.currentM
     # update model position
     ### now not use ###
     def __updatePosition(self,position=(0,0,0),rotation=(0,0,0)):
@@ -373,6 +437,8 @@ class Model():
             # print(self.name)
             self.centerPosition -=self.obb.current_centroid
     
+    def getSubModel(self):
+        return [self]
         
         
         
@@ -493,38 +559,109 @@ class OBJ():
         
         glEndList()
         
-class Transform():
-    def __init__(self):
-        self.parent = []
-        self.child = []
-        self.parentToLocal = np.eye(4)
-        # self.worldToLocal = self.getWorldToLocal()
-    
-    @property
-    def worldToLocal(self):
-        if len(self.parent) > 0:
-            for i in self.parent:
-                wTL = np.dot(i.worldToLocal , self.parentToLocal)
-        else:
-            wTL = self.parentToLocal
-        
-        return wTL
 
+class Joint(Model):
+    def __init__(self,name,modelId,drawFunction = None,position=(0,0,0),rotation=(0,0,0),obj=None,m =np.eye(4)):
+        super().__init__(name,modelId,drawFunction,position,rotation,obj,m)
+    
+    def drawMatrixModel(self, showFrame=True, enableLight = True,wireFrame = False, opacity = False,mode = 'trans',selectedMode = False):
+
+        # if model is show
+        if self.show:
+            length = self.getDist
+            # start transform matrix in model view
+            GL.glMatrixMode(GL.GL_MODELVIEW)
+            GL.glPushMatrix()
+            GL.glLoadIdentity()
+
+            # apply transform to model
+            GL.glLoadMatrixf(self.renderM.T)
+            scale = 1
+            
+            GL.glColor4f(1,1,1,1)
+            
+            
+            if selectedMode:
+                GL.glLoadName(self.modelId)
+            GLUT.glutSolidSphere(.74,10,10)
+            
+            GL.glPopMatrix()
+            
+            GL.glMatrixMode(GL.GL_MODELVIEW)
+            GL.glPushMatrix()
+            GL.glLoadIdentity()
+            GL.glLoadMatrixf(self.renderM.T)
+            
+            bl = (-length*1*scale,0.5*scale,0.5*scale)
+            br = (-length*1*scale,0.5*scale,-0.5*scale)
+            fl = (-length*1*scale,-0.5*scale,0.5*scale)
+            fr = (-length*1*scale,-0.5*scale,-0.5*scale)
+            t = (0,0,0)
+            if selectedMode:
+                GL.glLoadName(9999)
+            GL.glBegin(GL.GL_TRIANGLES)
+            GL.glVertex3fv( fr )
+            GL.glVertex3fv(br )
+            GL.glVertex3fv( bl )
+            GL.glEnd()
+            
+            GL.glBegin(GL.GL_TRIANGLES)
+            GL.glVertex3fv( fl )
+            
+            GL.glVertex3fv( fr )
+            GL.glVertex3fv( bl )
+            GL.glEnd()
+            
+            GL.glBegin(GL.GL_TRIANGLES)
+            GL.glVertex3fv( t )
+            
+            GL.glVertex3fv( bl )
+            GL.glVertex3fv( br )
+            GL.glEnd()
+
+            GL.glBegin(GL.GL_TRIANGLES)
+            GL.glVertex3fv( t )
+            
+            GL.glVertex3fv( br )
+            GL.glVertex3fv( fr )
+            GL.glEnd()
+            
+            GL.glBegin(GL.GL_TRIANGLES)
+            GL.glVertex3fv( t )
+            
+            GL.glVertex3fv( fr )
+            GL.glVertex3fv( fl )
+            GL.glEnd()
+            
+            GL.glBegin(GL.GL_TRIANGLES)
+            GL.glVertex3fv( t )
+            
+            GL.glVertex3fv( fl )
+            GL.glVertex3fv( bl )
+            GL.glEnd()
+            GL.glPopMatrix()
+            
+            if showFrame:
+                # disable light to draw model frame
+                GL.glDisable(GL.GL_LIGHTING)
+                self.drawFrame(drawFunc.coordinate,10,selectedMode)
+                GL.glEnable(GL.GL_LIGHTING)
+            # GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL)
+            # GL.glDisable(GL.GL_CULL_FACE)
+                
+            # GL.glPopMatrix()
     @property
-    def getDist(self):
-        from scipy.spatial import distance
-        if len(self.parent) > 0:
-            for i in self.parent:
-                # d = i.worldToLocal[0:3,3] - self.worldToLocal[0:3,3]
-                return distance.euclidean( self.worldToLocal[0:3,3].T,i.worldToLocal[0:3,3].T)
-        else:
-            return 0
+    def argv(self):
+        return self.getDist
     @property
     def pointTo(self):
         if len(self.parent) > 0:
+            np.seterr(divide='ignore', invalid='ignore')
             vAB = self.worldToLocal[0:3,3]-self.parent[0].worldToLocal[0:3,3]
-            print("v",vAB)
+            
             newM = np.eye(4)
+            # print(self.getDist)
+            
             newM[0:3,0] = (vAB.T.copy())/self.getDist
             if newM[0,0] > 0:
                 sign0 = 1
@@ -544,31 +681,95 @@ class Transform():
         else:
             return self.worldToLocal
     
-    def apply(self,transform):
-        
-        rotM = np.eye(4)
-        tranM = np.eye(4)
-        
-        
-        rotM[0:3,0:3] = transform[0:3,0:3]
-        tranM[0:3,3] = transform[0:3,3]
-        
-        
-        newT = np.dot(tranM,self.worldToLocal)
-        newT = np.dot(newT,rotM)
-        
+    @property
+    def getDist(self):
+        from scipy.spatial import distance
         if len(self.parent) > 0:
-            
-            oldTParent =np.linalg.inv(self.parent[0].worldToLocal)
+            for i in self.parent:
+                # d = i.worldToLocal[0:3,3] - self.worldToLocal[0:3,3]
+                return distance.euclidean( self.worldToLocal[0:3,3].T,i.worldToLocal[0:3,3].T)
         else:
-            oldTParent = np.eye(4)
-            
-        self.parentToLocal = np.dot(oldTParent,newT)
-        
+            return 0
     
-    def goUnder(self,transform):
-        self.parent.append(transform)
-        transform.child.append(self)
+    @property
+    def renderM(self):
+        return self.pointTo
+    
+    def moveModel(self,matrix):
+        # if len(self.parent) > 0:
+        #     matrix[0:3,3] = self.currentM[0:3,3]
+        transform = self.goTo(matrix)
+        self.apply(transform)
+        self.currentM = self.worldToLocal
+        
+        self.updateChild()
+        # set current model matrix from modelview matrix
+        
+        # set model center position
+        self.centerPosition = self.currentM[0:3,3]
+        
+    def updateChild(self):
+        if len(self.child) > 0:
+            # print(self.child[0].renderM)
+            
+            self.child[0].currentM = self.child[0].worldToLocal
+            # print(self.child[0].renderM)
+            
+            self.child[0].updateChild()
+        else:
+            pass
+    # init model
+    def initModel(self,matrixView):
+        
+        # self.gl_list = GL.glGenLists(1)
+        # GL.glNewList(self.gl_list, GL.GL_COMPILE)
+        # self.drawFunction(self.argv)
+        # GL.glEndList()
+        pass
+    def goTo(self, matrix):
+        # if len(self.child) > 0:
+            # print(self.child[0].parentToLocal,matrix)
+        pT=np.eye(4)
+        pT[0:3,3] = self.worldToLocal[0:3,3].copy()
+        pR = np.eye(4)
+        pR[0:3,0:3] = self.worldToLocal[0:3,0:3].copy()
+        
+        wT = np.eye(4)
+        wT[0:3,3] = matrix[0:3,3].copy()
+        wR = np.eye(4)
+        wR[0:3,0:3] = matrix[0:3,0:3].copy()
+        
+        t = np.dot(wT,np.linalg.inv(pT))
+        # print(pR,wR)
+        r = np.dot(np.linalg.pinv(pR),wR)
+        
+        newM = np.eye(4)
+        newM[0:3,3] = t[0:3,3]
+        newM[0:3,0:3] = r[0:3,0:3] 
+        return newM
+
+class ArticulateModel(Model):
+    def __init__(self,name,modelId,listOfJoint):
+        super().__init__(name,modelId)
+        self.listOfJoint = listOfJoint
+        for idx in range(len(self.listOfJoint)-1):
+            self.listOfJoint[idx+1].goUnder(self.listOfJoint[idx])
+    # init model
+    def initModel(self,matrixView):
+        for joint in self.listOfJoint:
+            joint.initModel(matrixView)
+    
+    def drawMatrixModel(self, showFrame=True, enableLight = True,wireFrame = False, opacity = False,mode = 'trans',selectedMode = False):
+        for joint in self.listOfJoint:
+            joint.drawMatrixModel(showFrame,enableLight,wireFrame,opacity,mode,selectedMode)
+    
+    def getSubModel(self):
+        return self.listOfJoint
+    
+    
+    
+    
+    
 if __name__ == "__main__":
     a = Transform()
     b = Transform()

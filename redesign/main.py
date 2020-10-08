@@ -11,7 +11,7 @@ from Stylus import Stylus,Stylus2
 
 from GUI import Gui
 import drawFunc
-from Model import Model,OBJ
+from Model import Model,OBJ,ArticulateModel,Joint
 from Controller import MainController,StylusController,MouseController,StylusController2
 
 def callback(samplingRate,gui):
@@ -76,10 +76,23 @@ def openGUI(samplingRate = 0.005):
     
     gui.openglWindow.ctl = mainController
     # add model
-    teapot = OBJ('./teapot.obj',scale=1)
-    gui.addModel('teapot',1,teapot.initOBJ,obj=teapot)
-    bunny = OBJ('./bunny.obj',scale=20)
-    gui.addModel('bunny',2,bunny.initOBJ,obj=bunny)
+    jointA = Joint('A',1,drawFunc.drawPyramid)
+    jointB = Joint('B',2,drawFunc.drawPyramid)
+    jointB.moveModel(np.array([[0,1,0,-2],
+                        [-1,0,0,0],
+                        [0,0,1,0],
+                        [0,0,0,1]]))
+    jointC = Joint('C',3,drawFunc.drawPyramid)
+    jointC.moveModel(np.array([[1,0,0,-2],
+                        [0,1,0,0],
+                        [0,0,1,0],
+                        [0,0,0,1]]))
+    # teapot = OBJ('./teapot.obj',scale=1)
+    # gui.addModel('teapot',1,teapot.initOBJ,obj=teapot)
+    # bunny = OBJ('./bunny.obj',scale=20)
+    # gui.addModel('bunny',2,bunny.initOBJ,obj=bunny)
+    gui.addModel('Arti1',6,objType = 'joint',listOfJoint=[jointA,jointB,jointC])
+    
     
     # open GUI window
     gui.window.show()

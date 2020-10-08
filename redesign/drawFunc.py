@@ -3,6 +3,7 @@ from OpenGL.GLUT import *
 from OpenGL.GLU import *
 import time
 import math
+from OpenGL import GL
 RedColorVector = (1,0,0)
 GreenColorVector = (0,1,0)
 BlueColorVector = (0,0,1)
@@ -152,3 +153,62 @@ def drawCircleY():
     inner = 0.1
     outer = 5
     glutSolidTorus(inner,outer,10,100)
+def drawPyramid(length,modelId):
+    scale = 1
+    bl = (-length*1*scale,0.5*scale,0.5*scale)
+    br = (-length*1*scale,0.5*scale,-0.5*scale)
+    fl = (-length*1*scale,-0.5*scale,0.5*scale)
+    fr = (-length*1*scale,-0.5*scale,-0.5*scale)
+    t = (0,0,0)
+    GL.glColor4f(1,1,1,1)
+    
+    GL.glPushMatrix()
+    
+    if modelId != None:
+        GL.glLoadName(modelId)
+    glutSolidSphere(.74,10,10)
+    GL.glPopMatrix()
+    
+    GL.glPushMatrix()
+    GL.glBegin(GL.GL_TRIANGLES)
+    GL.glVertex3fv( fr )
+    GL.glVertex3fv(br )
+    GL.glVertex3fv( bl )
+    GL.glEnd()
+    
+    GL.glBegin(GL.GL_TRIANGLES)
+    GL.glVertex3fv( fl )
+    
+    GL.glVertex3fv( fr )
+    GL.glVertex3fv( bl )
+    GL.glEnd()
+    
+    GL.glBegin(GL.GL_TRIANGLES)
+    GL.glVertex3fv( t )
+    
+    GL.glVertex3fv( bl )
+    GL.glVertex3fv( br )
+    GL.glEnd()
+
+    GL.glBegin(GL.GL_TRIANGLES)
+    GL.glVertex3fv( t )
+    
+    GL.glVertex3fv( br )
+    GL.glVertex3fv( fr )
+    GL.glEnd()
+    
+    GL.glBegin(GL.GL_TRIANGLES)
+    GL.glVertex3fv( t )
+    
+    GL.glVertex3fv( fr )
+    GL.glVertex3fv( fl )
+    GL.glEnd()
+    
+    GL.glBegin(GL.GL_TRIANGLES)
+    GL.glVertex3fv( t )
+    
+    GL.glVertex3fv( fl )
+    GL.glVertex3fv( bl )
+    GL.glEnd()
+    GL.glPopMatrix()
+    

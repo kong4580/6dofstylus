@@ -150,7 +150,7 @@ class CommonController(Handler):
         if hits != []:
             modelselected = hits[0].names[0]
             # for i in hits:
-                # print(i.names[0],"print")
+            #     print(i.names[0],"print")
         else:
             modelselected = 0
         
@@ -237,40 +237,48 @@ class StylusController(CommonController):
         if event == 999: # move cursor
             self.cursor.moveModel(self.transform)
             model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
-            
-            # if model is selected
-            if model.isSelected:
-                speed = 1
-                print(self.fineTran)
-                # move model follow cursor
-                # now use only newM because use transform matrix to draw model
-                newM = self.followCursor(model,self.cursor)
+            artiModel = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+            modelList = artiModel.getSubModel()
+            # if self.selectedModel != []:
+            for model in modelList:
                 
+                # model = self.selectedModel[0]
+                # artiModel = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+                # modelList = artiModel.getSubModel()
+                # for model in modelList:
+                    # if model is selected
+                if model.isSelected:
+                    speed = 1
+                    print(self.fineTran)
+                    # move model follow cursor
+                    # now use only newM because use transform matrix to draw model
+                    newM = self.followCursor(model,self.cursor)
                     
-                    
-            
-            # if model is not selected
-            else:
-                
-                # reset value from model
-                model.cursorM = None
-                model.cursorPose = None
-                
-                # if reset mode trigger
-                if self.flags['resetModelTransform']:
-                    for m in self.modelDicts['model']:
                         
-                        # set model position to home position ( identity )
-                        m.currentM = np.eye(4)
                         
-                        # turn off reset flags
-                        self.flags['resetModelTransform'] = False
-                    self.addHistory(m.currentM)
+                
+                # if model is not selected
+                else:
                     
-                # model position is remain position
-                newM = model.currentM
-            model.moveModel(newM)
-        
+                    # reset value from model
+                    model.cursorM = None
+                    model.cursorPose = None
+                    
+                    # if reset mode trigger
+                    if self.flags['resetModelTransform']:
+                        for m in self.modelDicts['model']:
+                            
+                            # set model position to home position ( identity )
+                            m.currentM = np.eye(4)
+                            
+                            # turn off reset flags
+                            self.flags['resetModelTransform'] = False
+                        self.addHistory(m.currentM)
+                        
+                    # model position is remain position
+                    newM = model.currentM
+                model.moveModel(newM)
+                # print(model.name)
         if event >= 1000: # check button status
             
             # Get button key
@@ -295,11 +303,14 @@ class StylusController(CommonController):
                 
                 # add History log
                 model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
-                if model.isSelected:
-                    self.addHistory(model.currentM)
-                    
-                # Release model
-                self.releaseModel()
+                artiModel = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+                modelList = artiModel.getSubModel()
+                for model in modelList:
+                    if model.isSelected:
+                        self.addHistory(model.currentM)
+                        
+                    # Release model
+                    self.releaseModel()
                 print("releaseModel")
             
             # REALEASE ALL BUTTON
@@ -324,38 +335,45 @@ class StylusController(CommonController):
         
         # create selected model buffer
         selectModel = []
-        model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
-        
+        # model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+        artiModel = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+        modelList = artiModel.getSubModel()
         # run through all models in opengl window class
         # for model in self.modelDicts['model']:
-        
-            # if cursor position is in model
         if mode == "convex":
-            if self.isPointInsideConvexHull(model,self.cursor.centerPosition):
-                
-                # model is selected
-                model.isSelected = True
-                
-                # add model to selected model buffer
-                selectModel.append(model)
+            for model in modelList:
+                if self.isPointInsideConvexHull(model,self.cursor.centerPosition):
+                    
+                    # model is selected
+                    model.isSelected = True
+                    
+                    # add model to selected model buffer
+                    selectModel.append(model)
         elif mode == "buffer":
             cX,cY =self.getCursor2DPos()
             modelId = self.selectObjectWithBuffer(cX,cY)
-            if modelId == model.modelId:
-                # model is selected
-                model.isSelected = True
+            for model in modelList:
                 
-                # add model to selected model buffer
-                selectModel.append(model)
+                print(modelId,model.modelId)
+                if modelId == model.modelId:
+                    # model is selected
+                    model.isSelected = True
+                    
+                    # add model to selected model buffer
+                    selectModel.append(model)
+            # if cursor position is in model
+        
+            
         
         # return selected model buffer
         return selectModel
     
     # release model
     def releaseModel(self):
-        
+        artiModel = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+        modelList = artiModel.getSubModel()
         # run through all models in opengl window class
-        for model in self.modelDicts['model']:
+        for model in modelList:
             
             # change model to not selected
             model.isSelected = False
@@ -476,7 +494,10 @@ class StylusController(CommonController):
                 print("s",self.fineTran)
                 newM[0:3,0:3] = model.startclickM[0:3,0:3]
         
-                
+            if model.modelId<10:
+                newM[0,3] = model.startclickM[0,3]
+                newM[1,3] = model.startclickM[1,3]
+                newM[2,3] = model.startclickM[2,3]
                 
         # return new model transform
         return newM
@@ -541,6 +562,8 @@ class MouseController(CommonController):
         # run when there is something selected   
         if self.selectedModel != []:
             model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+            model =self.selectedModel[0]
+            
             newM = model.currentM
 
             # move method when model is selected 
@@ -588,6 +611,8 @@ class MouseController(CommonController):
     # mouse wheel moving method
     def mouseWheel(self):
         model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+        model =self.selectedModel[0]
+        
         newM = model.currentM.copy()
 
         # translate in z axis
@@ -612,6 +637,8 @@ class MouseController(CommonController):
         # print(self.xMousePosition,self.yMousePosition)
 
         model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+        model =self.selectedModel[0]
+        
         newM = model.currentM.copy()
 
         # calculate ratio from mouse to window
@@ -648,7 +675,8 @@ class MouseController(CommonController):
 
     # calculate rotation matrix to rotate around current local axis
     def rotationMatrixTransform(self,rotationAxis,deg):
-        model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+        # model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+        model =self.selectedModel[0]
         newM = model.currentM.copy()
 
         # decrease degree size
@@ -679,33 +707,38 @@ class MouseController(CommonController):
     def selectModel(self):
         # create selected model buffer
         selectModel = []
-        model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+        artiModel = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+        modelList = artiModel.getSubModel()
+        
         # self.rotationAxis = None
         # check selection    
-        if self.mouseSelectedCheck() == model.modelId or self.mouseSelectedCheck() == True:
+        for model in modelList:
+            print(self.mouseSelectedCheck(),model.modelId)
+            if self.mouseSelectedCheck() == model.modelId or self.mouseSelectedCheck() == True:
 
-            # model is selected
-            model.isSelected = True
-            print("model")
-            #add to selected model buffer
-            selectModel.append(model)
-        elif self.mouseSelectedCheck() == 201:
-            self.rotationAxis = 'rotX'
-            model.isSelected = True
-            selectModel.append(model)
-        elif self.mouseSelectedCheck() == 202:
-            self.rotationAxis = 'rotY'
-            model.isSelected = True
-            selectModel.append(model)
-        elif self.mouseSelectedCheck() == 203:
-            self.rotationAxis = 'rotZ'
-            model.isSelected = True
-            selectModel.append(model)
-        else:
+                # model is selected
+                model.isSelected = True
+                print("model")
+                #add to selected model buffer
+                selectModel.append(model)
+            elif self.mouseSelectedCheck() == 201:
+                self.rotationAxis = 'rotX'
+                model.isSelected = True
+                selectModel.append(model)
+            elif self.mouseSelectedCheck() == 202:
+                self.rotationAxis = 'rotY'
+                model.isSelected = True
+                selectModel.append(model)
+            elif self.mouseSelectedCheck() == 203:
+                self.rotationAxis = 'rotZ'
+                model.isSelected = True
+                selectModel.append(model)
+            else:
 
-            #model is deselected
-            model.isSelected = False
-        print(self.rotationAxis)
+                #model is deselected
+                model.isSelected = False
+            # print(self.rotationAxis)
+        # print(selectModel[0].name)
         return selectModel
 
     # mouse click selection checking
