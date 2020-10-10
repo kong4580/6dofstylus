@@ -752,6 +752,11 @@ class ArticulateModel(Model):
     def __init__(self,name,modelId,listOfJoint):
         super().__init__(name,modelId)
         self.listOfJoint = listOfJoint
+        self.base = Model('base',60,drawFunc.point)
+        self.base.moveModel(np.array([[1,0,0,-5],
+                                      [0,1,0,0],
+                                      [0,0,1,0],
+                                      [0,0,0,1]]))
         for idx in range(len(self.listOfJoint)-1):
             self.listOfJoint[idx+1].goUnder(self.listOfJoint[idx])
     # init model
@@ -760,6 +765,7 @@ class ArticulateModel(Model):
             joint.initModel(matrixView)
     
     def drawMatrixModel(self, showFrame=True, enableLight = True,wireFrame = False, opacity = False,mode = 'trans',selectedMode = False):
+        self.base.drawMatrixModel(showFrame,enableLight,wireFrame,opacity,mode,selectedMode)
         for joint in self.listOfJoint:
             joint.drawMatrixModel(showFrame,enableLight,wireFrame,opacity,mode,selectedMode)
     
