@@ -779,8 +779,8 @@ class ArticulateModel(Model):
         self.poleVertex = Model('base',62,drawFunc.DrawCube)
         self.showTarget = showTarget
         self.showPole = showPole
-        self.target.goUnder(self.base)
-        self.poleVertex.goUnder(self.base)
+        # self.target.goUnder(self.base)
+        # self.poleVertex.goUnder(self.base)
         if len(self.listOfJoint)>0:
             self.listOfJoint[0].goUnder(self.base)
             for idx in range(len(self.listOfJoint)-1):
