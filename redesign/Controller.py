@@ -4,6 +4,8 @@ from scipy.spatial import ConvexHull
 from OpenGL import GL, GLUT, GLU
 from scipy.spatial.transform import Rotation as R
 import math
+from Ray import Ray,Plane
+from MouseTranslationController import MouseTranslationController
 class Handler():
     def __init__(self):
         self.push = False
@@ -517,6 +519,7 @@ class MouseController(CommonController):
         self.lastPos = [0.0,0.0,0.0]
         self.axis = [0,0,0]
         self.angle = 0
+        # self.mouse = MouseTranslationController()
     def runEvent(self,event):
         
         # mouse position
@@ -532,11 +535,14 @@ class MouseController(CommonController):
             # print("left click!")
             self.selectedModel = self.selectModel()
             self.lastPos = self.trackballPtov(self.xMousePosition,self.windowHeight - self.yMousePosition,self.windowWidth,self.windowHeight)
+            self.oldRay = Ray(self.xMousePosition,self.yMousePosition)
+            
 
         # run when there is something selected   
         if self.selectedModel != []:
             model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
             newM = model.currentM
+            
 
             # move method when model is selected 
             if model.isSelected:
@@ -548,6 +554,7 @@ class MouseController(CommonController):
                 #mouse drag event
                 if event == fltk.FL_DRAG:
                     newM = self.mouseDrag()
+                    
 
                 # store model position after release mouse# model is selected
                     self.addHistory(newM)
@@ -596,7 +603,8 @@ class MouseController(CommonController):
 
     # mouse drag moving method
     def mouseDrag(self):
-
+        # self.mouse.Update(self.xMousePosition,self.yMousePosition)
+        # print(self.mouse.ray.p1)
         # get the distance when mouse moving from one point to another point
         recentX = self.xMousePosition - self.lastPosX
         recentY = self.yMousePosition - self.lastPosY
@@ -612,14 +620,19 @@ class MouseController(CommonController):
         # calculate ratio from mouse to window
         ratioX = -(5*(self.windowWidth/10)/(newM[2][3] -10))
         ratioY = -(5*(self.windowHeight/10)/(newM[2][3] -10))
-        
+        # print(self.mouse.displacement)
         # drag to translate
         if self.flags['mouseMode'] == 'trans':
             xTranslatePosition = recentX/ratioX + newM[0][3]
             yTranslatePosition = -(recentY/ratioY) + newM[1][3]
+            # displacement = self.mouse.displacement
             newM[0][3] = xTranslatePosition
             newM[1][3] = yTranslatePosition
-            
+            # newM[0][3] += displacement[0]/1
+            # newM[1][3] -= displacement[1]/1
+            # newM[2][3] += displacement[2]/1
+        
+            # print(recentX/ratioX,-(recentY/ratioY))
         # drag to rotate
         elif self.flags['mouseMode'] == 'rot':
             # calculate displacement of mouse moving
@@ -634,11 +647,12 @@ class MouseController(CommonController):
                 else:
                     newM = self.rotationMatrixTransform(self.rotationAxis,-degree)
             else:
-                if dx+dy<0:
-                    newM = self.rotationMatrixTransform(self.rotationAxis,degree)
-                else:
-                    newM = self.rotationMatrixTransform(self.rotationAxis,-degree)
-            self.mouseMotion(self.xMousePosition,self.windowHeight - self.yMousePosition)
+                # if dx+dy<0:
+                #     newM = self.rotationMatrixTransform(self.rotationAxis,degree)
+                # else:
+                #     newM = self.rotationMatrixTransform(self.rotationAxis,-degree)
+                newM = self.mouseIntersect(self.xMousePosition,self.yMousePosition)
+            # self.mouseMotion(self.xMousePosition,self.windowHeight - self.yMousePosition)
             # newM = self.rotationMatrixTransform(self.rotationAxis,0) 
 
         return newM
@@ -667,7 +681,7 @@ class MouseController(CommonController):
         if rotationAxis == 'rotX':
             
             # print(self.matrixM(self.angle,-self.axis[0],0,0,newM),"track")
-            # newM[0:3,0:3] = np.dot(newM[0:3,0:3],degreeXMatrix)
+            newM[0:3,0:3] = np.dot(newM[0:3,0:3],degreeXMatrix)
             # newR = 
             newR[0:3,0:3] = np.dot(newR[0:3,0:3],self.matrixM(self.angle,-self.axis[0],0,0))
             # print(newM,"before")
@@ -675,17 +689,17 @@ class MouseController(CommonController):
             # print(newR,"after")
             # print(np.linalg.det(newR[0:3,0:3]))
         elif rotationAxis == 'rotY':
-            # newM[0:3,0:3] = np.dot(newM[0:3,0:3],degreeYMatrix)
+            newM[0:3,0:3] = np.dot(newM[0:3,0:3],degreeYMatrix)
             newR[0:3,0:3] = np.dot(newR[0:3,0:3],self.matrixM(self.angle,0,self.axis[1],0))
             # newM[0:3,0:3] =  self.matrixM(self.angle,0,-self.axis[1],0,newM)
         elif rotationAxis == 'rotZ':
-            # newM[0:3,0:3] = np.dot(newM[0:3,0:3],degreeZMatrix)
+            newM[0:3,0:3] = np.dot(newM[0:3,0:3],degreeZMatrix)
             # newM[0:3,0:3] =  self.matrixM(self.angle,0,0,self.axis[2],newM)
             newR[0:3,0:3] = np.dot(newR[0:3,0:3],self.matrixM(self.angle,0,0,self.axis[2]))
         else:
             newR[0:3,0:3] = np.dot(newR[0:3,0:3],self.matrixM(self.angle,-self.axis[0],self.axis[1],self.axis[2]))
-
-        return newR
+        # print(newM,"old")
+        return newM
 
     # check model selection
     def selectModel(self):
@@ -749,16 +763,70 @@ class MouseController(CommonController):
         # print(mouseSelected)
 
         return mouseSelected
-
+    def getVectorAngle(self,v1,v2):
+        v = np.cross(v1,v2)
+        # print(v,v1,v2)
+        s = np.linalg.norm(v)
+        if s >0.0:
+            c = np.dot(v1,v2)
+            skV = np.array([[0,-v[2],v[1]],
+                            [v[2],0,-v[0]],
+                            [-v[1],v[0],0]])
+            r = np.eye(3)+skV+np.dot(skV,skV)*((1-c)/s**2)
+        else:
+            r = np.eye(3)
+        return r
+    def mouseIntersect(self,x,y):
+        model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+        newM = model.currentM.copy()
+        plane = Plane([newM[0][2],newM[1][2],newM[2][2]],[newM[0][2],newM[1][3],newM[2][3]])
+        newRay = Ray(x,y)
+        newIntersect = newRay.Intersects(plane)
+        oldIntersect = self.oldRay.Intersects(plane)
+        if newIntersect!="None" and oldIntersect != "None":
+            center = [[newM[0][3]],[newM[1][3]],[newM[2][3]]]
+            vec1 = oldIntersect - center
+            vec2 = newIntersect - center
+            vector1 = vec1/np.linalg.norm(vec1)
+            vector2 = vec2/np.linalg.norm(vec2)
+            angle = self.productAngle(vector1,vector2)
+            wq  = np.dot(np.asarray([0.,0.,1.]),np.asarray([[newM[0][2]],[newM[1][2]],[newM[2][2]]]))
+            rotationM = self.getVectorAngle(np.transpose(np.transpose(vector1)[0]),np.transpose(np.transpose(vector2)[0]))
+            r = R.from_matrix(rotationM)
+            matDir = r.as_rotvec()
+            matrix = (self.matrixM(angle*0.1,0,0,wq*matDir[2]))
+            newMatrix = np.dot(newM[0:3,0:3],matrix)
+            newM[0:3,0:3] = newMatrix
+        else:
+            print("no intersect")
+        self.oldRay = newRay
+        return newM
+    def productAngle(self,vector1,vector2):
+        dotProduct = np.dot(np.transpose(vector1),vector2)
+        sqrVec1 = vector1[0]*vector1[0]+vector1[1]*vector1[1]+vector1[2]*vector1[2]
+        sqrVec2 = vector2[0]*vector2[0]+vector2[1]*vector2[1]+vector2[2]*vector2[2]
+        if type(sqrVec1) == np.ndarray:
+            sqrVec1 = sqrVec1[0]
+            sqrVec2 = sqrVec2[0]
+        vector1Norm = math.sqrt(sqrVec1)
+        vector2Norm = math.sqrt(sqrVec2)
+        dx = vector2[0] - vector1[0]
+        dy = vector2[1] - vector1[1]
+        dz = vector2[2] - vector1[2]
+        if dotProduct/(vector1Norm*vector2Norm)>=1 or dotProduct/(vector1Norm*vector2Norm)<=-1:
+                angle = (90*math.sqrt(dx*dx + dy*dy + dz*dz))%1
+        else:
+            angle = math.acos(dotProduct/(vector1Norm*vector2Norm))
+            angle = ((angle/math.pi)*180)%1
+        return angle
     def mouseMotion(self,x,y):
         curPos = self.trackballPtov(x,y,self.windowWidth,self.windowHeight)
         dx = curPos[0] - self.lastPos[0]
         dy = curPos[1] - self.lastPos[1]
         dz = curPos[2] - self.lastPos[2]
+
         if dx or dy or dz:
-            # self.angle = 90 * math.sqrt(dx*dx + dy*dy + dz*dz)
             self.angle = math.acos(np.dot(curPos,self.lastPos)/(np.linalg.norm(curPos)*np.linalg.norm(self.lastPos)))
-            # print(angles,self.angle)
             self.axis[0] = self.lastPos[1] * curPos[2] - self.lastPos[2]*curPos[1]
             self.axis[1] = self.lastPos[2] * curPos[0] - self.lastPos[0]*curPos[2]
             self.axis[2] = self.lastPos[0] * curPos[1] - self.lastPos[1]*curPos[0]
@@ -802,36 +870,36 @@ class MouseController(CommonController):
         # ans = np.dot(newM[0:3,0:3],matrix)
         # print(np.linalg.det(matrix))
         return matrix
-    def matrixFromAxisAngle(self,angle ,x,y,z):
-        m  = np.eye(3)
-        c = math.cos(angle)
-        s = math.sin(angle)
-        t = 1.0 - c
-        #  if axis is not already normalised then uncomment this
-        magnitude = math.sqrt(x*x + y*y + z*z)
-        if (magnitude!=1): #throw error
-            x /= magnitude
-            y /= magnitude
-            z /= magnitude
+    # def matrixFromAxisAngle(self,angle ,x,y,z):
+    #     m  = np.eye(3)
+    #     c = math.cos(angle)
+    #     s = math.sin(angle)
+    #     t = 1.0 - c
+    #     #  if axis is not already normalised then uncomment this
+    #     magnitude = math.sqrt(x*x + y*y + z*z)
+    #     if (magnitude!=1): #throw error
+    #         x /= magnitude
+    #         y /= magnitude
+    #         z /= magnitude
 
-        m[0][0] = c + x*x*t
-        m[1][1] = c + y*y*t
-        m[2][2] = c + z*z*t
+    #     m[0][0] = c + x*x*t
+    #     m[1][1] = c + y*y*t
+    #     m[2][2] = c + z*z*t
 
 
-        tmp1 = x*y*t
-        tmp2 = z*s
-        m[1][0] = tmp1 + tmp2
-        m[0][1] = tmp1 - tmp2
-        tmp1 = x*z*t
-        tmp2 = y*s
-        m[2][0] = tmp1 - tmp2
-        m[0][2] = tmp1 + tmp2    
-        tmp1 = y*z*t
-        tmp2 = x*s
-        m[2][1] = tmp1 + tmp2
-        m[1][2] = tmp1 - tmp2
-        return m
+    #     tmp1 = x*y*t
+    #     tmp2 = z*s
+    #     m[1][0] = tmp1 + tmp2
+    #     m[0][1] = tmp1 - tmp2
+    #     tmp1 = x*z*t
+    #     tmp2 = y*s
+    #     m[2][0] = tmp1 - tmp2
+    #     m[0][2] = tmp1 + tmp2    
+    #     tmp1 = y*z*t
+    #     tmp2 = x*s
+    #     m[2][1] = tmp1 + tmp2
+    #     m[1][2] = tmp1 - tmp2
+    #     return m
     def trackballPtov(self,x,y,width,height):
         # oX,oY = self.getModel2DOrigin()
         r = 0.75
@@ -875,6 +943,39 @@ class MouseController(CommonController):
         v = np.asarray(v)
         # print(v)
         return v
+    def ray(self,mouse_x,mouse_y):
+        width = self.windowWidth
+        height = self.windowHeight
+        x = (2.0 * mouse_x) / width - 1.0
+        y = 1.0 - (2.0 * mouse_y) / height
+        z = 1.0
+        ray_nds = np.asarray([[x],[y],[z]])
+        ray_clip = [ray_nds[0],ray_nds[1], -1.0, 1.0]
+        projection_matrix = GL.glGetDoublev(GL.GL_PROJECTION_MATRIX)
+        # print(projection_matrix.shape)
+        ray_eye = np.dot(np.linalg.inv(projection_matrix),ray_clip)
+        # print(ray_eye)
+        ray_eye = np.asarray([[ray_eye[0],ray_eye[1], -1.0, 0.0]])
+        # print(ray_eye)
+        view_matrix = GL.glGetIntegerv(GL.GL_MODELVIEW_MATRIX)
+        # view_matrix = np.asarray([[view_matrix[0],view_matrix[1],view_matrix[2],view_matrix[3]]])
+        # print(view_matrix.shape)
+        # print(np.transpose(ray_eye))
+        ray_wor = np.dot(np.linalg.inv(view_matrix),np.transpose(ray_eye))
+        # print(ray_wor)
+        norm = np.linalg.norm(ray_wor)
+        ray_wor[0] = ray_wor[0]/norm
+        ray_wor[1] = ray_wor[1]/norm
+        ray_wor[2] = ray_wor[2]/norm
+        ray_wor[3] = ray_wor[3]/norm
+        # print(ray_wor)
+
+    def planeFromRot(self,matrix):
+        self.normalX = np.asarray([matrix[0][0],matrix[1][0],matrix[2][0]])
+        self.normalY = np.asarray([matrix[0][1],matrix[1][1],matrix[2][1]])
+        self.normalZ = np.asarray([matrix[0][2],matrix[1][2],matrix[2][2]])
+        self.origin = np.asarray([matrix[0][3],matrix[1][3],matrix[2][3]])
+        # print(self.normalX)
     def getModel2DOrigin(self):
         
         model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
