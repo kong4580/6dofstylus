@@ -3,7 +3,7 @@ import fltk
 import sys
 import serial
 import numpy as np
-from math import pi
+from math import pi,cos,sin
 from functools import partial
 
 from StylusReciever import StylusReciever
@@ -20,11 +20,11 @@ def callback(samplingRate,gui):
         # if recieve serial messages
         
         
-        if mode != 'mouse' and srec.isActivate():
+        if controllerMode != 'mouse' and srec.isActivate():
             command,rawData = srec.recieve()
             # print(rawData)
             # update joint state command
-            if command == 0xFF and mode == 'stylus':
+            if command == 0xFF and controllerMode == 'stylus':
                 # print(mode)
                 # get joint states and button states
                 jointStates,buttonStates = srec.readCommand(command,rawData)
@@ -45,7 +45,7 @@ def callback(samplingRate,gui):
                 
                 
             # update button state command    
-            if command == 0xFE and mode == 'stylus2':
+            if command == 0xFE and controllerMode == 'stylus2':
                 # get button states
                 jointStates,imuData,calibrateState,buttonStates = srec.readCommand(command,rawData)
                 pose = stylus.getEndTransforms(jointStates)
@@ -76,22 +76,40 @@ def openGUI(samplingRate = 0.005):
     
     gui.openglWindow.ctl = mainController
     # add model
-    jointA = Joint('A',1,drawFunc.drawPyramid)
-    jointB = Joint('B',2,drawFunc.drawPyramid)
-    jointB.moveModel(np.array([[0,1,0,-2],
-                        [-1,0,0,0],
-                        [0,0,1,0],
-                        [0,0,0,1]]))
-    jointC = Joint('C',3,drawFunc.drawPyramid)
-    jointC.moveModel(np.array([[1,0,0,-2],
-                        [0,1,0,0],
-                        [0,0,1,0],
-                        [0,0,0,1]]))
-    # teapot = OBJ('./teapot.obj',scale=1)
-    # gui.addModel('teapot',1,teapot.initOBJ,obj=teapot)
-    # bunny = OBJ('./bunny.obj',scale=20)
-    # gui.addModel('bunny',2,bunny.initOBJ,obj=bunny)
-    gui.addModel('Arti1',6,objType = 'joint',listOfJoint=[jointA,jointB,jointC])
+    if modelType == "articulate":
+        jointA = Joint('A',1,drawFunc.drawPyramid)
+        jointB = Joint('B',2,drawFunc.drawPyramid)
+        
+        jointC = Joint('C',3,drawFunc.drawPyramid)
+        if modelMode =='fk':
+            gui.addModel('Arti1',6,objType = 'joint',listOfJoint=[jointA,jointB,jointC],showTarget = False,showPole = False)
+        elif modelMode == 'ik':
+            gui.addModel('Arti1',6,objType = 'joint',listOfJoint=[jointA,jointB,jointC],showTarget = True,showPole = True)
+        jointB.moveModel(np.array([[1,0,0,0],
+                            [0,1,0,3],
+                            [0,0,1,0],
+                            [0,0,0,1]]))
+        # jointB.moveModel(np.array([[1,0,0,0],
+        #                     [0,1,0,0],
+        #                     [0,0,1,0],
+        #                     [0,0,0,1]]),mode='relative')
+        jointC.moveModel(np.array([[1,0,0,0],
+                            [0,1,0,3],
+                            [0,0,1,0],
+                            [0,0,0,1]]),mode='relative')
+        # jointA.moveModel(np.array([[1,0,0,0],
+        #                     [0,0.7071,-0.7071,0],
+        #                     [0,0.7071,0.7071,0],
+        #                     [0,0,0,1]]),mode='relative')
+    elif modelType == 'rig':
+        teapot = OBJ('./teapot.obj',scale=1)
+        gui.addModel('teapot',1,teapot.initOBJ,obj=teapot)
+        bunny = OBJ('./bunny.obj',scale=20)
+        gui.addModel('bunny',2,bunny.initOBJ,obj=bunny)
+    
+    else:
+        print("wrong model type")
+        sys.exit()
     
     
     # open GUI window
@@ -121,10 +139,22 @@ if __name__ == '__main__':
         print("Please enter device name !!")
         print("### device name = mouse, stylus, stylus2 ###")
         sys.exit()
-        
+    elif len(sys.argv) < 3:
+        print("Please enter model type !!")
+        print("### device name = rig,articulate ###")
+        sys.exit()
+    elif len(sys.argv) < 4:
+        print("Please enter model move mode type !!")
+        print("### device name = fk,ik ###")
+        sys.exit()
     # get input mode from terminal
-    mode = sys.argv[1]
-    print("\n Start Program with:",mode,"\n")
+    controllerMode = sys.argv[1]
+    modelType = sys.argv[2]
+    if modelType == "rig":
+        modelMode = 'fk'
+    else:
+        modelMode = sys.argv[3]
+    print("\n Start Program with:",controllerMode,"\n")
     # declare ui samplingRate
     samplingRate = 0.005
     
@@ -135,17 +165,18 @@ if __name__ == '__main__':
     mainController = MainController()
     
     
-    if mode == 'mouse':
+    if controllerMode == 'mouse':
         packData = {'flags':gui.openglWindow.flags,
                 'modelDicts':gui.openglWindow.modelDicts,
                 'log':gui.log,
                 'height':gui.openglWindow.h(),
                 'width':gui.openglWindow.w(),
-                'camera':gui.openglWindow.cameravalue
+                'camera':gui.openglWindow.cameravalue,
+                'modelMode':modelMode
                 }
         deviceController = MouseController(packData)
 
-    elif mode == 'stylus':
+    elif controllerMode == 'stylus':
          # declare port
         # port = '/dev/pts/2' # ubuntu port
         port = '/dev/ttyUSB0' # arduino port
@@ -169,13 +200,14 @@ if __name__ == '__main__':
                 'cursor':gui.openglWindow.cursor,
                 'height':gui.openglWindow.h(),
                 'width':gui.openglWindow.w(),
-                'camera':gui.openglWindow.cameravalue}
+                'camera':gui.openglWindow.cameravalue,
+                'modelMode':modelMode}
         deviceController = StylusController(packData)
         
-    elif mode == 'stylus2':
+    elif controllerMode == 'stylus2':
          # declare port
         # port = '/dev/pts/2' # ubuntu port
-        port = '/dev/ttyUSB0' # arduino port
+        port = '/dev/ttyACM0' # arduino port
         
         # declare constants
         
@@ -198,7 +230,8 @@ if __name__ == '__main__':
                 'cursor':gui.openglWindow.cursor,
                 'height':gui.openglWindow.h(),
                 'width':gui.openglWindow.w(),
-                'camera':gui.openglWindow.cameravalue}
+                'camera':gui.openglWindow.cameravalue,
+                'modelMode':modelMode}
         deviceController = StylusController2(packData)
     mainController.registerController(deviceController)
     device = mainController.getController()

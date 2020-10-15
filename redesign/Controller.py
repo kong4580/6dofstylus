@@ -32,7 +32,7 @@ class MainController(Handler):
            
     def readEvent(self,event):
         for ctl in self.controllerList:
-            # print(fltk.Fl.event_alt(),fltk.FL_ALT,fltk.Fl.event_key(),event,fltk.FL_KEYBOARD )
+           
             if not fltk.Fl.event_alt() or(fltk.Fl.event_alt() and  (fltk.Fl.event_key() == 65513)):
                 ctl.resetKey()
                 ctl.keyHold = None
@@ -64,6 +64,121 @@ class CommonController(Handler):
         self.cameraValue = packData['camera']
         self.fineRot = False
         self.fineTran = False
+        self.modelMode = packData['modelMode']
+    
+    def updateModelPose(self,model,transform,artiModel,mode = 'fk'):
+        if self.modelMode =='fk':
+            if type(model).__name__ == "Joint":
+                transform[0:3,3] = model.currentM[0:3,3]
+            model.moveModel(transform)
+            
+        elif self.modelMode =='ik':
+            
+            if type(model).__name__ != "Joint":
+                
+                # move transform
+                transform[0:3,0:3] = np.eye(3)
+                model.moveModel(transform)
+                try:
+                    # rotate J2 back to align with J1
+                    invJ2 = np.eye(4)
+                    invJ2[0:3,0:3] = np.linalg.inv(artiModel.listOfJoint[1].parentToLocal[0:3,0:3])
+                    artiModel.listOfJoint[1].moveModel(invJ2,mode='relative')
+                    
+                    # calculate theta 2
+                    from scipy.spatial import distance
+                    distJ1ToJ2 = artiModel.listOfJoint[1].getDist
+                    distJ2ToJ3 = artiModel.listOfJoint[2].getDist
+                    distJ1ToTarget = distance.euclidean(artiModel.listOfJoint[0].worldToLocal[0:3,3],artiModel.target.worldToLocal[0:3,3])
+                
+                
+                    
+                    # if cannot reach
+                    if distJ1ToTarget > distJ1ToJ2+distJ2ToJ3:
+                        theta2 = 0
+
+                    else:
+                        
+                        # get theta2
+                        cthetha2 = -(distJ1ToJ2**2+distJ2ToJ3**2-distJ1ToTarget**2)/(2*distJ1ToJ2*distJ2ToJ3)
+                        theta2 = math.acos(cthetha2)
+                        
+                        # move J2 with theta2
+                        c22 = np.array([[math.cos(theta2),-math.sin(theta2),0,0],
+                                        [math.sin(theta2),math.cos(theta2),0,0],
+                                        [0,0,1,0],
+                                        [0,0,0,1]])
+                        j2 = artiModel.listOfJoint[1].worldToLocal.copy()
+                        artiModel.listOfJoint[1].moveModel(c22,mode='relative')
+                except:
+                    pass   
+                
+                # get vector wrt. J1
+                v1Tov3 = np.dot(np.linalg.inv( artiModel.listOfJoint[0].worldToLocal),np.append(artiModel.listOfJoint[2].worldToLocal[0:3,3],[1]))[0:3]
+                v1ToTarget = np.dot(np.linalg.inv( artiModel.listOfJoint[0].worldToLocal),np.append(artiModel.target.worldToLocal[0:3,3],[1]))[0:3]
+                
+                # cal angle between J1J3 and J1Target
+                v1 = v1Tov3/np.linalg.norm(v1Tov3)
+                v2 = v1ToTarget/np.linalg.norm(v1ToTarget)
+               
+                r = self.getVectorAngle(v1,v2)
+                
+                rotation = R.from_matrix(r)
+                
+                # rotate J1 to map J3 on target  
+                tt = np.eye(4)
+                tt[0:3,0:3] = r.copy()
+                j1 = artiModel.listOfJoint[0].worldToLocal   
+                artiModel.listOfJoint[0].moveModel(tt,mode="relative")
+                
+                # get vector wrt. J1
+                v1Tov2 = np.dot(np.linalg.inv( artiModel.listOfJoint[0].worldToLocal),np.append(artiModel.listOfJoint[1].worldToLocal[0:3,3],[1]))[0:3]
+                v1ToTarget = np.dot(np.linalg.inv( artiModel.listOfJoint[0].worldToLocal),np.append(artiModel.target.worldToLocal[0:3,3],[1]))[0:3]
+                v1ToPole = np.dot(np.linalg.inv( artiModel.listOfJoint[0].worldToLocal),np.append(artiModel.poleVertex.worldToLocal[0:3,3],[1]))[0:3]
+                
+                # cal nomal vector of two plane
+                nvJ1J2 = np.cross(v1ToTarget,v1Tov2)/np.linalg.norm(np.cross(v1ToTarget,v1Tov2))
+                nvJ1Pole = np.cross(v1ToTarget,v1ToPole)/ np.linalg.norm(np.cross(v1ToTarget,v1ToPole))
+                
+                # cal angle between two plane
+                planeAngle = self.getVectorAngle(nvJ1J2,nvJ1Pole)
+                
+                if not np.isnan(planeAngle).any():
+                        
+                    # rotate J2 plane to poleVertex plane
+                    tt = np.eye(4)
+                    tt[0:3,0:3] = planeAngle.copy()  
+                    
+                    
+                    artiModel.listOfJoint[0].moveModel(tt,mode="relative")
+                    
+                
+            
+    def getVectorAngle(self,v1,v2):
+        if not np.equal(v1,v2).all():
+            if np.linalg.norm(v1) == 0 or np.linalg.norm(v2) == 0:
+                print( "one of the vectors is 0")
+            v = np.cross(v1,v2)
+            s = np.linalg.norm(v)
+            c = np.dot(v1,v2)
+            clamped_c = max(min(c, 1), -1)
+            angle_c = math.acos( clamped_c )
+            
+            if angle_c >0.000001 :
+                skV = np.array([[0,-v[2],v[1]],
+                                [v[2],0,-v[0]],
+                                [-v[1],v[0],0]])
+                r = np.eye(3)+skV+np.dot(skV,skV)*((1-c)/(1-c**2))
+                
+            else :
+                
+                r= np.eye(3)
+            
+            return r
+        else:
+            r = np.eye(3)
+            return r
+        
     def toggleFlags(self,flags):
         self.flags[flags] = not self.flags[flags]
         
@@ -102,6 +217,7 @@ class CommonController(Handler):
             # the current position
             self.history['moveHistory'] = self.history['moveHistory'][:self.history['moveHistoryPosition']+1]
             self.history['moveHistory'][self.history['moveHistoryPosition']] = history
+            
     def resetKey(self):
         self.fineRot = False
         self.fineTran = False
@@ -561,7 +677,7 @@ class MouseController(CommonController):
 
         # run when there is something selected   
         if self.selectedModel != []:
-            model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+            artiModel = self.modelDicts['model'][self.modelDicts['runModelIdx']]
             model =self.selectedModel[0]
             
             newM = model.currentM
@@ -576,12 +692,14 @@ class MouseController(CommonController):
                 #mouse drag event
                 if event == fltk.FL_DRAG:
                     newM = self.mouseDrag()
-
+                    # print(newM)
                 # store model position after release mouse# model is selected
                     self.addHistory(newM)
                     # print(self.history)
             # move model with new matrix
-            model.moveModel(newM)
+            self.updateModelPose(model,newM,artiModel)
+            # print(model.name)
+            # model.moveModel(newM)
             
         # run common controller event 
         self.runCommonEvent()
@@ -644,16 +762,22 @@ class MouseController(CommonController):
         # calculate ratio from mouse to window
         ratioX = -(5*(self.windowWidth/10)/(newM[2][3] -10))
         ratioY = -(5*(self.windowHeight/10)/(newM[2][3] -10))
+        # newM[0,3] = -5
         
         # drag to translate
         if self.flags['mouseMode'] == 'trans':
-            xTranslatePosition = recentX/ratioX + newM[0][3]
-            yTranslatePosition = -(recentY/ratioY) + newM[1][3]
-            newM[0][3] = xTranslatePosition
-            newM[1][3] = yTranslatePosition
+            dx = newM[0,3].copy()
+            dy = newM[1,3].copy()
+            xTranslatePosition = recentX/ratioX + dx
+            yTranslatePosition = -(recentY/ratioY) + dy
+            
+            
+            newM[0,3] = xTranslatePosition
+            newM[1,3] = yTranslatePosition
             
         # drag to rotate
         elif self.flags['mouseMode'] == 'rot':
+            
             # calculate displacement of mouse moving
             dx = recentX
             dy = -recentY
@@ -713,7 +837,7 @@ class MouseController(CommonController):
         # self.rotationAxis = None
         # check selection    
         for model in modelList:
-            print(self.mouseSelectedCheck(),model.modelId)
+            # print(self.mouseSelectedCheck(),model.modelId)
             if self.mouseSelectedCheck() == model.modelId or self.mouseSelectedCheck() == True:
 
                 # model is selected
@@ -757,7 +881,7 @@ class MouseController(CommonController):
         
         if mouseSelected == False:
             mouseSelected = self.selectObjectWithBuffer(self.xMousePosition,self.yMousePosition)
-        print(mouseSelected)
+        # print(mouseSelected)
 
         return mouseSelected
 
