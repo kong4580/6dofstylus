@@ -15,7 +15,7 @@ class Transform():
         self.parent = []
         self.child = []
         self.parentToLocal = np.eye(4)
-        
+        self.startWorldToLocal = np.eye(4)
     
     @property
     def worldToLocal(self):
@@ -775,8 +775,8 @@ class ArticulateModel(Model):
         super().__init__(name,modelId)
         self.listOfJoint = listOfJoint
         self.base = Model('base',60,drawFunc.DrawCube)
-        self.target = Model('base',61,drawFunc.DrawCube)
-        self.poleVertex = Model('base',62,drawFunc.DrawCube)
+        self.target = Model('target',61,drawFunc.DrawCube)
+        self.poleVertex = Model('pole',62,drawFunc.DrawCube)
         self.showTarget = showTarget
         self.showPole = showPole
         # self.target.goUnder(self.base)
@@ -801,6 +801,8 @@ class ArticulateModel(Model):
                                       [0,0,0,1]]))
         self.modelLists = [self.base,self.target,self.poleVertex]
         self.modelLists.extend(self.listOfJoint)
+        for m in self.modelLists:
+            m.startWorldToLocal = m.worldToLocal
     # init model
     def initModel(self,matrixView):
         for joint in self.listOfJoint:

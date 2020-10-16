@@ -58,7 +58,8 @@ class CommonController(Handler):
         self.windowHeight = None
         self.windowWidth = None
         self.history = {'moveHistory':[np.eye(4)],
-                        'moveHistoryPosition':0}
+                        'moveHistoryPosition':0,
+                        'modelName':['']}
         self.windowHeight = packData['height']
         self.windowWidth = packData['width']
         self.cameraValue = packData['camera']
@@ -186,38 +187,66 @@ class CommonController(Handler):
     def undo(self):
         
         if self.history['moveHistoryPosition'] > 0:
+            modelPose = self.history['moveHistoryPosition'] 
             self.history['moveHistoryPosition'] -= 1
-            model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
-            model.moveModel(self.history['moveHistory'][self.history['moveHistoryPosition']])
+            
+            
+            artiModel = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+            modelList = artiModel.getSubModel()
+            
+            
+            for model in modelList:
+                
+                if model.name == self.history['modelName'][modelPose]:
+                    
+                    newM = self.history['moveHistory'][modelPose][0]
+                    self.updateModelPose(model,newM,artiModel)
+                
+            
+            # model.moveModel(self.history['moveHistory'][self.history['moveHistoryPosition']])
         else:
             print("nothing to undo")
             
     def redo(self):
-        
+        print(self.history['moveHistoryPosition'] , len(self.history['moveHistory']))
         if self.history['moveHistoryPosition']+1 < len(self.history['moveHistory']):
             self.history['moveHistoryPosition'] += 1
-            model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
-            model.moveModel(self.history['moveHistory'][self.history['moveHistoryPosition']])
+            modelPose = self.history['moveHistoryPosition']
+            
+            artiModel = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+            modelList = artiModel.getSubModel()
+            for model in modelList:
+                if model.name == self.history['modelName'][modelPose]:
+                    
+                    newM = self.history['moveHistory'][modelPose][1]
+                    self.updateModelPose(model,newM,artiModel)
+            # model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+            # model.moveModel(self.history['moveHistory'][self.history['moveHistoryPosition']])
         else:
             print("nothing to redo")
            
-    def addHistory(self,history):
-        
+    def addHistory(self,old,new,model):
+        history = [old,new]
         # update history position
         self.history['moveHistoryPosition']+=1
-        
         # if history is uptodate
         if len(self.history['moveHistory']) == self.history['moveHistoryPosition']:
             # This is a new event in hisory
             self.history['moveHistory'].append(history)
+            self.history['modelName'].append( model.name)
+            
         else:
             # This occurs if there was one of more UNDOs and then a new
             # execute command happened. In case of UNDO, the history_position
             # changes, and executing new commands purges any history after
             # the current position
+            
             self.history['moveHistory'] = self.history['moveHistory'][:self.history['moveHistoryPosition']+1]
             self.history['moveHistory'][self.history['moveHistoryPosition']] = history
-            
+            self.history['modelName'] = self.history['modelName'][:self.history['moveHistoryPosition']+1]
+            self.history['modelName'][self.history['moveHistoryPosition']] = model.name
+        print(self.history)
+        
     def resetKey(self):
         self.fineRot = False
         self.fineTran = False
@@ -393,7 +422,8 @@ class StylusController(CommonController):
                         
                     # model position is remain position
                     newM = model.currentM
-                model.moveModel(newM)
+                self.updateModelPose(model,newM,artiModel)
+                # model.moveModel(newM)
                 # print(model.name)
         if event >= 1000: # check button status
             
@@ -674,17 +704,19 @@ class MouseController(CommonController):
             self.lastPosY = self.yMousePosition
             # print("left click!")
             self.selectedModel = self.selectModel()
+            if self.selectedModel != []:
+                self.old=self.selectedModel[0].currentM.copy()
 
         # run when there is something selected   
         if self.selectedModel != []:
             artiModel = self.modelDicts['model'][self.modelDicts['runModelIdx']]
             model =self.selectedModel[0]
             
-            newM = model.currentM
+            newM = model.currentM.copy()
 
             # move method when model is selected 
             if model.isSelected:
-
+                
                 # mousewheel event
                 if event == fltk.FL_MOUSEWHEEL:
                     newM = self.mouseWheel()
@@ -694,7 +726,9 @@ class MouseController(CommonController):
                     newM = self.mouseDrag()
                     # print(newM)
                 # store model position after release mouse# model is selected
-                    self.addHistory(newM)
+                if event == fltk.FL_RELEASE:
+                    self.addHistory(self.old,newM,model)
+                    
                     # print(self.history)
             # move model with new matrix
             self.updateModelPose(model,newM,artiModel)
@@ -718,8 +752,9 @@ class MouseController(CommonController):
                 newM = model.currentM
                 
                 # move model to the new matrix model
-                model.moveModel(newM)
-            self.addHistory(newM)
+                self.updateModelPose(model,newM,artiModel)
+                # model.moveModel(newM)
+            self.addHistory(self.old,newM,model)
             
         # every model will be deselected during checking Iou
         if self.flags['checkIoU']:
