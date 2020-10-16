@@ -500,7 +500,7 @@ class StylusController(CommonController):
             modelId = self.selectObjectWithBuffer(cX,cY)
             for model in modelList:
                 
-                print(modelId,model.modelId)
+                
                 if modelId == model.modelId:
                     # model is selected
                     model.isSelected = True
