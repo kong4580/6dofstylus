@@ -208,7 +208,7 @@ class CommonController(Handler):
             print("nothing to undo")
             
     def redo(self):
-        print(self.history['moveHistoryPosition'] , len(self.history['moveHistory']))
+        
         if self.history['moveHistoryPosition']+1 < len(self.history['moveHistory']):
             self.history['moveHistoryPosition'] += 1
             modelPose = self.history['moveHistoryPosition']
@@ -245,7 +245,7 @@ class CommonController(Handler):
             self.history['moveHistory'][self.history['moveHistoryPosition']] = history
             self.history['modelName'] = self.history['modelName'][:self.history['moveHistoryPosition']+1]
             self.history['modelName'][self.history['moveHistoryPosition']] = model.name
-        print(self.history)
+        
         
     def resetKey(self):
         self.fineRot = False
