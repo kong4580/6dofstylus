@@ -202,8 +202,6 @@ class CommonController(Handler):
                     newM = self.history['moveHistory'][modelPose][0]
                     self.updateModelPose(model,newM,artiModel)
                 
-            
-            # model.moveModel(self.history['moveHistory'][self.history['moveHistoryPosition']])
         else:
             print("nothing to undo")
             
@@ -220,8 +218,7 @@ class CommonController(Handler):
                     
                     newM = self.history['moveHistory'][modelPose][1]
                     self.updateModelPose(model,newM,artiModel)
-            # model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
-            # model.moveModel(self.history['moveHistory'][self.history['moveHistoryPosition']])
+            
         else:
             print("nothing to redo")
            
