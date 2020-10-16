@@ -740,21 +740,25 @@ class MouseController(CommonController):
         self.flags['showModelFrame'] = not self.flags['snapMode']
         # reset model
         if self.flags['resetModelTransform']:
-            for model in self.modelDicts['model']:
+            artiModel = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+            modelList =artiModel.getSubModel()
+            
+            # newM = model.currentM.copy()
+            for model in modelList:
 
                 # set model position to home position ( identity )
-                model.currentM = np.eye(4)
+                # model.currentM = np.eye(4)
         
                 # turn off reset flags
                 self.flags['resetModelTransform'] = False
 
                 # set new matrix model
-                newM = model.currentM
+                newM = model.startWorldToLocal
                 
                 # move model to the new matrix model
                 self.updateModelPose(model,newM,artiModel)
                 # model.moveModel(newM)
-            self.addHistory(self.old,newM,model)
+                # self.addHistory(self.old,newM,model)
             
         # every model will be deselected during checking Iou
         if self.flags['checkIoU']:
