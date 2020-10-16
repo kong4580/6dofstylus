@@ -4,7 +4,7 @@ from scipy.spatial import ConvexHull
 from OpenGL import GL, GLUT, GLU
 from scipy.spatial.transform import Rotation as R
 import math
-from Ray import Ray,Plane
+from Ray import Ray,Plane,Line
 
 class Handler():
     def __init__(self):
@@ -726,13 +726,15 @@ class MouseController(CommonController):
         elif rotationAxis == 'rotZ':
             axis = 2
             array = np.asarray([0.,0.,1.])
-
+        else:
+            axis = 0
+            array = np.asarray([1.,0.,0.])
         # get model currentM
         model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
         newM = model.currentM.copy()
 
         # set center position
-        center = [[newM[0][3]],[newM[1][3]],[newM[2][3]]]
+        center = [newM[0][3],newM[1][3],newM[2][3]]
 
         # init plane Normal and Position
         plane = Plane([newM[0][axis],newM[1][axis],newM[2][axis]],center)
@@ -741,8 +743,8 @@ class MouseController(CommonController):
         newRay = Ray(x,y)
 
         # get position where ray intersect with plane
-        newIntersect = newRay.Intersects(plane)
-        oldIntersect = self.oldRay.Intersects(plane)
+        newIntersect = newRay.intersects(plane)
+        oldIntersect = self.oldRay.intersects(plane)
 
         # check if rays intersect plane or not
         if newIntersect!="None" and oldIntersect != "None":
@@ -762,7 +764,7 @@ class MouseController(CommonController):
             axisDir  = np.dot(array,np.asarray([[newM[0][axis]],[newM[1][axis]],[newM[2][axis]]]))
 
             # get angle direction
-            rotationM = self.getVectorAngle(np.transpose(np.transpose(vector1)[0]),np.transpose(np.transpose(vector2)[0]))
+            rotationM = self.getVectorAngle(vector1,vector2)
             r = R.from_matrix(rotationM)
             matDir = r.as_rotvec()
 
@@ -776,6 +778,8 @@ class MouseController(CommonController):
                 matrix = (self.matrixM(angle*ratio,0,axisDir*matDir[1],0))
             elif rotationAxis == 'rotZ':
                 matrix = (self.matrixM(angle*ratio,0,0,axisDir*matDir[2]))
+            else:
+                matrix = newM[0:3,0:3]
             newMatrix = np.dot(newM[0:3,0:3],matrix)
             newM[0:3,0:3] = newMatrix
 
@@ -788,9 +792,8 @@ class MouseController(CommonController):
         # return matrix for model
         return newM
 
-
     def productAngle(self,vector1,vector2):
-        dotProduct = np.dot(np.transpose(vector1),vector2)
+        dotProduct = np.dot(vector1,vector2)
         sqrVec1 = vector1[0]*vector1[0]+vector1[1]*vector1[1]+vector1[2]*vector1[2]
         sqrVec2 = vector2[0]*vector2[0]+vector2[1]*vector2[1]+vector2[2]*vector2[2]
         if type(sqrVec1) == np.ndarray:
@@ -807,6 +810,30 @@ class MouseController(CommonController):
             angle = math.acos(dotProduct/(vector1Norm*vector2Norm))
             angle = ((angle/math.pi)*180)%1
         return angle
+    
+    def lineIntersect(self,plane1,plane2):
+        n1 = plane1.Normal
+        n2 = plane2.Normal
+        p1 = plane1.Position
+        p2 = plane2.Position
+        d1 = -(n1[0]*p1[0] + n1[1]*p1[1] + n1[2]*p1[2])
+        d2 = -(n2[0]*p2[0] + n2[1]*p2[1] + n2[2]*p2[2])
+        # find direction vector of the intersection line
+        v = np.cross(n1,n2)                   # cross product
+
+        # if |direction| = 0, 2 planes are parallel (no intersect)
+        # return a line with NaN
+        if(v[0] == 0 and v[1] == 0 and v[2] == 0):
+            return Line(np.asarray([Nan,Nan,Nan]), np.asarray([Nan,Nan,Nan]))
+
+        # find a point on the line, which is also on both planes
+        # choose simplest plane where d=0: ax + by + cz = 0
+        dot = np.dot(v,v)                       # V dot V
+        u1 =  d2 * n1                      # d2 * N1
+        u2 = -d1 * n2                      #-d1 * N2
+        p = (u1 + u2).cross(v) / dot       # (d2*N1-d1*N2) X V / V dot V
+
+        return Line(v, p)
 
     def matrixM(self,angle,x,y,z):
         v = [x,y,z]
@@ -817,7 +844,6 @@ class MouseController(CommonController):
          
             a = np.linalg.norm(vec)
         
-
             if a!=1:
                 v[0] /= a 
                 v[1] /= a
