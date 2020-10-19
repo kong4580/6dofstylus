@@ -12,7 +12,7 @@ from scipy.spatial.transform import Rotation as R
 import csv
 
 import drawFunc
-from Model import Model,OBJ
+from Model import Model,OBJ,Joint,ArticulateModel
 
 class OpenGLWindow(fltk.Fl_Gl_Window):
     
@@ -265,11 +265,13 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
             
                 
     # add model to opengl window class
-    def addModel(self,name,modelId,drawFunction=None,position=(0,0,0),rotation=(0,0,0),obj=None):
-        
-        # create model class
-        model = Model(name,modelId,drawFunction,position,rotation,obj=obj)
-        
+    def addModel(self,name,modelId,drawFunction=None,position=(0,0,0),rotation=(0,0,0),obj=None,objType='model',listOfJoint=[],showTarget = False,showPole = False):
+        if objType == 'model':
+            # create model class
+            model = Model(name,modelId,drawFunction,position,rotation,obj=obj)
+        elif objType == 'joint':
+            # create joint class
+            model = ArticulateModel(name,modelId,listOfJoint,showTarget,showPole)
         # add model to model dicts
         self.modelDicts['model'].append(model)
         

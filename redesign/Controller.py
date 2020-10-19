@@ -34,7 +34,7 @@ class MainController(Handler):
            
     def readEvent(self,event):
         for ctl in self.controllerList:
-            # print(fltk.Fl.event_alt(),fltk.FL_ALT,fltk.Fl.event_key(),event,fltk.FL_KEYBOARD )
+           
             if not fltk.Fl.event_alt() or(fltk.Fl.event_alt() and  (fltk.Fl.event_key() == 65513)):
                 ctl.resetKey()
                 ctl.keyHold = None
@@ -60,12 +60,128 @@ class CommonController(Handler):
         self.windowHeight = None
         self.windowWidth = None
         self.history = {'moveHistory':[np.eye(4)],
-                        'moveHistoryPosition':0}
+                        'moveHistoryPosition':0,
+                        'modelName':['']}
         self.windowHeight = packData['height']
         self.windowWidth = packData['width']
         self.cameraValue = packData['camera']
         self.fineRot = False
         self.fineTran = False
+        self.modelMode = packData['modelMode']
+    
+    def updateModelPose(self,model,transform,artiModel,mode = 'fk'):
+        if self.modelMode =='fk':
+            if type(model).__name__ == "Joint":
+                transform[0:3,3] = model.currentM[0:3,3]
+            model.moveModel(transform)
+            
+        elif self.modelMode =='ik':
+            
+            if type(model).__name__ != "Joint":
+                
+                # move transform
+                transform[0:3,0:3] = np.eye(3)
+                model.moveModel(transform)
+                try:
+                    # rotate J2 back to align with J1
+                    invJ2 = np.eye(4)
+                    invJ2[0:3,0:3] = np.linalg.inv(artiModel.listOfJoint[1].parentToLocal[0:3,0:3])
+                    artiModel.listOfJoint[1].moveModel(invJ2,mode='relative')
+                    
+                    # calculate theta 2
+                    from scipy.spatial import distance
+                    distJ1ToJ2 = artiModel.listOfJoint[1].getDist
+                    distJ2ToJ3 = artiModel.listOfJoint[2].getDist
+                    distJ1ToTarget = distance.euclidean(artiModel.listOfJoint[0].worldToLocal[0:3,3],artiModel.target.worldToLocal[0:3,3])
+                
+                
+                    
+                    # if cannot reach
+                    if distJ1ToTarget > distJ1ToJ2+distJ2ToJ3:
+                        theta2 = 0
+
+                    else:
+                        
+                        # get theta2
+                        cthetha2 = -(distJ1ToJ2**2+distJ2ToJ3**2-distJ1ToTarget**2)/(2*distJ1ToJ2*distJ2ToJ3)
+                        theta2 = math.acos(cthetha2)
+                        
+                        # move J2 with theta2
+                        c22 = np.array([[math.cos(theta2),-math.sin(theta2),0,0],
+                                        [math.sin(theta2),math.cos(theta2),0,0],
+                                        [0,0,1,0],
+                                        [0,0,0,1]])
+                        j2 = artiModel.listOfJoint[1].worldToLocal.copy()
+                        artiModel.listOfJoint[1].moveModel(c22,mode='relative')
+                except:
+                    pass   
+                
+                # get vector wrt. J1
+                v1Tov3 = np.dot(np.linalg.inv( artiModel.listOfJoint[0].worldToLocal),np.append(artiModel.listOfJoint[2].worldToLocal[0:3,3],[1]))[0:3]
+                v1ToTarget = np.dot(np.linalg.inv( artiModel.listOfJoint[0].worldToLocal),np.append(artiModel.target.worldToLocal[0:3,3],[1]))[0:3]
+                
+                # cal angle between J1J3 and J1Target
+                v1 = v1Tov3/np.linalg.norm(v1Tov3)
+                v2 = v1ToTarget/np.linalg.norm(v1ToTarget)
+               
+                r = self.getVectorAngle(v1,v2)
+                
+                rotation = R.from_matrix(r)
+                
+                # rotate J1 to map J3 on target  
+                tt = np.eye(4)
+                tt[0:3,0:3] = r.copy()
+                j1 = artiModel.listOfJoint[0].worldToLocal   
+                artiModel.listOfJoint[0].moveModel(tt,mode="relative")
+                
+                # get vector wrt. J1
+                v1Tov2 = np.dot(np.linalg.inv( artiModel.listOfJoint[0].worldToLocal),np.append(artiModel.listOfJoint[1].worldToLocal[0:3,3],[1]))[0:3]
+                v1ToTarget = np.dot(np.linalg.inv( artiModel.listOfJoint[0].worldToLocal),np.append(artiModel.target.worldToLocal[0:3,3],[1]))[0:3]
+                v1ToPole = np.dot(np.linalg.inv( artiModel.listOfJoint[0].worldToLocal),np.append(artiModel.poleVertex.worldToLocal[0:3,3],[1]))[0:3]
+                
+                # cal nomal vector of two plane
+                nvJ1J2 = np.cross(v1ToTarget,v1Tov2)/np.linalg.norm(np.cross(v1ToTarget,v1Tov2))
+                nvJ1Pole = np.cross(v1ToTarget,v1ToPole)/ np.linalg.norm(np.cross(v1ToTarget,v1ToPole))
+                
+                # cal angle between two plane
+                planeAngle = self.getVectorAngle(nvJ1J2,nvJ1Pole)
+                
+                if not np.isnan(planeAngle).any():
+                        
+                    # rotate J2 plane to poleVertex plane
+                    tt = np.eye(4)
+                    tt[0:3,0:3] = planeAngle.copy()  
+                    
+                    
+                    artiModel.listOfJoint[0].moveModel(tt,mode="relative")
+                    
+                
+            
+    def getVectorAngle(self,v1,v2):
+        if not np.equal(v1,v2).all():
+            if np.linalg.norm(v1) == 0 or np.linalg.norm(v2) == 0:
+                print( "one of the vectors is 0")
+            v = np.cross(v1,v2)
+            s = np.linalg.norm(v)
+            c = np.dot(v1,v2)
+            clamped_c = max(min(c, 1), -1)
+            angle_c = math.acos( clamped_c )
+            
+            if angle_c >0.000001 :
+                skV = np.array([[0,-v[2],v[1]],
+                                [v[2],0,-v[0]],
+                                [-v[1],v[0],0]])
+                r = np.eye(3)+skV+np.dot(skV,skV)*((1-c)/(1-c**2))
+                
+            else :
+                
+                r= np.eye(3)
+            
+            return r
+        else:
+            r = np.eye(3)
+            return r
+        
     def toggleFlags(self,flags):
         self.flags[flags] = not self.flags[flags]
         
@@ -73,9 +189,21 @@ class CommonController(Handler):
     def undo(self):
         
         if self.history['moveHistoryPosition'] > 0:
+            modelPose = self.history['moveHistoryPosition'] 
             self.history['moveHistoryPosition'] -= 1
-            model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
-            model.moveModel(self.history['moveHistory'][self.history['moveHistoryPosition']])
+            
+            
+            artiModel = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+            modelList = artiModel.getSubModel()
+            
+            
+            for model in modelList:
+                
+                if model.name == self.history['modelName'][modelPose]:
+                    
+                    newM = self.history['moveHistory'][modelPose][0]
+                    self.updateModelPose(model,newM,artiModel)
+                
         else:
             print("nothing to undo")
             
@@ -83,27 +211,41 @@ class CommonController(Handler):
         
         if self.history['moveHistoryPosition']+1 < len(self.history['moveHistory']):
             self.history['moveHistoryPosition'] += 1
-            model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
-            model.moveModel(self.history['moveHistory'][self.history['moveHistoryPosition']])
+            modelPose = self.history['moveHistoryPosition']
+            
+            artiModel = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+            modelList = artiModel.getSubModel()
+            for model in modelList:
+                if model.name == self.history['modelName'][modelPose]:
+                    
+                    newM = self.history['moveHistory'][modelPose][1]
+                    self.updateModelPose(model,newM,artiModel)
+            
         else:
             print("nothing to redo")
            
-    def addHistory(self,history):
-        
+    def addHistory(self,old,new,model):
+        history = [old,new]
         # update history position
         self.history['moveHistoryPosition']+=1
-        
         # if history is uptodate
         if len(self.history['moveHistory']) == self.history['moveHistoryPosition']:
             # This is a new event in hisory
             self.history['moveHistory'].append(history)
+            self.history['modelName'].append( model.name)
+            
         else:
             # This occurs if there was one of more UNDOs and then a new
             # execute command happened. In case of UNDO, the history_position
             # changes, and executing new commands purges any history after
             # the current position
+            
             self.history['moveHistory'] = self.history['moveHistory'][:self.history['moveHistoryPosition']+1]
             self.history['moveHistory'][self.history['moveHistoryPosition']] = history
+            self.history['modelName'] = self.history['modelName'][:self.history['moveHistoryPosition']+1]
+            self.history['modelName'][self.history['moveHistoryPosition']] = model.name
+        
+        
     def resetKey(self):
         self.fineRot = False
         self.fineTran = False
@@ -239,40 +381,49 @@ class StylusController(CommonController):
         if event == 999: # move cursor
             self.cursor.moveModel(self.transform)
             model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
-            
-            # if model is selected
-            if model.isSelected:
-                speed = 1
-                print(self.fineTran)
-                # move model follow cursor
-                # now use only newM because use transform matrix to draw model
-                newM = self.followCursor(model,self.cursor)
+            artiModel = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+            modelList = artiModel.getSubModel()
+            # if self.selectedModel != []:
+            for model in modelList:
                 
+                # model = self.selectedModel[0]
+                # artiModel = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+                # modelList = artiModel.getSubModel()
+                # for model in modelList:
+                    # if model is selected
+                if model.isSelected:
+                    speed = 1
+                    print(self.fineTran)
+                    # move model follow cursor
+                    # now use only newM because use transform matrix to draw model
+                    newM = self.followCursor(model,self.cursor)
                     
-                    
-            
-            # if model is not selected
-            else:
-                
-                # reset value from model
-                model.cursorM = None
-                model.cursorPose = None
-                
-                # if reset mode trigger
-                if self.flags['resetModelTransform']:
-                    for m in self.modelDicts['model']:
                         
-                        # set model position to home position ( identity )
-                        m.currentM = np.eye(4)
                         
-                        # turn off reset flags
-                        self.flags['resetModelTransform'] = False
-                    self.addHistory(m.currentM)
+                
+                # if model is not selected
+                else:
                     
-                # model position is remain position
-                newM = model.currentM
-            model.moveModel(newM)
-        
+                    # reset value from model
+                    model.cursorM = None
+                    model.cursorPose = None
+                    
+                    # if reset mode trigger
+                    if self.flags['resetModelTransform']:
+                        for m in self.modelDicts['model']:
+                            
+                            # set model position to home position ( identity )
+                            m.currentM = np.eye(4)
+                            
+                            # turn off reset flags
+                            self.flags['resetModelTransform'] = False
+                        self.addHistory(m.currentM)
+                        
+                    # model position is remain position
+                    newM = model.currentM
+                self.updateModelPose(model,newM,artiModel)
+                # model.moveModel(newM)
+                # print(model.name)
         if event >= 1000: # check button status
             
             # Get button key
@@ -297,11 +448,14 @@ class StylusController(CommonController):
                 
                 # add History log
                 model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
-                if model.isSelected:
-                    self.addHistory(model.currentM)
-                    
-                # Release model
-                self.releaseModel()
+                artiModel = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+                modelList = artiModel.getSubModel()
+                for model in modelList:
+                    if model.isSelected:
+                        self.addHistory(model.currentM)
+                        
+                    # Release model
+                    self.releaseModel()
                 print("releaseModel")
             
             # REALEASE ALL BUTTON
@@ -326,38 +480,45 @@ class StylusController(CommonController):
         
         # create selected model buffer
         selectModel = []
-        model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
-        
+        # model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+        artiModel = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+        modelList = artiModel.getSubModel()
         # run through all models in opengl window class
         # for model in self.modelDicts['model']:
-        
-            # if cursor position is in model
         if mode == "convex":
-            if self.isPointInsideConvexHull(model,self.cursor.centerPosition):
-                
-                # model is selected
-                model.isSelected = True
-                
-                # add model to selected model buffer
-                selectModel.append(model)
+            for model in modelList:
+                if self.isPointInsideConvexHull(model,self.cursor.centerPosition):
+                    
+                    # model is selected
+                    model.isSelected = True
+                    
+                    # add model to selected model buffer
+                    selectModel.append(model)
         elif mode == "buffer":
             cX,cY =self.getCursor2DPos()
             modelId = self.selectObjectWithBuffer(cX,cY)
-            if modelId == model.modelId:
-                # model is selected
-                model.isSelected = True
+            for model in modelList:
                 
-                # add model to selected model buffer
-                selectModel.append(model)
+                
+                if modelId == model.modelId:
+                    # model is selected
+                    model.isSelected = True
+                    
+                    # add model to selected model buffer
+                    selectModel.append(model)
+            # if cursor position is in model
+        
+            
         
         # return selected model buffer
         return selectModel
     
     # release model
     def releaseModel(self):
-        
+        artiModel = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+        modelList = artiModel.getSubModel()
         # run through all models in opengl window class
-        for model in self.modelDicts['model']:
+        for model in modelList:
             
             # change model to not selected
             model.isSelected = False
@@ -478,7 +639,10 @@ class StylusController(CommonController):
                 print("s",self.fineTran)
                 newM[0:3,0:3] = model.startclickM[0:3,0:3]
         
-                
+            if model.modelId<10:
+                newM[0,3] = model.startclickM[0,3]
+                newM[1,3] = model.startclickM[1,3]
+                newM[2,3] = model.startclickM[2,3]
                 
         # return new model transform
         return newM
@@ -537,18 +701,20 @@ class MouseController(CommonController):
             self.selectedModel = self.selectModel()
             
             self.oldRay = Ray(self.xMousePosition,self.yMousePosition)
-            
-            
+            if self.selectedModel != []:
+                self.old=self.selectedModel[0].currentM.copy()
+  
 
         # run when there is something selected   
         if self.selectedModel != []:
-            model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
-            newM = model.currentM
+            artiModel = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+            model =self.selectedModel[0]
             
+            newM = model.currentM.copy()
 
             # move method when model is selected 
             if model.isSelected:
-
+                
                 # mousewheel event
                 if event == fltk.FL_MOUSEWHEEL:
                     newM = self.mouseWheel()
@@ -559,30 +725,39 @@ class MouseController(CommonController):
                     
 
                 # store model position after release mouse# model is selected
-                    self.addHistory(newM)
+                if event == fltk.FL_RELEASE:
+                    self.addHistory(self.old,newM,model)
+                    
                     # print(self.history)
             # move model with new matrix
-            model.moveModel(newM)
+            self.updateModelPose(model,newM,artiModel)
+            # print(model.name)
+            # model.moveModel(newM)
             
         # run common controller event 
         self.runCommonEvent()
         self.flags['showModelFrame'] = not self.flags['snapMode']
         # reset model
         if self.flags['resetModelTransform']:
-            for model in self.modelDicts['model']:
+            artiModel = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+            modelList =artiModel.getSubModel()
+            
+            # newM = model.currentM.copy()
+            for model in modelList:
 
                 # set model position to home position ( identity )
-                model.currentM = np.eye(4)
+                # model.currentM = np.eye(4)
         
                 # turn off reset flags
                 self.flags['resetModelTransform'] = False
 
                 # set new matrix model
-                newM = model.currentM
+                newM = model.startWorldToLocal
                 
                 # move model to the new matrix model
-                model.moveModel(newM)
-            self.addHistory(newM)
+                self.updateModelPose(model,newM,artiModel)
+                # model.moveModel(newM)
+                # self.addHistory(self.old,newM,model)
             
         # every model will be deselected during checking Iou
         if self.flags['checkIoU']:
@@ -592,6 +767,8 @@ class MouseController(CommonController):
     # mouse wheel moving method
     def mouseWheel(self):
         model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+        model =self.selectedModel[0]
+        
         newM = model.currentM.copy()
 
         # translate in z axis
@@ -614,6 +791,8 @@ class MouseController(CommonController):
         # print(self.xMousePosition,self.yMousePosition)
 
         model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+        model =self.selectedModel[0]
+        
         newM = model.currentM.copy()
 
         # calculate ratio from mouse to window
@@ -636,47 +815,52 @@ class MouseController(CommonController):
     def selectModel(self):
         # create selected model buffer
         selectModel = []
-        model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+        artiModel = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+        modelList = artiModel.getSubModel()
+        
         # self.rotationAxis = None
         # check selection    
-        if self.mouseSelectedCheck() == model.modelId or self.mouseSelectedCheck() == True:
+        for model in modelList:
+            if self.mouseSelectedCheck() == model.modelId or self.mouseSelectedCheck() == True:
 
-            # model is selected
-            model.isSelected = True
-            self.rotationAxis = 'None'
-            self.translationAxis = 'None'
-            # print("model")
-            #add to selected model buffer
-            selectModel.append(model)
-        elif self.mouseSelectedCheck() == 201:
-            self.rotationAxis = 'rotX'
-            model.isSelected = True
-            selectModel.append(model)
-        elif self.mouseSelectedCheck() == 202:
-            self.rotationAxis = 'rotY'
-            model.isSelected = True
-            selectModel.append(model)
-        elif self.mouseSelectedCheck() == 203:
-            self.rotationAxis = 'rotZ'
-            model.isSelected = True
-            selectModel.append(model)
-        elif self.mouseSelectedCheck() == 101:
-            self.translationAxis = 'transX'
-            model.isSelected = True
-            selectModel.append(model)
-        elif self.mouseSelectedCheck() == 102:
-            self.translationAxis = 'transY'
-            model.isSelected = True
-            selectModel.append(model)
-        elif self.mouseSelectedCheck() == 103:
-            self.translationAxis = 'transZ'
-            model.isSelected = True
-            selectModel.append(model)
-        else:
+                # model is selected
+                model.isSelected = True
+                self.rotationAxis = 'None'
+                self.translationAxis = 'None'
+                # print("model")
+                #add to selected model buffer
+                selectModel.append(model)
+            elif self.mouseSelectedCheck() == 201:
+                self.rotationAxis = 'rotX'
+                model.isSelected = True
+                selectModel.append(model)
+            elif self.mouseSelectedCheck() == 202:
+                self.rotationAxis = 'rotY'
+                model.isSelected = True
+                selectModel.append(model)
+            elif self.mouseSelectedCheck() == 203:
+                self.rotationAxis = 'rotZ'
+                model.isSelected = True
+                selectModel.append(model)
+            elif self.mouseSelectedCheck() == 101:
+                self.translationAxis = 'transX'
+                model.isSelected = True
+                selectModel.append(model)
+            elif self.mouseSelectedCheck() == 102:
+                self.translationAxis = 'transY'
+                model.isSelected = True
+                selectModel.append(model)
+            elif self.mouseSelectedCheck() == 103:
+                self.translationAxis = 'transZ'
+                model.isSelected = True
+                selectModel.append(model)
+            else:
 
-            #model is deselected
-            model.isSelected = False
-        # print(self.rotationAxis)
+                #model is deselected
+                model.isSelected = False
+            # print(self.rotationAxis)
+        
+        # print(selectModel[0].name)
         return selectModel
 
     # mouse click selection checking
