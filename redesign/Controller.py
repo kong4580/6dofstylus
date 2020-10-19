@@ -792,7 +792,7 @@ class MouseController(CommonController):
 
         model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
         model =self.selectedModel[0]
-        
+        newTranslate = np.eye(4)
         newM = model.currentM.copy()
 
         # calculate ratio from mouse to window
@@ -804,8 +804,10 @@ class MouseController(CommonController):
                 recent = np.asarray([recentX/ratioX,-recentY/ratioY,0])
             else:
                 recent = self.mouseTranslate(self.xMousePosition,self.yMousePosition,self.translationAxis)
-            newM[0:3,3] += recent
-        
+            print(self.translationAxis)
+            newTranslate[0:3,3] = recent
+            newM = np.dot(newM,newTranslate)
+            # newM[0:3,3] += recent
         # drag to rotate
         elif self.flags['mouseMode'] == 'rot':
             newM = self.mouseRotate(self.xMousePosition,self.yMousePosition,self.rotationAxis)
