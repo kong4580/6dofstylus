@@ -308,6 +308,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
             self.flags['addLog'] = False
             self.iouScore = np.array([])
             self.openBackdropFile("backdropImg/backdrop_"+str(self.testNumber)+".jpg")
+            self.flags['resetModelTransform'] = True
             
             # turn test mode flags to true
             self.flags['lineupTestMode'] = True
@@ -344,7 +345,8 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
             print("average IoU: ",self.log["avgIou"])
             print("total time: ",self.log["totalTime"])
             print("ModelPerSec: ",self.log["modelPerSec"])
-            
+        self.modelDicts['runModelIdx'] = self.testNumber % 2
+        
     # snap opengl window image
     def snap(self,name, save = True, binary = False):
         

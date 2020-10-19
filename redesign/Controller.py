@@ -744,7 +744,7 @@ class MouseController(CommonController):
         if self.flags['resetModelTransform']:
             artiModel = self.modelDicts['model'][self.modelDicts['runModelIdx']]
             modelList =artiModel.getSubModel()
-            
+            print("ss")
             # newM = model.currentM.copy()
             for model in modelList:
 
@@ -756,7 +756,7 @@ class MouseController(CommonController):
 
                 # set new matrix model
                 newM = model.startWorldToLocal
-                
+                print(model.name)
                 # move model to the new matrix model
                 self.updateModelPose(model,newM,artiModel)
                 # model.moveModel(newM)
