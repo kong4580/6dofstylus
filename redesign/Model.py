@@ -43,6 +43,7 @@ class Transform():
         # newT = np.dot(tranM,self.worldToLocal)
         newT = np.dot(self.parentToLocal,transform)
         
+        
         # newT = np.dot(newT,rotM)
         
         if len(self.parent) > 0:
