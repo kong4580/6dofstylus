@@ -225,6 +225,7 @@ class CommonController(Handler):
             print("nothing to redo")
            
     def addHistory(self,old,new,model):
+        
         history = [old,new]
         # update history position
         self.history['moveHistoryPosition']+=1
@@ -251,7 +252,8 @@ class CommonController(Handler):
         self.fineTran = False
     def clearHistory(self):
         self.history = {'moveHistory':[np.eye(4)],
-                        'moveHistoryPosition':0}
+                        'moveHistoryPosition':0,
+                        'modelName':['']}
     
     def selectObjectWithBuffer(self,xPos,yPos):
         model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
@@ -716,20 +718,21 @@ class MouseController(CommonController):
             if model.isSelected:
                 
                 # mousewheel event
-                if event == fltk.FL_MOUSEWHEEL:
-                    newM = self.mouseWheel()
-
+                # if event == fltk.FL_MOUSEWHEEL:
+                #     newM = self.mouseWheel()
+                    
                 #mouse drag event
                 if event == fltk.FL_DRAG:
                     newM = self.mouseDrag()
                     
-
                 # store model position after release mouse# model is selected
                 if event == fltk.FL_RELEASE:
                     self.addHistory(self.old,newM,model)
                     
                     # print(self.history)
             # move model with new matrix
+            
+            
             self.updateModelPose(model,newM,artiModel)
             # print(model.name)
             # model.moveModel(newM)
@@ -799,16 +802,20 @@ class MouseController(CommonController):
         ratioX = -(5*(self.windowWidth/10)/(newM[2][3] -10))
         ratioY = -(5*(self.windowHeight/10)/(newM[2][3] -10))
         # drag to translate
+        
         if self.flags['mouseMode'] == 'trans':
             if self.translationAxis == 'None':
                 recent = np.asarray([recentX/ratioX,-recentY/ratioY,0])
             else:
+                
                 recent = self.mouseTranslate(self.xMousePosition,self.yMousePosition,self.translationAxis)
-            print(self.translationAxis)
+            
+            
             newTranslate[0:3,3] = recent
-            print(recent)
-            newM = np.dot(newM,newTranslate)
-            print(newM)
+            # print(newM)
+            # # print(recent)
+            newM = np.dot(newTranslate,newM)
+            # print(newM)
 
             # newM[0:3,3] += recent
         # drag to rotate
@@ -924,7 +931,8 @@ class MouseController(CommonController):
             axis = 0
             array = np.asarray([1.,0.,0.])
         # get model currentM
-        model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+        # model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+        model = self.selectedModel[0]
         newM = model.currentM.copy()
         
         # set center position
@@ -1001,7 +1009,8 @@ class MouseController(CommonController):
             axis2 = 1
             
         # get model currentM
-        model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+        # model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+        model = self.selectedModel[0]
         newM = model.currentM.copy()
         # print(newM)
         # set center position

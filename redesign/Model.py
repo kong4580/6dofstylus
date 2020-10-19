@@ -41,7 +41,10 @@ class Transform():
         
         
         # newT = np.dot(tranM,self.worldToLocal)
-        newT = np.dot(self.parentToLocal,transform)
+        # newT = np.dot(self.parentToLocal,transform)
+        newT = np.dot(tranM,self.parentToLocal)
+        newT = np.dot(newT,rotM)
+
         
         
         # newT = np.dot(newT,rotM)
@@ -78,7 +81,7 @@ class Transform():
         wR = np.eye(4)
         wR[0:3,0:3] = matrix[0:3,0:3].copy()
         
-        t = np.dot(wT,np.linalg.inv(pT))
+        t = np.dot(np.linalg.inv(pT),wT)
         # print(pR,wR)
         r = np.dot(np.linalg.pinv(pR),wR)
         
@@ -319,7 +322,10 @@ class Model(Transform):
         #     matrix[0:3,3] = self.currentM[0:3,3]
         # print(self.name,matrix)
         if mode == 'absolute':
+            
+
             transform = self.goTo(matrix)
+            
             self.apply(transform)
         else:
             self.apply(matrix)
