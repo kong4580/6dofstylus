@@ -112,9 +112,14 @@ class Stylus2(Stylus):
     
     def __init__(self):
         super().__init__()
+        self.h1 = 80
+        self.h2 = 165
+        self.l1 =30
+        self.l2 = 230
         self.dh = np.matrix([[0 ,self.h1, 0, pi/2],
-                             [pi/2, 0, self.h2, 0],
-                             [-pi/2,0,self.l1+self.l2, 0]])
+                             [90*pi/180, 0, self.h2, 0],
+                             [0,0,self.l1, 0],
+                             [-90*pi/180,0,self.l2, 0]])
                              
     def getEndTransforms(self,q):
         if len(q) != 3:
@@ -125,10 +130,11 @@ class Stylus2(Stylus):
             q[1] = q[1] - pi 
             q[2] = q[2] - pi 
 
-            q = q - np.asarray([0, 0.02761165, -0.00920388])
-            
-            fk = self.forwardKinematics(q.tolist(),wrt=(0,2))[-1,:,:]
-            
+            q = q - np.asarray([0.11658254, -0.27458256, -0.20248546])
+            q = np.append(q,[0])
+            print(q)
+            fk = self.forwardKinematics(q.tolist(),wrt=(0,3))[-1,:,:]
+            print(fk)
             return fk
         
 if __name__ == '__main__':

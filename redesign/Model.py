@@ -1,6 +1,7 @@
 
 import sys
 from math import sqrt
+import math
 import time
 
 from OpenGL import GL, GLUT, GLU
@@ -131,7 +132,34 @@ class Model(Transform):
         # model flags
         self.isSelected = False
         self.show = True
+        self.flags = {
+                      'showModel':True,
+                      
+                      
+                      'showModelWireframe':False,
+                      
+                      'opacityMode':False,
+                      
+                      'enableLight': True,
+                      
+                      'showModelFrame':False
+                      }
+    def updateFlags(self, flags,data):
+        self.flags[flags] = data
     
+    def resetFlags(self):
+        self.flags = {
+                      'showModel':True,
+                      
+                      
+                      'showModelWireframe':False,
+                      
+                      'opacityMode':False,
+                      
+                      'enableLight': True,
+                      
+                      'showModelFrame':False
+                      }
     @property
     def argv(self):
         return 0
@@ -163,7 +191,7 @@ class Model(Transform):
                     GL.glCallList(self.obb.gl_list)
                 
                 # if wireFrame is enable
-                if wireFrame:
+                if self.flags['showModelWireframe']:
                     
                     # turn off back face
                     GL.glEnable(GL.GL_CULL_FACE)
@@ -193,7 +221,7 @@ class Model(Transform):
                     color = drawFunc.WhiteColorVector
                 
                 # if opacity is enable
-                if opacity:
+                if self.flags['opacityMode']:
                     
                     # set model opacity to 0.75
                     self.opacityValue = 0.75
@@ -217,7 +245,7 @@ class Model(Transform):
                 GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
                 
                 # if disable lighting
-                if not enableLight:
+                if not self.flags['enableLight']:
                     # turn off lighting
                     GL.glDisable(GL.GL_LIGHTING)
                     
@@ -227,7 +255,7 @@ class Model(Transform):
                 GL.glCallList(self.obj.gl_list)
                 
                 # if disable lighting
-                if not enableLight:
+                if not self.flags['enableLight']:
                     # turn on lighting
                     GL.glEnable(GL.GL_LIGHTING)
                 
@@ -240,7 +268,7 @@ class Model(Transform):
                 GL.glPopMatrix()
 
             # draw model frame
-                if showFrame:
+                if self.flags['showModelFrame']:
                     if mode == 'trans':
                         self.drawFrame(drawFunc.drawAxisX,101,selectedMode)
                         self.drawFrame(drawFunc.drawAxisY,102,selectedMode)
@@ -628,7 +656,28 @@ class Joint(Model):
             if selectedMode:
                 GL.glLoadName(self.modelId)
             GLUT.glutSolidSphere(.74,10,10)
-            
+            # r,lats,longs = 0.74,10,10
+            # #  i, j
+            # for i in range(lats):
+            #     lat0 = math.pi * (-0.5 + (i - 1) / lats)
+            #     z0  = math.sin(lat0)
+            #     zr0 =  math.cos(lat0)
+
+            #     lat1 = math.pi * (-0.5 + i / lats)
+            #     z1 = math.sin(lat1)
+            #     zr1 = math.cos(lat1)
+
+            #     GL.glBegin(GL.GL_QUAD_STRIP)
+            #     for j in range(longs):
+            #         lng = 2 * math.pi * (j - 1) / longs
+            #         x = math.cos(lng)
+            #         y = math.sin(lng)
+
+            #         GL.glNormal3f(x * zr0, y * zr0, z0)
+            #         GL.glVertex3f(r * x * zr0, r * y * zr0, r * z0)
+            #         GL.glNormal3f(x * zr1, y * zr1, z1)
+            #         GL.glVertex3f(r * x * zr1, r * y * zr1, r * z1)
+                # GL.glEnd()
             GL.glPopMatrix()
             
             GL.glMatrixMode(GL.GL_MODELVIEW)

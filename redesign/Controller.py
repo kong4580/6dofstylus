@@ -184,7 +184,15 @@ class CommonController(Handler):
         
     def toggleFlags(self,flags):
         self.flags[flags] = not self.flags[flags]
-        
+    
+    def toggleModelFlags(self,flags):
+        artiModel = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+        modelList = artiModel.getSubModel()
+        for model in modelList:
+            # if model.isSelected:
+            newFlags = not model.flags[flags]
+            model.updateFlags(flags,newFlags)
+                
         
     def undo(self):
         
@@ -266,7 +274,7 @@ class CommonController(Handler):
         GL.glLoadIdentity()
 
         # pick position
-        GLU.gluPickMatrix(xPos, vp[3] - yPos, 3, 3, vp)
+        GLU.gluPickMatrix(xPos, vp[3] - yPos, 1, 1, vp)
 
         # set viewport for select mode
         # GLU.gluPerspective(30,self.windowWidth/self.windowHeight,1,100)
@@ -301,12 +309,17 @@ class CommonController(Handler):
 
         # return model id
         hits = GL.glRenderMode(GL.GL_RENDER)
-
+        def ele(elem):
+            return elem.near
         # if mouse select something
         if hits != []:
-            modelselected = hits[-1].names[0]
-            # for i in hits:
-            #     print(i.names[0],"print")
+            if len(hits) > 1:
+                modelselected = min(hits,key=ele).names[0]
+            else:
+                modelselected = hits[0].names[0]
+            
+                
+                
         else:
             modelselected = 0
         
@@ -317,13 +330,13 @@ class CommonController(Handler):
 
         if self.keyCha == ord('q'):
 
-            self.toggleFlags('showModel')
+            self.toggleModelFlags('showModel')
             
         if self.keyCha == ord('1'):
-            self.toggleFlags('showModelWireframe')
+            self.toggleModelFlags('showModelWireframe')
             
         if self.keyCha == ord('2'):
-            self.toggleFlags('opacityMode')
+            self.toggleModelFlags('opacityMode')
         
         if self.keyCha == ord('s'):
             self.toggleFlags('snapMode')
@@ -687,6 +700,7 @@ class MouseController(CommonController):
     def __init__(self,packData):
         super().__init__(packData)
         self.flags['showCursor'] = False
+        
         self.flags['showModelFrame'] = True
         self.transform = np.eye(4)
         self.selectedModel = []
@@ -728,8 +742,8 @@ class MouseController(CommonController):
             if model.isSelected:
                 
                 # mousewheel event
-                # if event == fltk.FL_MOUSEWHEEL:
-                #     newM = self.mouseWheel()
+                if event == fltk.FL_MOUSEWHEEL:
+                    newM = self.mouseWheel()
                     
                 #mouse drag event
                 if event == fltk.FL_DRAG:
@@ -754,7 +768,7 @@ class MouseController(CommonController):
         if self.flags['resetModelTransform']:
             artiModel = self.modelDicts['model'][self.modelDicts['runModelIdx']]
             modelList =artiModel.getSubModel()
-            
+            print("ss")
             # newM = model.currentM.copy()
             for model in modelList:
 
@@ -766,7 +780,7 @@ class MouseController(CommonController):
 
                 # set new matrix model
                 newM = model.startWorldToLocal
-                
+                print(model.name)
                 # move model to the new matrix model
                 self.updateModelPose(model,newM,artiModel)
                 # model.moveModel(newM)
@@ -1150,7 +1164,7 @@ class StylusController2(StylusController):
                                   [0,0,-1,0],
                                   [0,-1,0,0],
                                   [0,0,0,1]])
-        
+        self.cfg={"homeCfg":(63.7441366, 2.24992609,  16.176381)}
         self.isImuInit = False
         self.imuTrans = np.eye(4)
         
@@ -1165,12 +1179,14 @@ class StylusController2(StylusController):
     def setTransform(self, cursorTransform,imuQuat):
         
         # read cursor transform from stylus and scaling
-        cursorTransform[0:3,3] = cursorTransform[0:3,3].copy() * 0.05
-       
+        cursorTransform[0:3,3] = cursorTransform[0:3,3].copy() * 0.3
+        print(cursorTransform)
         # offset home position
         cursorTransform[0,3] -= self.cfg["homeCfg"][0]
         cursorTransform[1,3] -= self.cfg["homeCfg"][1]
         cursorTransform[2,3] -= self.cfg["homeCfg"][2]
+        print(cursorTransform)
+        
         # cursorTransform[0:3,3] = cursorTransform[0:3,3].copy() * 1
         
         # get translation from dof 1 to enf
