@@ -274,7 +274,7 @@ class CommonController(Handler):
         GL.glLoadIdentity()
 
         # pick position
-        GLU.gluPickMatrix(xPos, vp[3] - yPos, 3, 3, vp)
+        GLU.gluPickMatrix(xPos, vp[3] - yPos, 1, 1, vp)
 
         # set viewport for select mode
         GL.glFrustum(((-1*(self.windowWidth/self.windowHeight))/self.cameraValue[0])-self.cameraValue[1], ((1*(self.windowWidth/self.windowHeight))/self.cameraValue[0])-self.cameraValue[1], -1/self.cameraValue[0]-self.cameraValue[2], 1/self.cameraValue[0]-self.cameraValue[2], 1, 100)
@@ -299,12 +299,17 @@ class CommonController(Handler):
 
         # return model id
         hits = GL.glRenderMode(GL.GL_RENDER)
-
+        def ele(elem):
+            return elem.near
         # if mouse select something
         if hits != []:
-            modelselected = hits[-1].names[0]
-            # for i in hits:
-            #     print(i.names[0],"print")
+            if len(hits) > 1:
+                modelselected = min(hits,key=ele).names[0]
+            else:
+                modelselected = hits[0].names[0]
+            
+                
+                
         else:
             modelselected = 0
         
@@ -1139,7 +1144,7 @@ class StylusController2(StylusController):
                                   [0,0,-1,0],
                                   [0,-1,0,0],
                                   [0,0,0,1]])
-        self.cfg={"homeCfg":(73.7478494, -0.113127614,  12.8708859)}
+        self.cfg={"homeCfg":(63.7441366, 2.24992609,  16.176381)}
         self.isImuInit = False
         self.imuTrans = np.eye(4)
         

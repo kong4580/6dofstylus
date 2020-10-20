@@ -183,10 +183,10 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         
         # if turn on snap mode
         # close cursor model
-        # self.cursor.show = self.flags['showCursor']
+        self.cursor.show = self.flags['showCursor']
         
         
-        # self.cursor.drawMatrixModel(showFrame=self.flags['showCursor'])
+        self.cursor.drawMatrixModel(showFrame=self.flags['showCursor'])
         
         
         # draw model
