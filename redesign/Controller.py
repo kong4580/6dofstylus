@@ -718,8 +718,8 @@ class MouseController(CommonController):
             if model.isSelected:
                 
                 # mousewheel event
-                # if event == fltk.FL_MOUSEWHEEL:
-                #     newM = self.mouseWheel()
+                if event == fltk.FL_MOUSEWHEEL:
+                    newM = self.mouseWheel()
                     
                 #mouse drag event
                 if event == fltk.FL_DRAG:
@@ -1130,7 +1130,7 @@ class StylusController2(StylusController):
                                   [0,0,-1,0],
                                   [0,-1,0,0],
                                   [0,0,0,1]])
-        
+        self.cfg={"homeCfg":(73.7478494, -0.113127614,  12.8708859)}
         self.isImuInit = False
         self.imuTrans = np.eye(4)
         
@@ -1145,12 +1145,14 @@ class StylusController2(StylusController):
     def setTransform(self, cursorTransform,imuQuat):
         
         # read cursor transform from stylus and scaling
-        cursorTransform[0:3,3] = cursorTransform[0:3,3].copy() * 0.05
-       
+        cursorTransform[0:3,3] = cursorTransform[0:3,3].copy() * 0.3
+        print(cursorTransform)
         # offset home position
         cursorTransform[0,3] -= self.cfg["homeCfg"][0]
         cursorTransform[1,3] -= self.cfg["homeCfg"][1]
         cursorTransform[2,3] -= self.cfg["homeCfg"][2]
+        print(cursorTransform)
+        
         # cursorTransform[0:3,3] = cursorTransform[0:3,3].copy() * 1
         
         # get translation from dof 1 to enf

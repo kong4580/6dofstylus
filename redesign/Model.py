@@ -1,6 +1,7 @@
 
 import sys
 from math import sqrt
+import math
 import time
 
 from OpenGL import GL, GLUT, GLU
@@ -628,7 +629,28 @@ class Joint(Model):
             if selectedMode:
                 GL.glLoadName(self.modelId)
             GLUT.glutSolidSphere(.74,10,10)
-            
+            # r,lats,longs = 0.74,10,10
+            # #  i, j
+            # for i in range(lats):
+            #     lat0 = math.pi * (-0.5 + (i - 1) / lats)
+            #     z0  = math.sin(lat0)
+            #     zr0 =  math.cos(lat0)
+
+            #     lat1 = math.pi * (-0.5 + i / lats)
+            #     z1 = math.sin(lat1)
+            #     zr1 = math.cos(lat1)
+
+            #     GL.glBegin(GL.GL_QUAD_STRIP)
+            #     for j in range(longs):
+            #         lng = 2 * math.pi * (j - 1) / longs
+            #         x = math.cos(lng)
+            #         y = math.sin(lng)
+
+            #         GL.glNormal3f(x * zr0, y * zr0, z0)
+            #         GL.glVertex3f(r * x * zr0, r * y * zr0, r * z0)
+            #         GL.glNormal3f(x * zr1, y * zr1, z1)
+            #         GL.glVertex3f(r * x * zr1, r * y * zr1, r * z1)
+                # GL.glEnd()
             GL.glPopMatrix()
             
             GL.glMatrixMode(GL.GL_MODELVIEW)
