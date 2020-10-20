@@ -132,7 +132,34 @@ class Model(Transform):
         # model flags
         self.isSelected = False
         self.show = True
+        self.flags = {
+                      'showModel':True,
+                      
+                      
+                      'showModelWireframe':False,
+                      
+                      'opacityMode':False,
+                      
+                      'enableLight': True,
+                      
+                      'showModelFrame':False
+                      }
+    def updateFlags(self, flags,data):
+        self.flags[flags] = data
     
+    def resetFlags(self):
+        self.flags = {
+                      'showModel':True,
+                      
+                      
+                      'showModelWireframe':False,
+                      
+                      'opacityMode':False,
+                      
+                      'enableLight': True,
+                      
+                      'showModelFrame':False
+                      }
     @property
     def argv(self):
         return 0
@@ -164,7 +191,7 @@ class Model(Transform):
                     GL.glCallList(self.obb.gl_list)
                 
                 # if wireFrame is enable
-                if wireFrame:
+                if self.flags['showModelWireframe']:
                     
                     # turn off back face
                     GL.glEnable(GL.GL_CULL_FACE)
@@ -194,7 +221,7 @@ class Model(Transform):
                     color = drawFunc.WhiteColorVector
                 
                 # if opacity is enable
-                if opacity:
+                if self.flags['opacityMode']:
                     
                     # set model opacity to 0.75
                     self.opacityValue = 0.75
@@ -218,7 +245,7 @@ class Model(Transform):
                 GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
                 
                 # if disable lighting
-                if not enableLight:
+                if not self.flags['enableLight']:
                     # turn off lighting
                     GL.glDisable(GL.GL_LIGHTING)
                     
@@ -228,7 +255,7 @@ class Model(Transform):
                 GL.glCallList(self.obj.gl_list)
                 
                 # if disable lighting
-                if not enableLight:
+                if not self.flags['enableLight']:
                     # turn on lighting
                     GL.glEnable(GL.GL_LIGHTING)
                 
@@ -241,7 +268,7 @@ class Model(Transform):
                 GL.glPopMatrix()
 
             # draw model frame
-                if showFrame:
+                if self.flags['showModelFrame']:
                     if mode == 'trans':
                         self.drawFrame(drawFunc.drawAxisX,101,selectedMode)
                         self.drawFrame(drawFunc.drawAxisY,102,selectedMode)

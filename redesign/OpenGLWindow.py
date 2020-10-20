@@ -183,10 +183,10 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         
         # if turn on snap mode
         # close cursor model
-        self.cursor.show = self.flags['showCursor']
+        # self.cursor.show = self.flags['showCursor']
         
         
-        self.cursor.drawMatrixModel(showFrame=self.flags['showCursor'])
+        # self.cursor.drawMatrixModel(showFrame=self.flags['showCursor'])
         
         
         # draw model
@@ -209,10 +209,13 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
             self.modelDicts['runModelIdx'] = self.testNumber % 2
             model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
             # set show or not show model
-            model.show = self.flags['showModel']
-              
+            model.show = model.flags['showModel']
+            model.flags['showModelFrame'] = self.flags['showModelFrame']
             # draw model with transform matrix
-            model.drawMatrixModel(showFrame=self.flags['showModelFrame'],wireFrame = self.flags['showModelWireframe'], opacity = self.flags['opacityMode'],mode=self.flags['mouseMode'])
+            # model.drawMatrixModel(showFrame=self.flags['showModelFrame'],wireFrame = self.flags['showModelWireframe'], opacity = self.flags['opacityMode'],mode=self.flags['mouseMode'])
+            model.drawMatrixModel(mode=self.flags['mouseMode'])
+            
+            
                 
                 
                 
@@ -308,6 +311,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
             self.flags['addLog'] = False
             self.iouScore = np.array([])
             self.openBackdropFile("backdropImg/backdrop_"+str(self.testNumber)+".jpg")
+            self.flags['resetModelTransform'] = True
             
             # turn test mode flags to true
             self.flags['lineupTestMode'] = True
@@ -344,7 +348,8 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
             print("average IoU: ",self.log["avgIou"])
             print("total time: ",self.log["totalTime"])
             print("ModelPerSec: ",self.log["modelPerSec"])
-            
+        self.modelDicts['runModelIdx'] = self.testNumber % 2
+        
     # snap opengl window image
     def snap(self,name, save = True, binary = False):
         
@@ -404,41 +409,69 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         
         # remember current flags to buffer
         oldflags = self.flags.copy()
-        
+        artiModel = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+        listModelOldFlags = []
+        for model in artiModel.getSubModel():
+            listModelOldFlags.append(model.flags.copy())
         # turn on snap mode
         self.flags['snapMode'] = False
-        
-        # change model to solid
-        self.flags['showModelWireframe'] = False
-        
-        # turn off opacity
-        self.flags['opacityMode'] = False
-        self.flags['showModelFrame'] = False
-        # set model to show
-        self.flags['showModel'] = False
         self.flags['showCursor'] = False
-        # update opengl window
+        self.flags['showModelFrame']=False
+        
+        for model in artiModel.getSubModel():
+        
+            
+            # change model to solid
+            model.updateFlags('showModelWireframe',False)
+            # self.flags['showModelWireframe'] = False
+            
+            # turn off opacity
+            model.updateFlags('opacityMode',False)
+            # self.flags['opacityMode'] = False
+            
+            # self.flags['showModelFrame'] = False
+            # set model to show
+            model.updateFlags('showModel',False)
+            
+            # self.flags['showModel'] = False
+            # update opengl window
         self.redraw()
+        for model in artiModel.getSubModel():
+            print(model.name,model.flags)
         fltk.Fl_check()
         
         # change backdrop image to binary
         # fltk.Fl_wait(0.5)
-        # self.snap("backdrop",save=True)
+        self.snap("backdrop",save=True)
         backdropImg = self.snap("backdrop",save=False)
         bw = np.asarray(backdropImg).copy()
         bw[bw < 80] = 0    # Black
         bw[bw >= 80] = 255 # White
         
         self.flags['snapMode'] = True
-        self.flags['showModelWireframe'] = False
-        self.flags['opacityMode'] = False
-        self.flags['showModel'] = True
         self.flags['showCursor'] = False
-        self.flags['showModelFrame'] = False
+        self.flags['showModelFrame']=False
+        
+        for model in artiModel.getSubModel():
+        
+            
+            # change model to solid
+            model.updateFlags('showModelWireframe',False)
+            # self.flags['showModelWireframe'] = False
+            
+            # turn off opacity
+            model.updateFlags('opacityMode',False)
+            # self.flags['opacityMode'] = False
+            # model.updateFlags('showModelFrame',False)
+            
+            # self.flags['showModelFrame'] = False
+            # set model to show
+            model.updateFlags('showModel',True)
+        
         self.redraw()
         fltk.Fl_check()
         # fltk.Fl_wait(0.5)
-        # self.snap("test",save=True)
+        self.snap("test",save=True)
 
         # get 8 bits RGB of model image
         testimg = self.snap("test",save=False)
@@ -460,6 +493,8 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         
         for key in self.flags:
             self.flags[key]= oldflags[key]
+        for idx,model in enumerate(artiModel.getSubModel()):
+            model.flags = listModelOldFlags[idx]
         # set flags to remain flags
         # self.flags = oldflags
         

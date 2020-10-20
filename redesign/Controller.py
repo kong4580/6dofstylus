@@ -184,7 +184,15 @@ class CommonController(Handler):
         
     def toggleFlags(self,flags):
         self.flags[flags] = not self.flags[flags]
-        
+    
+    def toggleModelFlags(self,flags):
+        artiModel = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+        modelList = artiModel.getSubModel()
+        for model in modelList:
+            # if model.isSelected:
+            newFlags = not model.flags[flags]
+            model.updateFlags(flags,newFlags)
+                
         
     def undo(self):
         
@@ -307,13 +315,13 @@ class CommonController(Handler):
 
         if self.keyCha == ord('q'):
 
-            self.toggleFlags('showModel')
+            self.toggleModelFlags('showModel')
             
         if self.keyCha == ord('1'):
-            self.toggleFlags('showModelWireframe')
+            self.toggleModelFlags('showModelWireframe')
             
         if self.keyCha == ord('2'):
-            self.toggleFlags('opacityMode')
+            self.toggleModelFlags('opacityMode')
         
         if self.keyCha == ord('s'):
             self.toggleFlags('snapMode')
@@ -677,6 +685,7 @@ class MouseController(CommonController):
     def __init__(self,packData):
         super().__init__(packData)
         self.flags['showCursor'] = False
+        
         self.flags['showModelFrame'] = True
         self.transform = np.eye(4)
         self.selectedModel = []
@@ -744,7 +753,7 @@ class MouseController(CommonController):
         if self.flags['resetModelTransform']:
             artiModel = self.modelDicts['model'][self.modelDicts['runModelIdx']]
             modelList =artiModel.getSubModel()
-            
+            print("ss")
             # newM = model.currentM.copy()
             for model in modelList:
 
@@ -756,7 +765,7 @@ class MouseController(CommonController):
 
                 # set new matrix model
                 newM = model.startWorldToLocal
-                
+                print(model.name)
                 # move model to the new matrix model
                 self.updateModelPose(model,newM,artiModel)
                 # model.moveModel(newM)
