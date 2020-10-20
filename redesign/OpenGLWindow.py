@@ -169,11 +169,19 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         # set area of screen
         # implement zoom and tramslate view
         # minX, maxX, minY, maxY, minZ, maxZ
-        GL.glFrustum(((-1*(self.w()/self.h()))/self.cameravalue[0])-self.cameravalue[1], ((1*(self.w()/self.h()))/self.cameravalue[0])-self.cameravalue[1], -1/self.cameravalue[0]-self.cameravalue[2], 1/self.cameravalue[0]-self.cameravalue[2], 1, 100)
+        ratio = 0.2679491924311227
+        GL.glFrustum(((-ratio*(self.w()/self.h()))/self.cameravalue[0])-ratio*self.cameravalue[1], 
+                    ((ratio*(self.w()/self.h()))/self.cameravalue[0])-ratio*self.cameravalue[1], 
+                    -ratio/self.cameravalue[0]-ratio*self.cameravalue[2], 
+                    ratio/self.cameravalue[0]-ratio*self.cameravalue[2], 
+                    1, 100)
+        # GLU.gluPerspective(30,self.w()/self.h(),1,100)
+        
+        GL.glTranslatef(0,0,-35)
 
         #offset camera view
         GL.glTranslatef(0,-5,0)
-        GL.glTranslatef(0,0,-10)
+        # GL.glTranslatef(0,0,-10)
         
         
         GL.glMatrixMode(GL.GL_MODELVIEW)
@@ -213,7 +221,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
               
             # draw model with transform matrix
             model.drawMatrixModel(showFrame=self.flags['showModelFrame'],wireFrame = self.flags['showModelWireframe'], opacity = self.flags['opacityMode'],mode=self.flags['mouseMode'])
-                
+        
                 
                 
     # handle function of opengl window class
@@ -497,7 +505,11 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         # set camera view
         GL.glMatrixMode(GL.GL_PROJECTION)
         GL.glLoadIdentity()
-        GL.glOrtho( (-0.5*(self.w()/self.h())/self.cameravalue[0])-0.5*self.cameravalue[1], (0.5*(self.w()/self.h())/self.cameravalue[0])-0.5*self.cameravalue[1], -0.5/self.cameravalue[0]-0.5*self.cameravalue[2], 0.5/self.cameravalue[0]-0.5*self.cameravalue[2], -0.5, 1 )
+        GL.glOrtho( (-0.5*(self.w()/self.h())/self.cameravalue[0])-0.5*self.cameravalue[1], 
+                    (0.5*(self.w()/self.h())/self.cameravalue[0])-0.5*self.cameravalue[1], 
+                    -0.5/self.cameravalue[0]-0.5*self.cameravalue[2], 
+                    0.5/self.cameravalue[0]-0.5*self.cameravalue[2], 
+                    -0.5, 1 )
         GL.glMatrixMode(GL.GL_MODELVIEW)
         GL.glLoadIdentity()
 

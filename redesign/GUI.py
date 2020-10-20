@@ -221,11 +221,11 @@ class Gui():
     def updateFltk(self):
         model = self.openglWindow.modelDicts['model'][self.openglWindow.modelDicts['runModelIdx']]
         # print(model)
-        r = R.from_matrix(model.currentM[0:3,0:3])
+        r = R.from_matrix(model.worldToLocal[0:3,0:3])
         degree = r.as_euler('zyx', degrees=True)
-        self.storageOutput[0].value(str(round(model.currentM[0][3],2)))
-        self.storageOutput[1].value(str(round(model.currentM[1][3],2)))
-        self.storageOutput[2].value(str(round(model.currentM[2][3],2)))
+        self.storageOutput[0].value(str(round(model.worldToLocal[0][3],2)))
+        self.storageOutput[1].value(str(round(model.worldToLocal[1][3],2)))
+        self.storageOutput[2].value(str(round(model.worldToLocal[2][3],2)))
         self.storageOutput[3].value(str(round(degree[2],2)))
         self.storageOutput[4].value(str(round(degree[1],2)))
         self.storageOutput[5].value(str(round(degree[0],2)))

@@ -49,7 +49,7 @@ class Ray:
     def intersects(self,p):
         w = self.p0 - p.Position
         norm = p.Normal
-        self.vec[2] += 0.00000001
+        self.vec[2] += 0.0000000000001
         checkParallel = np.dot(norm,self.vec)
         if checkParallel ==0:
             print(self.vec,norm,"no intersect")

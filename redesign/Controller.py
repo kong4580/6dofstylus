@@ -269,9 +269,19 @@ class CommonController(Handler):
         GLU.gluPickMatrix(xPos, vp[3] - yPos, 3, 3, vp)
 
         # set viewport for select mode
-        GL.glFrustum(((-1*(self.windowWidth/self.windowHeight))/self.cameraValue[0])-self.cameraValue[1], ((1*(self.windowWidth/self.windowHeight))/self.cameraValue[0])-self.cameraValue[1], -1/self.cameraValue[0]-self.cameraValue[2], 1/self.cameraValue[0]-self.cameraValue[2], 1, 100)
+        # GLU.gluPerspective(30,self.windowWidth/self.windowHeight,1,100)
+        
+        
+        ratio = 0.2679491924311227
+        GL.glFrustum(((-ratio*(self.windowWidth/self.windowHeight))/self.cameraValue[0])-ratio*self.cameraValue[1], 
+                    ((ratio*(self.windowWidth/self.windowHeight))/self.cameraValue[0])-ratio*self.cameraValue[1], 
+                    -ratio/self.cameraValue[0]-ratio*self.cameraValue[2], 
+                    ratio/self.cameraValue[0]-ratio*self.cameraValue[2],
+                     1, 100)
+        GL.glTranslatef(0,0,-35)
+
+        #offset camera view
         GL.glTranslatef(0,-5,0)
-        GL.glTranslatef(0,0,-10)
 
         # set buffer size
         sel = GL.glSelectBuffer(100)
@@ -805,10 +815,12 @@ class MouseController(CommonController):
         
         if self.flags['mouseMode'] == 'trans':
             if self.translationAxis == 'None':
-                recent = np.asarray([recentX/ratioX,-recentY/ratioY,0])
+                # recent = np.asarray([recentX/ratioX,-recentY/ratioY,0])
+                recent = self.mouseTranslate(self.xMousePosition,self.yMousePosition,self.translationAxis,"world")
+                
             else:
                 
-                recent = self.mouseTranslate(self.xMousePosition,self.yMousePosition,self.translationAxis)
+                recent = self.mouseTranslate(self.xMousePosition,self.yMousePosition,self.translationAxis,"local")
             
             
             newTranslate[0:3,3] = recent
@@ -986,7 +998,7 @@ class MouseController(CommonController):
             newM[0:3,0:3] = newMatrix
 
         else:
-            print("no intersect")
+            print("no intersect out")
 
         # set current ray for the next ray 
         self.oldRay = newRay
@@ -994,7 +1006,7 @@ class MouseController(CommonController):
         # return matrix for model
         return newM
 
-    def mouseTranslate(self,x,y,translationAxis):
+    def mouseTranslate(self,x,y,translationAxis,mode):
         # check rotation axis 
         if translationAxis == 'transX':
             axis1 = 1
@@ -1016,26 +1028,34 @@ class MouseController(CommonController):
         # set center position
         center = [newM[0][3],newM[1][3],newM[2][3]]
 
-        # init plane Normal and Position
-        plane1 = Plane([newM[0][axis1],newM[1][axis1],newM[2][axis1]],center)
-
-        plane2 = Plane([newM[0][axis2],newM[1][axis2],newM[2][axis2]],center)
-
         # get current Ray casting position
         newRay = Ray(x,y)
 
-        # get position where ray intersect with plane
-        newIntersect = newRay.intersects(plane2)
-        oldIntersect = self.oldRay.intersects(plane2)
+        if mode == "local":
 
-        lineIntersect = self.lineIntersect(plane1,plane2)
+            # init plane Normal and Position
+            plane1 = Plane([newM[0][axis1],newM[1][axis1],newM[2][axis1]],center)
 
-        newPoint = self.pointProjectOnLine(lineIntersect,newIntersect)
-        oldPoint = self.pointProjectOnLine(lineIntersect,oldIntersect)
+            plane2 = Plane([newM[0][axis2],newM[1][axis2],newM[2][axis2]],center)
+
+            # get position where ray intersect with plane
+            newIntersect = newRay.intersects(plane2)
+            oldIntersect = self.oldRay.intersects(plane2)
+
+            lineIntersect = self.lineIntersect(plane1,plane2)
+
+            newPoint = self.pointProjectOnLine(lineIntersect,newIntersect)
+            oldPoint = self.pointProjectOnLine(lineIntersect,oldIntersect)
+        if mode == "world":
+            # init plane Normal and Position
+            plane = Plane([0,0,1],center)
+            newPoint = newRay.intersects(plane)
+            oldPoint = self.oldRay.intersects(plane)
 
         distant = newPoint - oldPoint
         # print(newPoint,oldPoint,distant[0])
         self.oldRay = newRay
+        
 
         return distant
     def productAngle(self,vector1,vector2):
