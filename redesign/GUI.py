@@ -409,6 +409,7 @@ class Gui():
         if self.openglWindow.flags['testMode']:
             print("Enable test mode\nNumber of test: ",self.openglWindow.log['testNumber'])
             self.openglWindow.testMode(self.openglWindow.log['testNumber'])
+            # print( self.openglWindow.flags['testMode'])
             self.openglWindow.flags['testMode'] = False
             
         fltk.Fl_check()

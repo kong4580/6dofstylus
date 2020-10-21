@@ -73,7 +73,8 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
                       'showCursor':True,
                       'testMode':False,
                       'showModelFrame':False,
-                      'mouseMode':'trans'}
+                      'mouseMode':'trans',
+                      'tutorial':True}
         
         # logger parameter
         self.log = {
@@ -300,12 +301,22 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
     # test mode
     def testMode(self,numberOfBackdrop):
         
+        # reset to tutorial mode
+        if not self.flags['tutorial'] and not self.flags['lineupTestMode']:
+            # reset test mode
+
+            self.testNumber = 0  
+            self.iouScore = np.array([])
+            self.openBackdropFile("backdropImg/backdrop_"+str(self.testNumber)+".jpg")
+            self.flags['resetModelTransform'] = True
+            self.flags['tutorial'] = True
+            
         # if test mode is not start
-        if not self.flags['lineupTestMode']:
+        elif self.flags['tutorial'] and not self.flags['lineupTestMode']:
+            
             
             # start timer
             self.startLineupTime = time.time()
-            
             # reset test mode
             self.testNumber = 0  
             self.log = {
@@ -318,7 +329,9 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
             self.flags['logFinish'] = False
             self.flags['addLog'] = False
             self.iouScore = np.array([])
+            
             self.openBackdropFile("backdropImg/backdrop_"+str(self.testNumber)+".jpg")
+            
             self.flags['resetModelTransform'] = True
             
             # turn test mode flags to true
@@ -335,7 +348,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
             
             # turn of test mode flags
             self.flags['lineupTestMode'] = False
-            
+            self.flags['tutorial'] = False
             # 
             self.flags['logFinish'] = True
 
@@ -356,6 +369,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
             print("average IoU: ",self.log["avgIou"])
             print("total time: ",self.log["totalTime"])
             print("ModelPerSec: ",self.log["modelPerSec"])
+        
         self.modelDicts['runModelIdx'] = self.testNumber % 2
         
     # snap opengl window image
@@ -444,8 +458,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
             # self.flags['showModel'] = False
             # update opengl window
         self.redraw()
-        for model in artiModel.getSubModel():
-            print(model.name,model.flags)
+        
         fltk.Fl_check()
         
         # change backdrop image to binary
