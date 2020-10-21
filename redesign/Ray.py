@@ -53,7 +53,7 @@ class Ray:
         checkParallel = np.dot(norm,self.vec)
         if checkParallel ==0:
             print(self.vec,norm,"no intersect")
-            return "None"
+            return np.asarray([None,None,None])
         pNormal = p.Normal.copy()
         D = pNormal[0]*p.Position[0] + pNormal[1]*p.Position[1] + pNormal[2]*p.Position[2]
         t = -((pNormal[0]*self.p1[0] + pNormal[1]*self.p1[1] + pNormal[2]*self.p1[2] - D))/(pNormal[0]*self.vec[0]+pNormal[1]*self.vec[1]+pNormal[2]*self.vec[2])

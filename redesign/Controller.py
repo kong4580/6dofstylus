@@ -846,7 +846,8 @@ class MouseController(CommonController):
             # newM[0:3,3] += recent
         # drag to rotate
         elif self.flags['mouseMode'] == 'rot':
-            newM = self.mouseRotate(self.xMousePosition,self.yMousePosition,self.rotationAxis)
+            if self.rotationAxis != 'None':
+                newM = self.mouseRotate(self.xMousePosition,self.yMousePosition,self.rotationAxis)
         return newM
 
     # check model selection
@@ -953,9 +954,6 @@ class MouseController(CommonController):
         elif rotationAxis == 'rotZ':
             axis = 2
             array = np.asarray([0.,0.,1.])
-        else:
-            axis = 0
-            array = np.asarray([1.,0.,0.])
         # get model currentM
         # model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
         model = self.selectedModel[0]
@@ -975,7 +973,7 @@ class MouseController(CommonController):
         oldIntersect = self.oldRay.intersects(plane)
 
         # check if rays intersect plane or not
-        if newIntersect!="None" and oldIntersect != "None":
+        if newIntersect[0]!= None and oldIntersect[0] != None:
             
             # get vector from center
             vec1 = oldIntersect - center
@@ -1112,13 +1110,14 @@ class MouseController(CommonController):
         u1 =  d2 * n1                      # d2 * N1
         u2 = -d1 * n2                      #-d1 * N2
         p = np.cross((u1 + u2),(v)) / dot       # (d2*N1-d1*N2) X V / V dot V
-
+        # print(dot)
         return Line(v, p)
     def pointProjectOnLine(self,line,point):
         dir = line.direction
         P = line.point
         Q = point
         PQ = Q - P
+        # print((dir[0]*dir[0]+dir[1]*dir[1]+dir[2]*dir[2]),"dot")
         projPQ = (np.dot(PQ,dir)/(dir[0]*dir[0]+dir[1]*dir[1]+dir[2]*dir[2]))*dir
         s = P + projPQ
         return s
