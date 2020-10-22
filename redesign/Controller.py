@@ -71,6 +71,7 @@ class CommonController(Handler):
     
     def updateModelPose(self,model,transform,artiModel,mode = 'fk'):
         if self.modelMode =='fk':
+            
             if type(model).__name__ == "Joint":
                 transform[0:3,3] = model.currentM[0:3,3]
             model.moveModel(transform)
@@ -425,7 +426,7 @@ class StylusController(CommonController):
                     # move model follow cursor
                     # now use only newM because use transform matrix to draw model
                     newM = self.followCursor(model,self.cursor)
-                    
+                    print(newM)
                         
                         
                 
@@ -463,36 +464,42 @@ class StylusController(CommonController):
                 self.release = False
                 self.buttonNum = 1
                 
-                print("left click!")
-                
-                # Check select model
-                self.selectedModel = self.selectModel(mode = "buffer")
+                self.leftClick()
                 
             # RIGHT CLICK
             elif key == 2:
                 self.push = True
                 self.release = False
                 self.buttonNum = 2
+                self.rightClick()
                 
-                # add History log
-                model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
-                artiModel = self.modelDicts['model'][self.modelDicts['runModelIdx']]
-                modelList = artiModel.getSubModel()
-                for model in modelList:
-                    if model.isSelected:
-                        self.addHistory(model.currentM)
-                        
-                    # Release model
-                    self.releaseModel()
-                print("releaseModel")
             
             # REALEASE ALL BUTTON
             else:
                 self.push = False
                 self.release = True
                 self.buttonNum = None
+    def leftClick(self):
+        # Check select model
+        self.selectedModel = self.selectModel(mode = "buffer")
+        if self.selectedModel != []:
+            self.old=self.selectedModel[0].currentM.copy()
+        print("left click!")
         
+    def rightClick(self):
+        # Check select model
+        # add History log
+        model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+        artiModel = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+        modelList = artiModel.getSubModel()
+        # for model in modelList:
+        #     if model.isSelected:
+        if self.selectedModel != []:
             
+            self.addHistory(self.old,self.selectedModel[0].currentM,self.selectedModel[0])
+                
+            # Release model
+        self.releaseModel()
     def setTransform(self, cursorTransform):
         # read cursor transform from stylus and scaling
         cursorTransform[0:3,3] = cursorTransform[0:3,3].copy() * 0.05
@@ -543,6 +550,8 @@ class StylusController(CommonController):
     
     # release model
     def releaseModel(self):
+        print("releaseModel")
+        
         artiModel = self.modelDicts['model'][self.modelDicts['runModelIdx']]
         modelList = artiModel.getSubModel()
         # run through all models in opengl window class
@@ -667,10 +676,7 @@ class StylusController(CommonController):
                 print("s",self.fineTran)
                 newM[0:3,0:3] = model.startclickM[0:3,0:3]
         
-            if model.modelId<10:
-                newM[0,3] = model.startclickM[0,3]
-                newM[1,3] = model.startclickM[1,3]
-                newM[2,3] = model.startclickM[2,3]
+            
                 
         # return new model transform
         return newM
@@ -772,7 +778,7 @@ class MouseController(CommonController):
         if self.flags['resetModelTransform']:
             artiModel = self.modelDicts['model'][self.modelDicts['runModelIdx']]
             modelList =artiModel.getSubModel()
-            print("ss")
+            
             # newM = model.currentM.copy()
             for model in modelList:
 
@@ -1207,7 +1213,7 @@ class StylusController2(StylusController):
                                   [0,0,-1,0],
                                   [0,-1,0,0],
                                   [0,0,0,1]])
-        self.cfg={"homeCfg":(63.7441366, 2.24992609,  16.176381)}
+        self.cfg={"homeCfg":(14.9105360, -1.68409129,  6.78289462)}
         self.isImuInit = False
         self.imuTrans = np.eye(4)
         
@@ -1222,13 +1228,16 @@ class StylusController2(StylusController):
     def setTransform(self, cursorTransform,imuQuat):
         
         # read cursor transform from stylus and scaling
-        cursorTransform[0:3,3] = cursorTransform[0:3,3].copy() * 0.3
-        print(cursorTransform)
+        cursorTransform[0,3] = cursorTransform[0,3].copy() * 0.1
+        cursorTransform[1,3] = cursorTransform[1,3].copy() * 0.2
+        cursorTransform[2,3] = cursorTransform[2,3].copy() * 0.3
+        
+        # print(cursorTransform)
         # offset home position
         cursorTransform[0,3] -= self.cfg["homeCfg"][0]
         cursorTransform[1,3] -= self.cfg["homeCfg"][1]
         cursorTransform[2,3] -= self.cfg["homeCfg"][2]
-        print(cursorTransform)
+        # print(cursorTransform)
         
         # cursorTransform[0:3,3] = cursorTransform[0:3,3].copy() * 1
         
@@ -1261,3 +1270,26 @@ class StylusController2(StylusController):
             r = R.from_quat(quat)
             hWorldToImu[0:3,0:3] = r.as_matrix()
             self.imuTrans = np.dot(self.hBaseToWorld,hWorldToImu)
+            
+    # def leftClick(self):
+    #     # Check select model
+    #     if self.selectedModel == []:
+    #         self.selectedModel = self.selectModel(mode = "buffer")
+    #         if self.selectedModel != []:
+    #             self.old=self.selectedModel[0].currentM.copy()
+    #     else:
+    #         model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+    #         artiModel = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+    #         modelList = artiModel.getSubModel()
+    #         # for model in modelList:
+    #         #     if model.isSelected:
+    #         if self.selectedModel != []:
+                
+    #             self.addHistory(self.old,self.selectedModel[0].currentM,self.selectedModel[0])
+                    
+    #             # Release model
+    #         self.releaseModel()
+    #     print("left click!")
+        
+    # def rightClick(self):
+    #     pass
