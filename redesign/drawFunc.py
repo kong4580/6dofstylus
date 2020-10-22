@@ -17,7 +17,17 @@ BlackColorVector = (0,0,0)
 
 
 
-
+def drawCursor():
+    ratio = 0.75
+    glColor3f(1,0,1)
+    r  = 0.3*ratio
+    height = (r/3) *10
+    sradius = r/3
+    glutSolidSphere(r,50,50)
+    glTranslatef(0,height,0)
+    glRotatef(90,1,0,0)
+    glutSolidCylinder(sradius,height,10,10)
+    glutSolidSphere(sradius,50,50)
 
 def point():
     glEnable(GL_POINT_SMOOTH)
@@ -48,16 +58,16 @@ def coordinate():
     glVertex3f(4.0, 0.0 ,0.0 )
     glEnd()
 
-def drawCursor(ratio):
-    glColor3f(1,0,1)
-    r  = 0.3*ratio
-    height = (r/3) *10
-    sradius = r/3
-    glutSolidSphere(r,50,50)
-    glTranslatef(0,height,0)
-    glRotatef(90,1,0,0)
-    glutSolidCylinder(sradius,height,10,10)
-    glutSolidSphere(sradius,50,50)
+# def drawCursor(ratio):
+#     glColor3f(1,0,1)
+#     r  = 0.3*ratio
+#     height = (r/3) *10
+#     sradius = r/3
+#     glutSolidSphere(r,50,50)
+#     glTranslatef(0,height,0)
+#     glRotatef(90,1,0,0)
+#     glutSolidCylinder(sradius,height,10,10)
+#     glutSolidSphere(sradius,50,50)
 
 def drawAxisY():
     glColor3f(0.0,1.0,0.0) # green y

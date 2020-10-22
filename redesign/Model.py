@@ -363,7 +363,6 @@ class Model(Transform):
         
         self.updateChild()
         # set current model matrix from modelview matrix
-        
         # set model center position
         self.centerPosition = self.currentM[0:3,3]
         if self.obj!=None:
