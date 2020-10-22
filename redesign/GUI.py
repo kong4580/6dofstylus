@@ -226,6 +226,8 @@ class Gui():
         self.storageOutput[0].value(str(round(model.worldToLocal[0][3],2)))
         self.storageOutput[1].value(str(round(model.worldToLocal[1][3],2)))
         self.storageOutput[2].value(str(round(model.worldToLocal[2][3],2)))
+        # print(round(model.worldToLocal[2][3],2))
+        # print("*********************")
         self.storageOutput[3].value(str(round(degree[2],2)))
         self.storageOutput[4].value(str(round(degree[1],2)))
         self.storageOutput[5].value(str(round(degree[0],2)))
