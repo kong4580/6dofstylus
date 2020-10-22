@@ -79,10 +79,24 @@ class Gui():
         # self.textWidget()
         self.testModeUIOff()
         self.testModeUIOn()
+        self.coordinateOn()
+        self.coordinateOff()
         self.iouOutput()
     
+    # text local coordinate
+    def coordinateOn(self):
+        testStr = "AXIS : LOCAL"
+        self.coordinateTextON = fltk.Fl_Box(682,570,100,25,testStr)
+        self.coordinateTextON.labelfont(fltk.FL_BOLD)
+
+    # text world coordinate
+    def coordinateOff(self):
+        testStr = "AXIS : GLOBAL"
+        self.coordinateTextOff = fltk.Fl_Box(688,570,100,25,testStr)
+        self.coordinateTextOff.labelfont(fltk.FL_BOLD)
+
     # text test mode off
-    def testModeUIOff(self,lineUporNot = False):
+    def testModeUIOff(self):
         testStr = "Testing Mode : " + "OFF"
         self.testTextOff = fltk.Fl_Box(600,250,200,25,testStr)
         self.testTextOff.labelsize(18)
@@ -91,7 +105,7 @@ class Gui():
         self.testTextOff.labelcolor(c)
 
     # text test mode on
-    def testModeUIOn(self,lineUporNot = False):
+    def testModeUIOn(self):
         testStr = "Testing Mode : " + "ON"
         self.testTextOn = fltk.Fl_Box(600,250,200,25,testStr)
         self.testTextOn.labelsize(18)
@@ -216,7 +230,14 @@ class Gui():
         elif testMode == False:
             self.testTextOn.hide()
             self.testTextOff.show()
-
+    # coordinate text handle
+    def coordinateUIHandle(self,mode):
+        if mode == True:
+            self.coordinateTextON.show()
+            self.coordinateTextOff.hide()
+        elif mode == False:
+            self.coordinateTextON.hide()
+            self.coordinateTextOff.show() 
     # update fltk from opengl 
     def updateFltk(self):
         model = self.openglWindow.modelDicts['model'][self.openglWindow.modelDicts['runModelIdx']]
@@ -239,6 +260,7 @@ class Gui():
         self.addLog = self.openglWindow.flags['addLog']
         self.loghandle()
         self.testModeUIHandle(self.openglWindow.flags['lineupTestMode'])
+        self.coordinateUIHandle(self.openglWindow.flags['coordinate'])
         for i in range(len(self.cameravalue)):
             self.storageCamera[i].value(self.openglWindow.cameravalue[i])
             self.storageInput[i].value(str(self.openglWindow.cameravalue[i]))
