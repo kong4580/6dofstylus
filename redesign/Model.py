@@ -8,7 +8,7 @@ from OpenGL import GL, GLUT, GLU
 import numpy as np
 from scipy.spatial import ConvexHull
 from scipy.spatial.transform import Rotation as R
-
+from Manipulator import Manipulator
 import drawFunc 
 from Obb import OBB
 class Transform():
@@ -17,6 +17,7 @@ class Transform():
         self.child = []
         self.parentToLocal = np.eye(4)
         self.startWorldToLocal = np.eye(4)
+        self.manipulator = Manipulator()
     
     @property
     def worldToLocal(self):
@@ -164,7 +165,7 @@ class Model(Transform):
     def argv(self):
         return 0
     # draw model with transform matrix
-    def drawMatrixModel(self, showFrame=True, enableLight = True,wireFrame = False, opacity = False,mode = 'trans',selectedMode = False):
+    def drawMatrixModel(self, showFrame=True, enableLight = True,wireFrame = False, opacity = False,mode = 'trans',selectedMode = False,coordinate = True):
         
         # if model is obj firl
         if self.obj!=None:
@@ -269,19 +270,20 @@ class Model(Transform):
 
             # draw model frame
                 if self.flags['showModelFrame']:
-                    if mode == 'trans':
-                        self.drawFrame(drawFunc.drawAxisX,101,selectedMode)
-                        self.drawFrame(drawFunc.drawAxisY,102,selectedMode)
-                        self.drawFrame(drawFunc.drawAxisZ,103,selectedMode)
-                    # print(mode)
                     # if mode == 'trans':
-                    #     drawFunc.coordinate()
-                    if mode == 'rot':
-                        self.drawFrame(drawFunc.drawCircleX,201,selectedMode)
+                    #     self.drawFrame(drawFunc.drawAxisX,101,selectedMode)
+                    #     self.drawFrame(drawFunc.drawAxisY,102,selectedMode)
+                    #     self.drawFrame(drawFunc.drawAxisZ,103,selectedMode)
+                    # # print(mode)
+                    # # if mode == 'trans':
+                    # #     drawFunc.coordinate()
+                    # if mode == 'rot':
+                    #     self.drawFrame(drawFunc.drawCircleX,201,selectedMode)
 
-                        self.drawFrame(drawFunc.drawCircleY,202,selectedMode)
+                    #     self.drawFrame(drawFunc.drawCircleY,202,selectedMode)
 
-                        self.drawFrame(drawFunc.drawCircleZ,203,selectedMode)
+                    #     self.drawFrame(drawFunc.drawCircleZ,203,selectedMode)
+                    self.manipulator.drawManipulator(mode,coordinate,self.currentM,selectedMode)
                         
                         # drawFunc.drawCircleZ()
                     # GL.glEnable(GL.GL_LIGHTING)
