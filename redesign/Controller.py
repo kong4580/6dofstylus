@@ -71,7 +71,7 @@ class CommonController(Handler):
     
     def updateModelPose(self,model,transform,artiModel,mode = 'fk'):
         if self.modelMode =='fk':
-            print(type(model).__name__)
+            
             if type(model).__name__ == "Joint":
                 transform[0:3,3] = model.currentM[0:3,3]
             model.moveModel(transform)
@@ -774,7 +774,7 @@ class MouseController(CommonController):
         if self.flags['resetModelTransform']:
             artiModel = self.modelDicts['model'][self.modelDicts['runModelIdx']]
             modelList =artiModel.getSubModel()
-            print("ss")
+            
             # newM = model.currentM.copy()
             for model in modelList:
 
@@ -1189,12 +1189,12 @@ class StylusController2(StylusController):
         cursorTransform[1,3] = cursorTransform[1,3].copy() * 0.2
         cursorTransform[2,3] = cursorTransform[2,3].copy() * 0.3
         
-        print(cursorTransform)
+        # print(cursorTransform)
         # offset home position
         cursorTransform[0,3] -= self.cfg["homeCfg"][0]
         cursorTransform[1,3] -= self.cfg["homeCfg"][1]
         cursorTransform[2,3] -= self.cfg["homeCfg"][2]
-        print(cursorTransform)
+        # print(cursorTransform)
         
         # cursorTransform[0:3,3] = cursorTransform[0:3,3].copy() * 1
         
