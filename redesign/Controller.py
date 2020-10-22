@@ -1228,25 +1228,25 @@ class StylusController2(StylusController):
             hWorldToImu[0:3,0:3] = r.as_matrix()
             self.imuTrans = np.dot(self.hBaseToWorld,hWorldToImu)
             
-    def leftClick(self):
-        # Check select model
-        if self.selectedModel == []:
-            self.selectedModel = self.selectModel(mode = "buffer")
-            if self.selectedModel != []:
-                self.old=self.selectedModel[0].currentM.copy()
-        else:
-            model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
-            artiModel = self.modelDicts['model'][self.modelDicts['runModelIdx']]
-            modelList = artiModel.getSubModel()
-            # for model in modelList:
-            #     if model.isSelected:
-            if self.selectedModel != []:
+    # def leftClick(self):
+    #     # Check select model
+    #     if self.selectedModel == []:
+    #         self.selectedModel = self.selectModel(mode = "buffer")
+    #         if self.selectedModel != []:
+    #             self.old=self.selectedModel[0].currentM.copy()
+    #     else:
+    #         model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+    #         artiModel = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+    #         modelList = artiModel.getSubModel()
+    #         # for model in modelList:
+    #         #     if model.isSelected:
+    #         if self.selectedModel != []:
                 
-                self.addHistory(self.old,self.selectedModel[0].currentM,self.selectedModel[0])
+    #             self.addHistory(self.old,self.selectedModel[0].currentM,self.selectedModel[0])
                     
-                # Release model
-            self.releaseModel()
-        print("left click!")
+    #             # Release model
+    #         self.releaseModel()
+    #     print("left click!")
         
-    def rightClick(self):
-        pass
+    # def rightClick(self):
+    #     pass
