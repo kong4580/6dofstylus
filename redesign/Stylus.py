@@ -112,7 +112,7 @@ class Stylus2(Stylus):
     
     def __init__(self):
         super().__init__()
-        self.h1 = 80
+        self.h1 = 80+60
         self.h2 = 165
         self.l1 =30
         self.l2 = 230
@@ -130,7 +130,7 @@ class Stylus2(Stylus):
             q[1] = q[1] - pi 
             q[2] = q[2] - pi 
 
-            q = q - np.asarray([0.11658254, -0.27458256, -0.20248546])
+            # q = q - np.asarray([0.00460194, -0.01994175, -0.20248546])
             q = np.append(q,[0])
             print(q)
             fk = self.forwardKinematics(q.tolist(),wrt=(0,3))[-1,:,:]
