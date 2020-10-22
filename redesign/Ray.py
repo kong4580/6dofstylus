@@ -49,19 +49,30 @@ class Ray:
     def intersects(self,p):
         w = self.p0 - p.Position
         norm = p.Normal
-        self.vec[2] += 0.0000000000001
-        checkParallel = np.dot(norm,self.vec)
-        if checkParallel ==0:
-            print(self.vec,norm,"no intersect")
+        # self.vec[2] += 0.000001
+        checkParallel = np.dot(norm,w)
+        # print(round(checkParallel,0))
+        if round(checkParallel,0) ==0:
+            # print(self.vec,norm,"no intersect")
             return np.asarray([None,None,None])
+        # else:
+            # print(self.vec,norm,"intersect")
         pNormal = p.Normal.copy()
         D = pNormal[0]*p.Position[0] + pNormal[1]*p.Position[1] + pNormal[2]*p.Position[2]
+
+
+
         t = -((pNormal[0]*self.p1[0] + pNormal[1]*self.p1[1] + pNormal[2]*self.p1[2] - D))/(pNormal[0]*self.vec[0]+pNormal[1]*self.vec[1]+pNormal[2]*self.vec[2])
         x = self.p1[0] + (self.vec[0]*t)
         y = self.p1[1] + (self.vec[1]*t)
         z = self.p1[2] + (self.vec[2]*t)
-        I = np.asarray([x,y,z])
 
+        # print(pNormal,self.vec)
+        I = np.asarray([x,y,z])
+        # print(I)
+        # if round(y,8) == 5.00000026:
+        # #     print("Noneeeee")
+        #     print("Noneeeee")
         return I
 class Plane:
     def __init__(self,norm,pos):
