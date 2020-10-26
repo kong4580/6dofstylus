@@ -103,7 +103,7 @@ class Gui():
     def positionOutputWidget(self):
         self.storageOutput = []
         
-        # start position
+        # init y position
         yWidgetPosition = 0
 
         # init value
@@ -113,76 +113,157 @@ class Gui():
         self.nameLabel = ["TransX", "TransY", "TransZ", "RotX", "RotY", "RotZ"]
 
         for n in range(6) :
-
+            # set x position,y position, width, height, label, start value
             output = self.createOutputWidget(655,yWidgetPosition,145,25,self.nameLabel[n],self.sliderBarValue[n])
+
+            # set y for the next widget
             yWidgetPosition = yWidgetPosition + 25
+
+            # storage output widget
             self.storageOutput.append(output)
 
     # camera sliderbar control widget
     def cameraSliderBarWidget(self):
         self.storageCamera = []
+
+        # init value
         self.cameravalue= self.openglWindow.cameravalue
+
+        # init label name
         self.nameLabel = ["Zoom", "CameraX", "CameraY"]
+
+        # init min value
         minValue =       [ 0.01     , -1     , -1     ]
-        # minValue = [1]*6
+
+        # init max value
         maxValue =       [ 10       ,  1     ,  1     ]
+
+        # init step value
         stepValue = 0.001
+
+        # init y position
         yWidgetPosition = 150
+
         for n in range(3) :
+            # set x position, y position, width, height, label, min value, max value, init value, step value
             slider = self.createSliderBarWidget(695,yWidgetPosition,105,25,self.nameLabel[n],minValue[n],maxValue[n],self.cameravalue[n],stepValue)
+
+            # set y for the next widget
             yWidgetPosition = yWidgetPosition + 25
+
+            # camera slider bar callback 
             slider.callback(self.sliderCameraCB,n)
+
+            # storage camera slider bar widget
             self.storageCamera.append(slider)
 
     # bunch of input for controlling this UI
     def cameraInputWidget(self):
         self.storageInput = []
+
+        # init y position
         yWidgetPosition = 150
+
+        # init value
         self.cameravalue = self.openglWindow.cameravalue
+
+        # init label name
         self.nameLabel = ["Zoom", "CamX", "CamY"]
         for n in range(3) :
+            # set x position, y position, width, height, label, init value
             inp = self.createInputWidget(655,yWidgetPosition,40,25,self.nameLabel[n],self.cameravalue[n])
+
+            # set y for the next widget
             yWidgetPosition = yWidgetPosition + 25
+
+            # camera input widget
             inp.callback(self.inputCameraCB,n)
+
+            # storage input widget
             self.storageInput.append(inp)
 
 
     # camera slider bar call back
     def sliderCameraCB(self,widget, v):
+        # set widget value that get from slider bar
         widgetValue = widget.value()
+
+        # set camera value
         self.cameravalue[v] = widgetValue
+
+        # set input widget value to follow slider bar
         self.storageInput[v].value(str(widgetValue))
+
+        # set value to openGL
         self.openglWindow.getCameraFromSlider(v,widgetValue)
     
     # camera input call back
     def inputCameraCB(self,widget, v):
+        # set widget value that get from input
         widgetValue = float(widget.value())
+
+        # set widget value
         widget.value(str(widgetValue))
+
+        # set slider bar value
         self.cameravalue[v] = widgetValue
+
+        # set value to openGL
         self.openglWindow.getCameraFromSlider(v,widgetValue)
 
     # cursor speed control widget
     def cursorSpeedSliderBarWidget(self):
         self.cursorSpeed = []
+
+        # init value
         self.cursorSpeedValue = self.openglWindow.flags['cursorSpeed']
+
+        # slider bar widget
+        # set x position, y position, width, height, label, min value, max value, init value, step value
         slider = self.createSliderBarWidget(695,225,105,25,"Speed",0.0,2.0,self.cursorSpeedValue,0.25)
+
+        # cursor speed slider bar callback
         slider.callback(self.sliderCursorSpeedCB,1)
-        inputw = self.createInputWidget(655,225,40,25,"Speed",self.cursorSpeedValue)  
-        inputw.callback(self.inputCursorSpeedCB,1)      
+
+        #input widget
+        # set x position, y position, width, height, label, init value
+        inputw = self.createInputWidget(655,225,40,25,"Speed",self.cursorSpeedValue)
+
+        # cursor speed input callback  
+        inputw.callback(self.inputCursorSpeedCB,1)    
+
+        # storage cursor speed widget  
         self.cursorSpeed.append(slider)
         self.cursorSpeed.append(inputw)
 
+    # cursor speed slider bar callback
     def sliderCursorSpeedCB(self,widget,n):
+
+        # set widget value that get from slider bar
         widgetValue = widget.value()
+
+        # set cursor speed value
         self.cursorSpeed[0] = widgetValue
+
+        # set value in openGL
         self.openglWindow.flags['cursorSpeed'] = widgetValue
+
+        # set input value
         self.cursorSpeed[1].value(str(widgetValue))
         
-
+    # cursor input callback
     def inputCursorSpeedCB(self,widget,n):
+
+        # set widget value that get from input
         widgetValue = float(widget.value())
+
+        # set widget value
         widget.value(str(widgetValue))
+
+        # set slider bar value
         self.cursorSpeed[0] = widgetValue
+
+        # set value in openGL
         self.openglWindow.flags['cursorSpeed'] = widgetValue
 
     def cursorSpeedWidget(self):
@@ -196,7 +277,7 @@ class Gui():
         self.testTextOff = fltk.Fl_Box(600,250,200,25,testStr)
         self.testTextOff.labelsize(18)
         self.testTextOff.labelfont(fltk.FL_BOLD)
-        c = fltk.fl_rgb_color(204, 41, 0)
+        c = fltk.fl_rgb_color(204, 41, 0) # Red
         self.testTextOff.labelcolor(c)
 
     # text test mode on
@@ -205,11 +286,12 @@ class Gui():
         self.testTextOn = fltk.Fl_Box(600,250,200,25,testStr)
         self.testTextOn.labelsize(18)
         self.testTextOn.labelfont(fltk.FL_BOLD)
-        c = fltk.fl_rgb_color(51, 204, 0)
+        c = fltk.fl_rgb_color(51, 204, 0) # Green
         self.testTextOn.labelcolor(c)
 
     # test mode text handle
     def testModeUIHandle(self,testMode):
+        # check test mode
         if testMode == True:
             self.testTextOn.show()
             self.testTextOff.hide()
@@ -285,28 +367,57 @@ class Gui():
 
     # create slider bar widget
     def createSliderBarWidget(self,xSliderBarPosition,ySliderBarPosition,widthSliderBar,heightSliderBar,nameLabel,minValue,maxValue,beginValue,stepValue):
-            slider = fltk.Fl_Hor_Slider(xSliderBarPosition,ySliderBarPosition,widthSliderBar,heightSliderBar)
-            slider.minimum(minValue)
-            slider.maximum(maxValue)
-            slider.value(beginValue)
-            slider.step(stepValue)
-            slider.align(fltk.FL_ALIGN_LEFT)
-            return slider
+
+        # create slider bar widget
+        # set x position, y position, width, height
+        slider = fltk.Fl_Hor_Slider(xSliderBarPosition,ySliderBarPosition,widthSliderBar,heightSliderBar)
+
+        # set min value
+        slider.minimum(minValue)
+
+        # set max value
+        slider.maximum(maxValue)
+
+        # set init value
+        slider.value(beginValue)
+
+        # set step value
+        slider.step(stepValue)
+
+        # set label alignment
+        slider.align(fltk.FL_ALIGN_LEFT)
+
+        return slider
 
     # create input widget
     def createInputWidget(self,xInputPosition,yInputPosition,widthInput,heightInput,nameLabel,beginValue):
-            inp = fltk.Fl_Input(xInputPosition,yInputPosition,widthInput,heightInput,nameLabel)
-            inp.value(str(beginValue))
-            inp.align(fltk.FL_ALIGN_LEFT)
-            inp.when(fltk.FL_WHEN_ENTER_KEY)
-            return inp
+
+        # create input widget
+        # set x position, y position, width, height, label
+        inp = fltk.Fl_Input(xInputPosition,yInputPosition,widthInput,heightInput,nameLabel)
+
+        # set init value
+        inp.value(str(beginValue))
+
+        # set label alignment
+        inp.align(fltk.FL_ALIGN_LEFT)
+
+        # set callback when enter
+        inp.when(fltk.FL_WHEN_ENTER_KEY)
+        return inp
     
     # create output widget
     def createOutputWidget(self,xInputPosition,yInputPosition,widthInput,heightInput,nameLabel,beginValue):
-            out = fltk.Fl_Output(xInputPosition,yInputPosition,widthInput,heightInput,nameLabel)
-            out.value(str(beginValue))
-            out.align(fltk.FL_ALIGN_LEFT)
-            return out
+
+        # create output widget
+        out = fltk.Fl_Output(xInputPosition,yInputPosition,widthInput,heightInput,nameLabel)
+
+        # set init value
+        out.value(str(beginValue))
+
+        # set label alignment
+        out.align(fltk.FL_ALIGN_LEFT)
+        return out
 
     # update fltk from opengl 
     def updateFltk(self):
