@@ -25,6 +25,8 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         # iniit model value
         self.positionValue = [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]
 
+        # self.cursorSpeedValue = 1.0
+
         #initcamera value
         self.cameravalue = [1,0,0,1,1,1]
 
@@ -41,7 +43,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
                            'modelNum':0}
         
         # init cursor model
-        self.cursor = Model('cursor',99,drawFunction = drawFunc.drawCursor)
+        self.cursor = Model('cursor',99,drawFunc.point)
         
         # init grid model
         self.grid = Model("grid",drawFunc.Grid)
@@ -75,7 +77,8 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
                       'showModelFrame':False,
                       'mouseMode':'trans',
                       'tutorial':True,
-                      'coordinate':True}
+                      'coordinate':True,
+                      'cursorSpeed':1.0}
         
         # logger parameter
         self.log = {
@@ -612,7 +615,3 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
             GL.glDisable( GL.GL_TEXTURE_2D )
     def getPositionFromSlider(self,num,value):
         self.positionValue[num] = value
-
-    def getCameraFromSlider(self,num,value):
-        self.cameravalue[num] = value
-        self.redraw()

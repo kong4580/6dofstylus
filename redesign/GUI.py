@@ -35,7 +35,7 @@ class Gui():
         self.cfg={"homeCfg":(5.23747141, -0.01606842, -0.3270202)}
 
         # set cursor scale
-        self.cursorSpeed = 0.05
+        # self.cursorSpeed = 0.05
         
         # variable for revolute cursor mode
         self.cursorIsHold = False
@@ -74,6 +74,7 @@ class Gui():
     def __initOutputWidgetStorage(self):
         # self.outputWidgetStorage = self.__createOutputWidget()
         self.cameraSliderBarWidget()
+        self.cursorSpeedSliderBarWidget()
         self.cameraInputWidget()
         self.positionOutputWidget()
         # self.textWidget()
@@ -211,6 +212,30 @@ class Gui():
             slider.callback(self.__sliderCameraCB,n)
             self.storageCamera.append(slider)
 
+    def cursorSpeedSliderBarWidget(self):
+        self.cursorSpeed = []
+        self.cursorSpeedValue = self.openglWindow.flags['cursorSpeed']
+        slider = self.__createSliderBarWidget(695,225,105,25,"Speed",0.0,2.0,self.cursorSpeedValue,0.25)
+        slider.callback(self.slidercursorSpeedCB,1)
+        inputw = self.__createInputWidget(655,225,40,25,"Speed",self.cursorSpeedValue)  
+        inputw.callback(self.inputcursorSpeedCB,1)      
+        self.cursorSpeed.append(slider)
+        self.cursorSpeed.append(inputw)
+
+    def slidercursorSpeedCB(self,widget,n):
+        widgetValue = widget.value()
+        self.cursorSpeed[0] = widgetValue
+        self.openglWindow.flags['cursorSpeed'] = widgetValue
+        self.cursorSpeed[1].value(str(widgetValue))
+        
+
+    def inputcursorSpeedCB(self,widget,n):
+        widgetValue = float(widget.value())
+        widget.value(str(widgetValue))
+        self.cursorSpeed[0] = widgetValue
+        self.openglWindow.flags['cursorSpeed'] = widgetValue
+
+
     # model position output        
     def positionOutputWidget(self):
         self.storageOutput = []
@@ -266,7 +291,6 @@ class Gui():
             self.storageInput[i].value(str(self.openglWindow.cameravalue[i]))
             # self.storageOutput[i].value(str(self.openglWindow.positionValue[i]))
             # pass
-        
         # self.storageInput[0].value[str(round(self.openglWindow.cameravalue[0],2))]
         # print(self.openglWindow.cameravalue)
     # collect information from tester
@@ -368,16 +392,12 @@ class Gui():
         widgetValue = widget.value()
         self.cameravalue[v] = widgetValue
         self.storageInput[v].value(str(widgetValue))
-        self.openglWindow.getCameraFromSlider(v,widgetValue)
-        self.openglWindow.redraw()
     
     # camera input call back
     def __inputCB(self,widget, v):
         widgetValue = float(widget.value())
         widget.value(str(widgetValue))
         self.cameravalue[v] = widgetValue
-        self.openglWindow.getCameraFromSlider(v,widgetValue)
-        self.openglWindow.redraw()
                 
     # main call back update ui
     def updateUI(self):
@@ -397,6 +417,7 @@ class Gui():
         
         if self.openglWindow.flags['checkIoU']:
             self.openglWindow.cameravalue=[1,0,0,1,1,1]
+            self.openglWindow.flags['cursorSpeed'] = 1.0
             self.openglWindow.redraw()
             # fltk.Fl_wait(0.5)
             # calculate iou

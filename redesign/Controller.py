@@ -68,6 +68,7 @@ class CommonController(Handler):
         self.fineRot = False
         self.fineTran = False
         self.modelMode = packData['modelMode']
+        self.cursorSpeed = self.flags['cursorSpeed']
     
     def updateModelPose(self,model,transform,artiModel,mode = 'fk'):
         if self.modelMode =='fk':
@@ -858,6 +859,7 @@ class MouseController(CommonController):
         elif self.flags['mouseMode'] == 'rot':
             if self.rotationAxis != 'None':
                 newM = self.mouseRotate(self.xMousePosition,self.yMousePosition,self.rotationAxis,self.flags['coordinate'])
+        # print(self.cameraValue[3])
         return newM
 
     # check model selection
@@ -1099,8 +1101,8 @@ class MouseController(CommonController):
             newIntersect2 = newRay.intersects(plane2)
             oldIntersect1 = self.oldRay.intersects(plane1)
             oldIntersect2 = self.oldRay.intersects(plane2)
-            print(newIntersect1,newIntersect2)
-            print(oldIntersect1,oldIntersect2)
+            # print(newIntersect1,newIntersect2)
+            # print(oldIntersect1,oldIntersect2)
             # init line equation
             lineIntersect = Line([newM[0][axis0],newM[1][axis0],newM[2][axis0]],center)
 
