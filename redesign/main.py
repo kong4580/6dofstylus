@@ -164,6 +164,7 @@ if __name__ == '__main__':
     # init controller
     mainController = MainController()
     
+    gui.controllerMode = controllerMode
     
     if controllerMode == 'mouse':
         packData = {'flags':gui.openglWindow.flags,

@@ -613,5 +613,3 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
             GL.glEnd()
             
             GL.glDisable( GL.GL_TEXTURE_2D )
-    def getPositionFromSlider(self,num,value):
-        self.positionValue[num] = value

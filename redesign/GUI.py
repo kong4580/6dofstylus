@@ -18,7 +18,7 @@ class Gui():
     
     # init class GUI
     def __init__(self):
-        
+        self.controllerMode = None
         # init fltk window
         self.__initWindow(size=(800,600),name="UI")
         
@@ -57,13 +57,14 @@ class Gui():
                     }
         # log file name
         self.logFileName = "./testLogStylus.csv"
+        
+        
 
     # init fltk window
     def __initWindow(self,size=(800,600),name="UI"):
         print("Init GUI window ... ",end="")
         self.window = fltk.Fl_Window(size[0],size[1],name)
         print("Done !")
-        
     # init opengl window
     def __initOpenglWindow(self,size=(0,0,600,600),name="opengl"):
         print("Init openGl window ... ",end="")
@@ -257,12 +258,21 @@ class Gui():
             self.testTextOff.show()
     # coordinate text handle
     def coordinateUIHandle(self,mode):
-        if mode == True:
-            self.coordinateTextON.show()
-            self.coordinateTextOff.hide()
-        elif mode == False:
+        if self.controllerMode == 'mouse':
+            if mode == True:
+                self.coordinateTextON.show()
+                self.coordinateTextOff.hide()
+            elif mode == False:
+                self.coordinateTextON.hide()
+                self.coordinateTextOff.show() 
+        else:
             self.coordinateTextON.hide()
-            self.coordinateTextOff.show() 
+            self.coordinateTextOff.hide()
+
+    def cursorSpeedWidget(self):
+        if self.controllerMode == 'mouse':
+            self.cursorSpeed[0].hide()
+            self.cursorSpeed[1].hide()
     # update fltk from opengl 
     def updateFltk(self):
         model = self.openglWindow.modelDicts['model'][self.openglWindow.modelDicts['runModelIdx']]
@@ -286,13 +296,7 @@ class Gui():
         self.loghandle()
         self.testModeUIHandle(self.openglWindow.flags['lineupTestMode'])
         self.coordinateUIHandle(self.openglWindow.flags['coordinate'])
-        for i in range(len(self.cameravalue)):
-            self.storageCamera[i].value(self.openglWindow.cameravalue[i])
-            self.storageInput[i].value(str(self.openglWindow.cameravalue[i]))
-            # self.storageOutput[i].value(str(self.openglWindow.positionValue[i]))
-            # pass
-        # self.storageInput[0].value[str(round(self.openglWindow.cameravalue[0],2))]
-        # print(self.openglWindow.cameravalue)
+        self.cursorSpeedWidget()
     # collect information from tester
     def loghandle(self):
         if self.addLog == True:
