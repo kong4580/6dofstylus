@@ -131,6 +131,9 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
     def readRotZ(self,scaleZ):
         self.rotZ = scaleZ
 
+    def readCamera(self,camera):
+        self.cameravalue = camera
+
 
 
 
@@ -227,6 +230,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
             # draw model with transform matrix
             # model.drawMatrixModel(showFrame=self.flags['showModelFrame'],wireFrame = self.flags['showModelWireframe'], opacity = self.flags['opacityMode'],mode=self.flags['mouseMode'])
             model.drawMatrixModel(mode=self.flags['mouseMode'],coordinate = self.flags['coordinate'])
+            # print(self.cameravalue)
             
             
                 
@@ -432,7 +436,6 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
     
     # calculate iou
     def checkIoU(self):
-        
         # remember current flags to buffer
         oldflags = self.flags.copy()
         artiModel = self.modelDicts['model'][self.modelDicts['runModelIdx']]
@@ -464,9 +467,12 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         self.redraw()
         
         fltk.Fl_check()
+        self.redraw()
+        
+        fltk.Fl_check()
         
         # change backdrop image to binary
-        # fltk.Fl_wait(0.5)
+        fltk.Fl_wait(0.5)
         # self.snap("backdrop",save=True)
         backdropImg = self.snap("backdrop",save=False)
         bw = np.asarray(backdropImg).copy()
@@ -495,7 +501,10 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         
         self.redraw()
         fltk.Fl_check()
-        # fltk.Fl_wait(0.5)
+        self.redraw()
+        
+        fltk.Fl_check()
+        fltk.Fl_wait(0.5)
         # self.snap("test",save=True)
 
         # get 8 bits RGB of model image

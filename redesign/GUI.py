@@ -184,7 +184,7 @@ class Gui():
         self.openglWindow.flags['cursorSpeed'] = widgetValue
 
     def cursorSpeedWidget(self):
-        if self.controllerMode == 'mouse':
+        if self.controllerMode == 'stylus':
             self.cursorSpeed[0].hide()
             self.cursorSpeed[1].hide()
 
@@ -326,6 +326,7 @@ class Gui():
         self.testModeUIHandle(self.openglWindow.flags['lineupTestMode'])
         self.coordinateUIHandle(self.openglWindow.flags['coordinate'])
         self.cursorSpeedWidget()
+        
 
     # collect information from tester
     def loghandle(self):
