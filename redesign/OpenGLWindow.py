@@ -496,7 +496,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         self.redraw()
         fltk.Fl_check()
         # fltk.Fl_wait(0.5)
-        self.snap("test",save=True)
+        # self.snap("test",save=True)
 
         # get 8 bits RGB of model image
         testimg = self.snap("test",save=False)
