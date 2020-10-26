@@ -439,7 +439,7 @@ class Gui():
         self.testModeUIHandle(self.openglWindow.flags['lineupTestMode'])
         self.coordinateUIHandle(self.openglWindow.flags['coordinate'])
         self.cursorSpeedWidget()
-        for i in range(len(self.cameravalue)):
+        for i in range(3):
             self.storageCamera[i].value(self.openglWindow.cameravalue[i])
             self.storageInput[i].value(str(self.openglWindow.cameravalue[i]))
         
@@ -534,7 +534,8 @@ class Gui():
         self.openglWindow.redraw()
         self.updateFltk()
         # update side output value
-        self.updateOutput(cvtedPose)
+        # self.updateOutput(cvtedPose)
+        
         
             
         return

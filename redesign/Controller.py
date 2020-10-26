@@ -68,7 +68,6 @@ class CommonController(Handler):
         self.fineRot = False
         self.fineTran = False
         self.modelMode = packData['modelMode']
-        self.cursorSpeed = self.flags['cursorSpeed']
     
     def updateModelPose(self,model,transform,artiModel,mode = 'fk'):
         if self.modelMode =='fk':
@@ -283,11 +282,14 @@ class CommonController(Handler):
         
         
         ratio = 0.2679491924311227
+
+        
         GL.glFrustum(((-ratio*(self.windowWidth/self.windowHeight))/self.cameraValue[0])-ratio*self.cameraValue[1], 
                     ((ratio*(self.windowWidth/self.windowHeight))/self.cameraValue[0])-ratio*self.cameraValue[1], 
                     -ratio/self.cameraValue[0]-ratio*self.cameraValue[2], 
                     ratio/self.cameraValue[0]-ratio*self.cameraValue[2],
                      1, 100)
+        # print(self.cameraValue)
         GL.glTranslatef(0,0,-35)
 
         #offset camera view
@@ -398,7 +400,7 @@ class StylusController(CommonController):
                                   [0,0,1,0],
                                   [1,0,0,0],
                                   [0,0,0,1]])
-        self.cursorSpeed = 1
+        self.cursorSpeed = self.flags['cursorSpeed']
         self.speed = 0.1
     def runEvent(self,event):
         
@@ -846,6 +848,7 @@ class MouseController(CommonController):
 
     # mouse drag moving method
     def mouseDrag(self):
+        # print(self.cameraValue)
         # get the distance when mouse moving from one point to another point
         recentX = self.xMousePosition - self.lastPosX
         recentY = self.yMousePosition - self.lastPosY

@@ -226,7 +226,6 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
             # draw model with transform matrix
             # model.drawMatrixModel(showFrame=self.flags['showModelFrame'],wireFrame = self.flags['showModelWireframe'], opacity = self.flags['opacityMode'],mode=self.flags['mouseMode'])
             model.drawMatrixModel(mode=self.flags['mouseMode'],coordinate = self.flags['coordinate'])
-            # print(self.cameravalue)
             
             
                 
@@ -463,12 +462,12 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         self.redraw()
         
         fltk.Fl_check()
-        self.redraw()
+        # self.redraw()
         
-        fltk.Fl_check()
+        # fltk.Fl_check()
         
-        # change backdrop image to binary
-        fltk.Fl_wait(0.5)
+        # # change backdrop image to binary
+        # fltk.Fl_wait(0.5)
         # self.snap("backdrop",save=True)
         backdropImg = self.snap("backdrop",save=False)
         bw = np.asarray(backdropImg).copy()
@@ -497,10 +496,10 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         
         self.redraw()
         fltk.Fl_check()
-        self.redraw()
+        # self.redraw()
         
-        fltk.Fl_check()
-        fltk.Fl_wait(0.5)
+        # fltk.Fl_check()
+        # fltk.Fl_wait(0.5)
         # self.snap("test",save=True)
 
         # get 8 bits RGB of model image
@@ -532,7 +531,8 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         # self.flags['resetModelTransform'] =True
         self.redraw()
         fltk.Fl_check()
-        
+        # print(self.cameravalue)
+        self.ctl.getController().cameraValue = self.cameravalue
         # return iou score
         return iou
     
@@ -622,4 +622,8 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
     def getCameraFromSlider(self,num,value):
         self.cameravalue[num] = value
         self.redraw() 
-        self.positionValue[num] = value 
+        # self.positionValue[num] = value
+
+    def getCameraValue(self,value):
+        self.cameravalue= value
+        self.redraw() 
