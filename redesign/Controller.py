@@ -869,7 +869,6 @@ class MouseController(CommonController):
         
         if self.flags['mouseMode'] == 'trans':
             if self.translationAxis == 'None':
-                # recent = np.asarray([recentX/ratioX,-recentY/ratioY,0])
                 recent = self.mouseTranslate(self.xMousePosition,self.yMousePosition,self.translationAxis,"worldxy")
                 
             else:
@@ -878,17 +877,12 @@ class MouseController(CommonController):
             
             
             newTranslate[0:3,3] = recent
-            # print(newM)
-            # # print(recent)
             newM = np.dot(newTranslate,newM)
-            # print(newM)
-
-            # newM[0:3,3] += recent
+            
         # drag to rotate
         elif self.flags['mouseMode'] == 'rot':
             if self.rotationAxis != 'None':
                 newM = self.mouseRotate(self.xMousePosition,self.yMousePosition,self.rotationAxis,self.flags['coordinate'])
-        # print(self.cameraValue[3])
         return newM
 
     # check model selection
@@ -907,40 +901,44 @@ class MouseController(CommonController):
                 model.isSelected = True
                 self.rotationAxis = 'None'
                 self.translationAxis = 'None'
-                # print("model")
                 #add to selected model buffer
                 selectModel.append(model)
+
             elif self.mouseSelectedCheck() == 201:
                 self.rotationAxis = 'rotX'
                 model.isSelected = True
                 selectModel.append(model)
+
             elif self.mouseSelectedCheck() == 202:
                 self.rotationAxis = 'rotY'
                 model.isSelected = True
                 selectModel.append(model)
+
             elif self.mouseSelectedCheck() == 203:
                 self.rotationAxis = 'rotZ'
                 model.isSelected = True
                 selectModel.append(model)
+
             elif self.mouseSelectedCheck() == 101:
                 self.translationAxis = 'transX'
                 model.isSelected = True
                 selectModel.append(model)
+
             elif self.mouseSelectedCheck() == 102:
                 self.translationAxis = 'transY'
                 model.isSelected = True
                 selectModel.append(model)
+
             elif self.mouseSelectedCheck() == 103:
                 self.translationAxis = 'transZ'
                 model.isSelected = True
                 selectModel.append(model)
+
             else:
 
                 #model is deselected
                 model.isSelected = False
-            # print(self.rotationAxis)
-        
-        # print(selectModel[0].name)
+            
         return selectModel
 
     # mouse click selection checking
@@ -959,7 +957,6 @@ class MouseController(CommonController):
         
         if mouseSelected == False:
             mouseSelected = self.selectObjectWithBuffer(self.xMousePosition,self.yMousePosition)
-        # print(mouseSelected)
 
         return mouseSelected
 
@@ -1125,27 +1122,28 @@ class MouseController(CommonController):
             plane1 = Plane([newM[0][axis1],newM[1][axis1],newM[2][axis1]],center)
             plane2 = Plane([newM[0][axis2],newM[1][axis2],newM[2][axis2]],center)
 
-            # get position where ray intersect with plane
+            # get position where ray intersect with 2 planes
             newIntersect1 = newRay.intersects(plane1)
             newIntersect2 = newRay.intersects(plane2)
             oldIntersect1 = self.oldRay.intersects(plane1)
             oldIntersect2 = self.oldRay.intersects(plane2)
-            # print(newIntersect1,newIntersect2)
-            # print(oldIntersect1,oldIntersect2)
+            
             # init line equation
             lineIntersect = Line([newM[0][axis0],newM[1][axis0],newM[2][axis0]],center)
 
-            # check intersection
+            # check intersection for 2 ray
             if newIntersect1[0] != None and oldIntersect1[0] != None: 
                 newPoint1 = self.pointProjectOnLine(lineIntersect,newIntersect1)
                 oldPoint1 = self.pointProjectOnLine(lineIntersect,oldIntersect1)
                 norm1 = np.linalg.norm(newIntersect1)
+
             if newIntersect2[0] != None and oldIntersect2[0] != None:
                 newPoint2 = self.pointProjectOnLine(lineIntersect,newIntersect2)
                 oldPoint2 = self.pointProjectOnLine(lineIntersect,oldIntersect2)
                 norm2 = np.linalg.norm(newIntersect2)
 
             # choose the moving point
+            # choose the lower norm (the closest)
             if newPoint1[0] != None and newPoint2[0] != None:
                 if norm1>=norm2:
                     newPoint = newPoint2
@@ -1153,6 +1151,8 @@ class MouseController(CommonController):
                 elif norm1<norm2:
                     newPoint = newPoint1
                     oldPoint = oldPoint1
+
+            # if one have no intersect choose another
             elif newPoint1[0] != None and newPoint2[0] == None:
                 newPoint = newPoint1
                 oldPoint = oldPoint1
@@ -1162,6 +1162,7 @@ class MouseController(CommonController):
 
         # moving along the screen
         if mode == "worldxy":
+
             # init plane Normal and Position
             plane = Plane([0,0,1],center)
             newPoint = newRay.intersects(plane)
@@ -1169,21 +1170,25 @@ class MouseController(CommonController):
 
         #  distant vector
         distant = newPoint - oldPoint
-        # print(math.sqrt(np.linalg.norm(distant)))
-
         self.oldRay = newRay
         
 
         return distant
     def productAngle(self,vector1,vector2):
+
+        # get angle from dot product equation
+        # angle = arccos(vector1.vector2/|vector1||vector2|)
+        # vector1.vector2
         dotProduct = np.dot(vector1,vector2)
+
+        # |vector1|
         sqrVec1 = vector1[0]*vector1[0]+vector1[1]*vector1[1]+vector1[2]*vector1[2]
-        sqrVec2 = vector2[0]*vector2[0]+vector2[1]*vector2[1]+vector2[2]*vector2[2]
-        if type(sqrVec1) == np.ndarray:
-            sqrVec1 = sqrVec1[0]
-            sqrVec2 = sqrVec2[0]
         vector1Norm = math.sqrt(sqrVec1)
+
+        # |vector2|
+        sqrVec2 = vector2[0]*vector2[0]+vector2[1]*vector2[1]+vector2[2]*vector2[2]
         vector2Norm = math.sqrt(sqrVec2)
+
         dx = vector2[0] - vector1[0]
         dy = vector2[1] - vector1[1]
         dz = vector2[2] - vector1[2]
