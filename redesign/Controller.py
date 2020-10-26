@@ -428,30 +428,56 @@ class StylusController(CommonController):
                     # now use only newM because use transform matrix to draw model
                     newM = self.followCursor(model,self.cursor)
                     print(newM)
-                        
+                    self.updateModelPose(model,newM,artiModel)
+                    
                         
                 
                 # if model is not selected
                 else:
-                    
-                    # reset value from model
-                    model.cursorM = None
-                    model.cursorPose = None
-                    
-                    # if reset mode trigger
                     if self.flags['resetModelTransform']:
-                        for m in self.modelDicts['model']:
-                            
+                        artiModel = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+                        modelList =artiModel.getSubModel()
+                        
+                        # newM = model.currentM.copy()
+                        for model in modelList:
+
                             # set model position to home position ( identity )
-                            m.currentM = np.eye(4)
-                            
+                            # model.currentM = np.eye(4)
+                    
                             # turn off reset flags
                             self.flags['resetModelTransform'] = False
-                        self.addHistory(m.currentM)
-                        
-                    # model position is remain position
+
+                            # set new matrix model
+                            newM = model.startWorldToLocal
+                            print(model.name)
+                            # move model to the new matrix model
+                            self.updateModelPose(model,newM,artiModel)
+                    model.cursorM = None
+                    model.cursorPose = None
                     newM = model.currentM
-                self.updateModelPose(model,newM,artiModel)
+                    self.updateModelPose(model,newM,artiModel)
+                    
+                    
+                # # model.moveModel(newM)
+                # # self.addHistory(self.old,newM,model)
+                #     # reset value from model
+                #     model.cursorM = None
+                #     model.cursorPose = None
+                    
+                #     # if reset mode trigger
+                #     if self.flags['resetModelTransform']:
+                #         for m in self.modelDicts['model']:
+                            
+                #             # set model position to home position ( identity )
+                #             m.currentM = np.eye(4)
+                            
+                #             # turn off reset flags
+                #             self.flags['resetModelTransform'] = False
+                #         self.addHistory(m.currentM)
+                        
+                #     # model position is remain position
+                #     newM = model.currentM
+                
                 # model.moveModel(newM)
                 # print(model.name)
         if event >= 1000: # check button status
