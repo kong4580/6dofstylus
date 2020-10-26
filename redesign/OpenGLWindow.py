@@ -131,10 +131,6 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
     def readRotZ(self,scaleZ):
         self.rotZ = scaleZ
 
-    def readCamera(self,camera):
-        self.cameravalue = camera
-
-
 
 
     # main opengl window callback 
@@ -622,3 +618,8 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
             GL.glEnd()
             
             GL.glDisable( GL.GL_TEXTURE_2D )
+
+    def getCameraFromSlider(self,num,value):
+        self.cameravalue[num] = value
+        self.redraw() 
+        self.positionValue[num] = value 

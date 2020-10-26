@@ -152,12 +152,14 @@ class Gui():
         widgetValue = widget.value()
         self.cameravalue[v] = widgetValue
         self.storageInput[v].value(str(widgetValue))
+        self.openglWindow.getCameraFromSlider(v,widgetValue)
     
     # camera input call back
     def inputCameraCB(self,widget, v):
         widgetValue = float(widget.value())
         widget.value(str(widgetValue))
         self.cameravalue[v] = widgetValue
+        self.openglWindow.getCameraFromSlider(v,widgetValue)
 
     # cursor speed control widget
     def cursorSpeedSliderBarWidget(self):
@@ -326,6 +328,9 @@ class Gui():
         self.testModeUIHandle(self.openglWindow.flags['lineupTestMode'])
         self.coordinateUIHandle(self.openglWindow.flags['coordinate'])
         self.cursorSpeedWidget()
+        for i in range(len(self.cameravalue)):
+            self.storageCamera[i].value(self.openglWindow.cameravalue[i])
+            self.storageInput[i].value(str(self.openglWindow.cameravalue[i]))
         
 
     # collect information from tester
