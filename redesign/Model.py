@@ -307,14 +307,18 @@ class Model(Transform):
                     
                     GL.glLoadName(self.modelId)
                 self.drawFunction()
+                    
+                if self.name == 'cursor':
                 
-                
-                if showFrame:
-                    # disable light to draw model frame
-                    GL.glDisable(GL.GL_LIGHTING)
-                    self.drawFrame(drawFunc.coordinate,10,selectedMode)
-                    GL.glEnable(GL.GL_LIGHTING)
-                
+                    if showFrame:
+                        # disable light to draw model frame
+                        GL.glDisable(GL.GL_LIGHTING)
+                        self.drawFrame(drawFunc.coordinate,10,selectedMode)
+                        GL.glEnable(GL.GL_LIGHTING)
+                    
+                        
+                else:
+                    self.manipulator.drawManipulator(mode,coordinate,self.currentM,selectedMode)
                     
                 GL.glPopMatrix()
                 
@@ -865,13 +869,13 @@ class ArticulateModel(Model):
         for joint in self.listOfJoint:
             joint.initModel(matrixView)
     
-    def drawMatrixModel(self, showFrame=True, enableLight = True,wireFrame = False, opacity = False,mode = 'trans',selectedMode = False):
-        self.base.drawMatrixModel(showFrame,enableLight,wireFrame,opacity,mode,selectedMode)
+    def drawMatrixModel(self, showFrame=True, enableLight = True,wireFrame = False, opacity = False,mode = 'trans',selectedMode = False,coordinate = True):
+        self.base.drawMatrixModel(showFrame,enableLight,wireFrame,opacity,mode,selectedMode,coordinate)
         if self.showTarget:
-            self.target.drawMatrixModel(showFrame,enableLight,wireFrame,opacity,mode,selectedMode)
+            self.target.drawMatrixModel(showFrame,enableLight,wireFrame,opacity,mode,selectedMode,coordinate)
         if self.showPole:
             
-            self.poleVertex.drawMatrixModel(showFrame,enableLight,wireFrame,opacity,mode,selectedMode)
+            self.poleVertex.drawMatrixModel(showFrame,enableLight,wireFrame,opacity,mode,selectedMode,coordinate)
         
         # print(self.base.currentM)
         for joint in self.listOfJoint:

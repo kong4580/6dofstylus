@@ -1211,11 +1211,11 @@ class StylusController2(StylusController):
     def __init__(self,packData):
         super().__init__(packData)
         self.hBaseToWorld = np.eye(4)
-        self.hOpenGlToImu = np.array([[-1,0,0,0],
+        self.hOpenGlToImu = np.array([[1,0,0,0],
                                   [0,0,-1,0],
-                                  [0,-1,0,0],
+                                  [0,1,0,0],
                                   [0,0,0,1]])
-        self.cfg={"homeCfg":(14.9105360, -1.68409129,  6.78289462)}
+        self.cfg={"homeCfg":(54.1832069, 1.16402681,  7.97263312)}
         self.isImuInit = False
         self.imuTrans = np.eye(4)
         
@@ -1230,7 +1230,7 @@ class StylusController2(StylusController):
     def setTransform(self, cursorTransform,imuQuat):
         
         # read cursor transform from stylus and scaling
-        cursorTransform[0,3] = cursorTransform[0,3].copy() * 0.1
+        cursorTransform[0,3] = cursorTransform[0,3].copy() * 0.3
         cursorTransform[1,3] = cursorTransform[1,3].copy() * 0.2
         cursorTransform[2,3] = cursorTransform[2,3].copy() * 0.3
         

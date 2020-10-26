@@ -43,7 +43,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
                            'modelNum':0}
         
         # init cursor model
-        self.cursor = Model('cursor',99,drawFunc.point)
+        self.cursor = Model('cursor',99,drawFunc.drawCursor)
         
         # init grid model
         self.grid = Model("grid",drawFunc.Grid)
