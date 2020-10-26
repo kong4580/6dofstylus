@@ -466,7 +466,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         
         # fltk.Fl_check()
         
-        # # change backdrop image to binary
+        # change backdrop image to binary
         # fltk.Fl_wait(0.5)
         # self.snap("backdrop",save=True)
         backdropImg = self.snap("backdrop",save=False)
