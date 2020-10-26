@@ -156,7 +156,7 @@ if __name__ == '__main__':
         modelMode = sys.argv[3]
     print("\n Start Program with:",controllerMode,"\n")
     # declare ui samplingRate
-    samplingRate = 0.005
+    samplingRate = 0.000005
     
     # init GUI
     gui = Gui()
