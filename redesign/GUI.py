@@ -63,7 +63,7 @@ class Gui():
     # init fltk window
     def __initWindow(self,size=(800,600),name="UI"):
         print("Init GUI window ... ",end="")
-        self.window = fltk.Fl_Window(size[0],size[1],name)
+        self.window = fltk.Fl_Window(int(fltk.Fl.w()/2-size[0]/2),int(fltk.Fl.h()/2-size[1]/2),size[0],size[1],name)
         print("Done !")
     # init opengl window
     def __initOpenglWindow(self,size=(0,0,600,600),name="opengl"):
@@ -297,6 +297,7 @@ class Gui():
         self.testModeUIHandle(self.openglWindow.flags['lineupTestMode'])
         self.coordinateUIHandle(self.openglWindow.flags['coordinate'])
         self.cursorSpeedWidget()
+        print(self.window.x())
     # collect information from tester
     def loghandle(self):
         if self.addLog == True:
