@@ -738,33 +738,22 @@ class MouseController(CommonController):
     def __init__(self,packData):
         super().__init__(packData)
         self.flags['showCursor'] = False
-        
         self.flags['showModelFrame'] = True
-        self.transform = np.eye(4)
         self.selectedModel = []
         self.flags['mouseMode']= 'trans'
         self.flags['coordinate'] = True
         self.rotationAxis = None
         self.translationAxis = None
-        self.lastPos = [0.0,0.0,0.0]
-        self.axis = [0,0,0]
-        self.angle = 0
 
     def runEvent(self,event):
         
         # mouse position
         self.xMousePosition = fltk.Fl.event_x()
         self.yMousePosition = fltk.Fl.event_y()
-        # if event == fltk.FL_MOVE:
-            # print(self.xMousePosition,self.yMousePosition)
-            # print(self.selectObjectWithBuffer(self.xMousePosition,self.yMousePosition))
+        
         # check model selection when mouse click
         if event == fltk.FL_PUSH:
-            self.lastPosX = self.xMousePosition
-            self.lastPosY = self.yMousePosition
-            # print("left click!")
             self.selectedModel = self.selectModel()
-            
             self.oldRay = Ray(self.xMousePosition,self.yMousePosition)
             if self.selectedModel != []:
                 self.old=self.selectedModel[0].currentM.copy()
@@ -779,10 +768,6 @@ class MouseController(CommonController):
 
             # move method when model is selected 
             if model.isSelected:
-                
-                # # mousewheel event
-                # if event == fltk.FL_MOUSEWHEEL:
-                #     newM = self.mouseWheel()
                     
                 #mouse drag event
                 if event == fltk.FL_DRAG:
@@ -791,18 +776,15 @@ class MouseController(CommonController):
                 # store model position after release mouse# model is selected
                 if event == fltk.FL_RELEASE:
                     self.addHistory(self.old,newM,model)
-                    
-                    # print(self.history)
+                     # print(self.history)
+
             # move model with new matrix
-            
-            
             self.updateModelPose(model,newM,artiModel)
-            # print(model.name)
-            # model.moveModel(newM)
             
         # run common controller event 
         self.runCommonEvent()
         self.flags['showModelFrame'] = not self.flags['snapMode']
+
         # reset model
         if self.flags['resetModelTransform']:
             artiModel = self.modelDicts['model'][self.modelDicts['runModelIdx']]
@@ -820,53 +802,24 @@ class MouseController(CommonController):
                 # set new matrix model
                 newM = model.startWorldToLocal
                 print(model.name)
+
                 # move model to the new matrix model
                 self.updateModelPose(model,newM,artiModel)
-                # model.moveModel(newM)
-                # self.addHistory(self.old,newM,model)
             
         # every model will be deselected during checking Iou
         if self.flags['checkIoU']:
             for model in self.modelDicts['model']:
                 model.isSelected = False
 
-    # mouse wheel moving method
-    def mouseWheel(self):
-        model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
-        model =self.selectedModel[0]
-        
-        newM = model.currentM.copy()
-
-        # translate in z axis
-        if self.flags['mouseMode'] == 'trans':
-            newM[2][3] = newM[2][3] + 0.1*(fltk.Fl.event_dy())
-        
-        # # rotate model
-        # else:
-        #     newM = self.rotationMatrixTransform(self.flags['mouseMode'],fltk.Fl.event_dy())
-        return newM
-
     # mouse drag moving method
     def mouseDrag(self):
-        # print(self.cameraValue)
-        # get the distance when mouse moving from one point to another point
-        recentX = self.xMousePosition - self.lastPosX
-        recentY = self.yMousePosition - self.lastPosY
-        #store the current por=sition to calculate  distance for the next position
-        self.lastPosX = self.xMousePosition
-        self.lastPosY = self.yMousePosition 
-        # print(self.xMousePosition,self.yMousePosition)
 
         model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
         model =self.selectedModel[0]
         newTranslate = np.eye(4)
         newM = model.worldToLocal.copy()
 
-        # calculate ratio from mouse to window
-        ratioX = -(5*(self.windowWidth/10)/(newM[2][3] -10))
-        ratioY = -(5*(self.windowHeight/10)/(newM[2][3] -10))
         # drag to translate
-        
         if self.flags['mouseMode'] == 'trans':
             if self.translationAxis == 'None':
                 recent = self.mouseTranslate(self.xMousePosition,self.yMousePosition,self.translationAxis,"worldxy")
@@ -883,6 +836,8 @@ class MouseController(CommonController):
         elif self.flags['mouseMode'] == 'rot':
             if self.rotationAxis != 'None':
                 newM = self.mouseRotate(self.xMousePosition,self.yMousePosition,self.rotationAxis,self.flags['coordinate'])
+
+        # return homogenous matrix
         return newM
 
     # check model selection
@@ -901,6 +856,7 @@ class MouseController(CommonController):
                 model.isSelected = True
                 self.rotationAxis = 'None'
                 self.translationAxis = 'None'
+
                 #add to selected model buffer
                 selectModel.append(model)
 
@@ -944,9 +900,9 @@ class MouseController(CommonController):
     # mouse click selection checking
     def mouseSelectedCheck(self):
 
-        # read pixel color and depth
-        # self.depth = GL.glReadPixels(self.xMousePosition,self.windowHeight - self.yMousePosition, 1,1,GL.GL_DEPTH_COMPONENT,GL.GL_UNSIGNED_BYTE)
+        # read pixel color
         self.color = GL.glReadPixels(self.xMousePosition,self.windowHeight - self.yMousePosition, 1,1,GL.GL_RGBA,GL.GL_UNSIGNED_BYTE)
+
         # color checking
         # if it's black mouse doesn't select anything
         if self.color[0] == 0 and self.color[1] == 0 and self.color[2] == 0:
@@ -992,6 +948,7 @@ class MouseController(CommonController):
         elif rotationAxis == 'rotZ':
             axis = 2
             array = np.asarray([0.,0.,1.])
+            
         # get model currentM
         # model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
         model = self.selectedModel[0]
@@ -1086,17 +1043,26 @@ class MouseController(CommonController):
 
         # check rotation axis 
         if translationAxis == 'transX':
+            # itself axis
             axis0 = 0
+
+            # near by axis
             axis1 = 1
             axis2 = 2
             
         elif translationAxis == 'transY':
+            # itself axis
             axis0 = 1
+
+            # near by axis
             axis1 = 0
             axis2 = 2
             
         elif translationAxis == 'transZ':
+            # itself axis
             axis0 = 2
+
+            # near by axis
             axis1 = 0
             axis2 = 1
             
@@ -1132,12 +1098,16 @@ class MouseController(CommonController):
             lineIntersect = Line([newM[0][axis0],newM[1][axis0],newM[2][axis0]],center)
 
             # check intersection for 2 ray
-            if newIntersect1[0] != None and oldIntersect1[0] != None: 
+            if newIntersect1[0] != None and oldIntersect1[0] != None:
+
+                # project the point on plane to line equation
                 newPoint1 = self.pointProjectOnLine(lineIntersect,newIntersect1)
                 oldPoint1 = self.pointProjectOnLine(lineIntersect,oldIntersect1)
                 norm1 = np.linalg.norm(newIntersect1)
 
             if newIntersect2[0] != None and oldIntersect2[0] != None:
+
+                # project the point on plane to line equation
                 newPoint2 = self.pointProjectOnLine(lineIntersect,newIntersect2)
                 oldPoint2 = self.pointProjectOnLine(lineIntersect,oldIntersect2)
                 norm2 = np.linalg.norm(newIntersect2)
@@ -1165,11 +1135,15 @@ class MouseController(CommonController):
 
             # init plane Normal and Position
             plane = Plane([0,0,1],center)
+
+            # point that the ray intersect on the plane
             newPoint = newRay.intersects(plane)
             oldPoint = self.oldRay.intersects(plane)
 
         #  distant vector
         distant = newPoint - oldPoint
+
+        # set current ray for the next ray
         self.oldRay = newRay
         
 
@@ -1189,34 +1163,62 @@ class MouseController(CommonController):
         sqrVec2 = vector2[0]*vector2[0]+vector2[1]*vector2[1]+vector2[2]*vector2[2]
         vector2Norm = math.sqrt(sqrVec2)
 
+        # vector from vector1 to vector2
         dx = vector2[0] - vector1[0]
         dy = vector2[1] - vector1[1]
         dz = vector2[2] - vector1[2]
+
+        # cos result must be between -1 to 1 
         if dotProduct/(vector1Norm*vector2Norm)>=1 or dotProduct/(vector1Norm*vector2Norm)<=-1:
-                angle = (90*math.sqrt(dx*dx + dy*dy + dz*dz))%1
+
+            # calculate vector from resultant vector
+            angle = (90*math.sqrt(dx*dx + dy*dy + dz*dz))%1
         else:
+
+            # calculate vector from dot product
             angle = math.acos(dotProduct/(vector1Norm*vector2Norm))
+
+            # convert radian into degree
             angle = ((angle/math.pi)*180)%1
+
+        # return degree
         return angle
     
+    # project point on line receive line equation and point position
     def pointProjectOnLine(self,line,point):
+
+        # line direction
         dir = line.direction
+
+        # init point on line 
         P = line.point
+
+        # point that we want to project
         Q = point
+
+        # vector from point on the line to the set point
         PQ = Q - P
+
+        # project vector PQ on the desire line
         projPQ = (np.dot(PQ,dir)/(dir[0]*dir[0]+dir[1]*dir[1]+dir[2]*dir[2]))*dir
+
+        # point that projected on desired line
         s = P + projPQ
+
+        # return vector point
         return s
 
+    # get rotation matrix from angle and axis of rotation for each axis
     def matrixM(self,angle,x,y,z):
         v = [x,y,z]
         matrix = np.eye(3)
         if v!= [0,0,0]:
-  
             vec = np.asarray(v)
-         
+
+            # vector norm
             a = np.linalg.norm(vec)
-        
+
+            # normalise axis of rotation if it not yet normalise
             if a!=1:
                 v[0] /= a 
                 v[1] /= a
@@ -1239,6 +1241,8 @@ class MouseController(CommonController):
             matrix[2][0] = x*z*t - y*s
             matrix[2][1] = y*z*t + x*s
             matrix[2][2] = z*z*t + c
+
+        # return rotation matrix
         return matrix
 
 class StylusController2(StylusController):
