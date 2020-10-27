@@ -371,25 +371,26 @@ class Model(Transform):
         # set current model matrix from modelview matrix
         # set model center position
         self.centerPosition = self.currentM[0:3,3]
-        if self.obj!=None:
-        # set obb transform matrix
-            self.obb.current_homo = self.currentM
-            tl = np.eye(4)
-            tl[0:3,3] = np.array([-tuple(self.obb.centroid)[0],-tuple(self.obb.centroid)[1],-tuple(self.obb.centroid)[2]]).T
-            off = np.dot(self.currentM,tl)
-            # transform obb point to current model transform
-            for idx in range(len(self.obb.points)):
-                pointIdx = np.append(self.obb.points[idx].copy(),1)
-                self.obb.current_point[idx] = np.dot(self.obb.current_homo.copy(),pointIdx.T)[0:3]
+        # if self.obj!=None and self.obb != None:
+        # # set obb transform matrix
+        #     # print(self.name)
+        #     self.obb.current_homo = self.currentM
+        #     tl = np.eye(4)
+        #     tl[0:3,3] = np.array([-tuple(self.obb.centroid)[0],-tuple(self.obb.centroid)[1],-tuple(self.obb.centroid)[2]]).T
+        #     off = np.dot(self.currentM,tl)
+        #     # transform obb point to current model transform
+        #     for idx in range(len(self.obb.points)):
+        #         pointIdx = np.append(self.obb.points[idx].copy(),1)
+        #         self.obb.current_point[idx] = np.dot(self.obb.current_homo.copy(),pointIdx.T)[0:3]
                 
-            # update obb centroid
-            obbCentroid = np.append(self.obb.current_centroid,1)
-            self.obb.current_centroid = np.dot(self.obb.current_homo,obbCentroid)[0:3]
+        #     # update obb centroid
+        #     obbCentroid = np.append(self.obb.current_centroid,1)
+        #     self.obb.current_centroid = np.dot(self.obb.current_homo,obbCentroid)[0:3]
             
-            # update model vertices position
-            for idx in range(len(self.obj.vertices)):
-                verIdx = np.append(self.obj.vertices[idx].copy(),1)
-                self.obj.current_vertices[idx] = np.dot(off,verIdx.T)[0:3]
+        #     # update model vertices position
+        #     for idx in range(len(self.obj.vertices)):
+        #         verIdx = np.append(self.obj.vertices[idx].copy(),1)
+        #         self.obj.current_vertices[idx] = np.dot(off,verIdx.T)[0:3]
                 
     @property
     def renderM(self):

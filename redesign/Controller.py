@@ -412,7 +412,8 @@ class StylusController(CommonController):
 
         if event == 999: # move cursor
             self.cursor.moveModel(self.transform)
-            model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
+            
+            # model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
             artiModel = self.modelDicts['model'][self.modelDicts['runModelIdx']]
             modelList = artiModel.getSubModel()
             # if self.selectedModel != []:
@@ -457,7 +458,7 @@ class StylusController(CommonController):
                     model.cursorM = None
                     model.cursorPose = None
                     newM = model.currentM
-                    self.updateModelPose(model,newM,artiModel)
+                    # self.updateModelPose(model,newM,artiModel)
                     
                     
                 # # model.moveModel(newM)
@@ -689,7 +690,7 @@ class StylusController(CommonController):
             tranC0CnM[2,3] = tranC0CnM[2,3].copy() * self.cursorSpeed
             
             
-            
+            print(self.cursorSpeed,tranC0CnM)
             hCnC0M = np.dot(tranC0CnM,rotC0CnM)
             
             # Cal NewM
@@ -1275,7 +1276,7 @@ class StylusController2(StylusController):
         # get translation from dof 1 to enf
         cursorTransform = np.dot(self.hOpenGlToBase,cursorTransform)
         
-        # get endeffector from orientation
+        # # get endeffector from orientation
         self.readImuQuat(imuQuat)
         
         cursorTransform[0:3,0:3] = self.imuTrans[0:3,0:3].copy()

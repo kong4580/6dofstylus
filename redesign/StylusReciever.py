@@ -4,6 +4,7 @@ import numpy as np
 from math import pi
 
 
+import time
 from Stylus import Stylus
 # ser = serial.Serial('/dev/pts/1')
 # while(1):
@@ -17,7 +18,7 @@ class StylusReciever():
     def __init__(self,port,baudrate=9600,timeout=None):
         self.port = port
         self.baudrate = baudrate
-        self.ser = serial.Serial(baudrate=self.baudrate,port=self.port,timeout = timeout)
+        self.ser = serial.Serial(baudrate=self.baudrate,port=self.port,timeout = timeout,write_timeout = 1)
     
     def isActivate(self):
         return self.ser.is_open
@@ -31,8 +32,8 @@ class StylusReciever():
     def disconnect(self):
         self.ser.close()
 
-    def send(self):
-        pass
+    def send(self,data):
+        self.ser.write(data)
     
     def readRaw(self):
         rawData = self.ser.read()
@@ -42,6 +43,8 @@ class StylusReciever():
         return data
     
     def recieve(self):
+        # self.ser.reset_input_buffer()
+        # time.sleep(0.0000001)
         dataLen = 0
         
         start = [None] * 2
@@ -52,6 +55,7 @@ class StylusReciever():
             # print("start0")
             return -1,-1
         elif  start[0]== 0xFE:
+            # print("start0 here")
             start[1] =  self.readRaw()
             if start[1] == 0xFF:
                 
@@ -81,7 +85,7 @@ class StylusReciever():
                 else: # data is wrong
                     return -1,-1
             else:
-                
+                # print("start1 wrong",start[1])
                 return -1,-1
         else:
             return -1,-1
