@@ -462,9 +462,9 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         self.redraw()
         
         fltk.Fl_check()
-        # self.redraw()
+        self.redraw()
         
-        # fltk.Fl_check()
+        fltk.Fl_check()
         
         # change backdrop image to binary
         # fltk.Fl_wait(0.5)
@@ -496,9 +496,9 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         
         self.redraw()
         fltk.Fl_check()
-        # self.redraw()
+        self.redraw()
         
-        # fltk.Fl_check()
+        fltk.Fl_check()
         # fltk.Fl_wait(0.5)
         # self.snap("test",save=True)
 
