@@ -347,6 +347,12 @@ class Gui():
         else:
             self.coordinateTextON.hide()
             self.coordinateTextOff.hide()
+
+    # get log File name
+    def logName(self):
+        mode = self.controllerMode.capitalize()[0:6]
+        name = "./testLog" + mode + ".csv"
+        self.logFileName = name
     
     # create text widget
     def textWidget(self):
@@ -473,6 +479,9 @@ class Gui():
 
         # cursor speed handle
         self.cursorSpeedWidget()
+
+        # csv log name
+        self.logName()
 
         # update camera value
         for i in range(3):
