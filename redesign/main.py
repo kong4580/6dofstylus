@@ -58,9 +58,9 @@ def readSerial(conn):
                         pose = stylus.getEndTransforms(jointStates)
                         posed = np.vstack((posed,np.array(pose[0:3,3])))
                         
-                        if calibrateState and not device.isImuInit:
-                            print("IMU calibrate finish")
-                            print("Set home position then press k ")
+                        # if calibrateState and not device.isImuInit:
+                        #     print("IMU calibrate finish")
+                        #     print("Set home position then press k ")
 
                         # device.setTransform(pose,imuData)
                         # gui.openglWindow.ctl.readEvent(999)
