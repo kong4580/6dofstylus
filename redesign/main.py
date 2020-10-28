@@ -58,9 +58,9 @@ def readSerial(conn):
                         pose = stylus.getEndTransforms(jointStates)
                         posed = np.vstack((posed,np.array(pose[0:3,3])))
                         
-                        # if calibrateState and not device.isImuInit:
-                        #     print("IMU calibrate finish")
-                        #     print("Set home position then press k ")
+                        if calibrateState and not device.isImuInit:
+                            print("IMU calibrate finish")
+                            print("Set home position then press k ")
 
                         # device.setTransform(pose,imuData)
                         # gui.openglWindow.ctl.readEvent(999)
@@ -79,17 +79,22 @@ def readSerial(conn):
         if conn.poll(0.0000000000000000005):
             recvMsg = conn.recv()
             if recvMsg == 1 and pose is not None:
-                print("call")
-                # print(posed.shape)
+                # print("call")
+            
                 scale = np.array([0.3,0.2,0.3])
                 scalePosed = posed*scale
                 scalePosed = np.sum(scalePosed,axis=0)/scalePosed.shape[0]
-                pose[0,3] = scalePosed[0].copy()/scale[0]
-                pose[1,3] = scalePosed[1].copy()/scale[1]
-                pose[2,3] = scalePosed[2].copy()/scale[2]
-                posed = np.array([scalePosed[0].copy()/scale[0],scalePosed[1].copy()/scale[1],scalePosed[2].copy()/scale[2]])
-                # print(posed.shape)
-                # print(pose)
+                # print(scalePosed)
+                try:
+                    pose[0,3] = scalePosed[0].copy()/scale[0]
+                    pose[1,3] = scalePosed[1].copy()/scale[1]
+                    pose[2,3] = scalePosed[2].copy()/scale[2]
+                    posed = np.array([scalePosed[0].copy()/scale[0],scalePosed[1].copy()/scale[1],scalePosed[2].copy()/scale[2]])
+                except:
+                    print(posed)
+                    print(posed.shape)
+                    print(scalePosed)
+                
                 conn.send([1,pose,imuData,buttonStates])
         
     # time.sleep(1)
@@ -108,7 +113,7 @@ def callback(samplingRate,gui,conn):
         
         if len(recvMsg)>0 and recvMsg[0] == 1:
             pose,imuData,buttonStates = recvMsg[1],recvMsg[2],recvMsg[3]
-            print(pose)
+            # print(pose)
             device.setTransform(pose,imuData)
             gui.openglWindow.ctl.readEvent(999)
             
@@ -120,47 +125,7 @@ def callback(samplingRate,gui,conn):
                 gui.openglWindow.ctl.readEvent(1000)
         # print(time.time()-s)   
         
-        # if controllerMode != 'mouse' and srec.isActivate():
-        #     command,rawData = srec.recieve()
-        #     # print(rawData)
-        #     # update joint state command
-        #     if command == 0xFF and controllerMode == 'stylus':
-        #         # print(mode)
-        #         # get joint states and button states
-        #         jointStates,buttonStates = srec.readCommand(command,rawData)
-        #         # print(jointStates)
-        #         pose = stylus.getEndTransforms(jointStates)
-                
-        #         device.setTransform(pose)
-        #         gui.openglWindow.ctl.readEvent(999)
-                
-        #         if buttonStates[0] == True and buttonStates[1] == False:
-        #             gui.openglWindow.ctl.readEvent(1001)
-        #         elif buttonStates[0] == False and buttonStates[1] == True:
-        #             gui.openglWindow.ctl.readEvent(1002)
-        #         else:
-        #             gui.openglWindow.ctl.readEvent(1000)
-                
-                
-                
-                
-        #     # update button state command    
-        #     if command == 0xFE and controllerMode == 'stylus2':
-        #         # get button states
-        #         jointStates,imuData,calibrateState,buttonStates = srec.readCommand(command,rawData)
-        #         pose = stylus.getEndTransforms(jointStates)
-        #         if calibrateState and not device.isImuInit:
-        #             print("IMU calibrate finish")
-        #             print("Set home position then press k ")
-        #         device.setTransform(pose,imuData)
-        #         gui.openglWindow.ctl.readEvent(999)
-                
-        #         if buttonStates[0] == True and buttonStates[1] == False:
-        #             gui.openglWindow.ctl.readEvent(1001)
-        #         elif buttonStates[0] == False and buttonStates[1] == True:
-        #             gui.openglWindow.ctl.readEvent(1002)
-        #         else:
-        #             gui.openglWindow.ctl.readEvent(1000)
+        
         try:
             
             gui.updateUI()
@@ -169,6 +134,7 @@ def callback(samplingRate,gui,conn):
             pass
         
         fltk.Fl_check() 
+    
     # uiCallback = partial(callback,samplingRate,gui,conn)
     # fltk.Fl_repeat_timeout(samplingRate,uiCallback)
     
@@ -344,6 +310,9 @@ if __name__ == '__main__':
     # run GUI
     p.start()
     # p.join()
+    
     openGUI(conn = conn1,samplingRate = samplingRate)
     
+    print("Close program..")
     
+    p.terminate()
