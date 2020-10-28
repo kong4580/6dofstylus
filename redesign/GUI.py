@@ -84,7 +84,7 @@ class Gui():
         self.cameraInputWidget()
 
         # cursor speed widget
-        self.cursorSpeedSliderBarWidget()
+        # self.cursorSpeedSliderBarWidget()
         
         # self.textWidget()
 

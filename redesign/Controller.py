@@ -1183,7 +1183,7 @@ class MouseController(CommonController):
             angle = ((angle/math.pi)*180)%1
 
         # return degree
-        return angle
+        return angle*0.7
     
     # project point on line receive line equation and point position
     def pointProjectOnLine(self,line,point):
