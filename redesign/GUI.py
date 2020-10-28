@@ -266,8 +266,10 @@ class Gui():
         # set value in openGL
         self.openglWindow.flags['cursorSpeed'] = widgetValue
 
+    # cursor speed handle
     def cursorSpeedWidget(self):
-        if self.controllerMode == 'stylus':
+        # hide widget in mouse mode
+        if self.controllerMode == 'mouse':
             self.cursorSpeed[0].hide()
             self.cursorSpeed[1].hide()
 
@@ -302,11 +304,19 @@ class Gui():
     # create IoU output for all image
     def iouOutput(self):
         self.storageIouOutput = []
+
+        # set init y position
         y = 300
+
+        #set width, height
         width = 50
         height = 25
+
+        # create topic text
         iouBox = fltk.Fl_Box(600,275,100,height,"IoU Score")
         iouBox.box(fltk.FL_NO_BOX)
+
+        # create iou score box
         for i in range(6):
             output = fltk.Fl_Output(650,y,width,height,str(i+1))
             output.value(str(0))
@@ -337,6 +347,12 @@ class Gui():
         else:
             self.coordinateTextON.hide()
             self.coordinateTextOff.hide()
+
+    # get log File name
+    def logName(self):
+        mode = self.controllerMode.capitalize()[0:6]
+        name = "./testLog" + mode + ".csv"
+        self.logFileName = name
     
     # create text widget
     def textWidget(self):
@@ -421,24 +437,53 @@ class Gui():
 
     # update fltk from opengl 
     def updateFltk(self):
+        
+        # get model
         model = self.openglWindow.modelDicts['model'][self.openglWindow.modelDicts['runModelIdx']]
+        # get model rotation matrix
         r = R.from_matrix(model.worldToLocal[0:3,0:3])
+
+        # convert rotation matrix to euler
         degree = r.as_euler('zyx', degrees=True)
+
+        # update model position
+        # translate position
         self.storageOutput[0].value(str(round(model.worldToLocal[0][3],2)))
         self.storageOutput[1].value(str(round(model.worldToLocal[1][3],2)))
         self.storageOutput[2].value(str(round(model.worldToLocal[2][3],2)))
+
+        # rotate position
         self.storageOutput[3].value(str(round(degree[2],2)))
         self.storageOutput[4].value(str(round(degree[1],2)))
         self.storageOutput[5].value(str(round(degree[0],2)))
+
+        # init iou score
         self.iouScore = [0,0,0,0,0,0]
+
+        # update iou score
         self.iouScore[:len(self.openglWindow.iouScore)] = self.openglWindow.iouScore
         for i in range(len(self.iouScore)):
             self.storageIouOutput[i].value(str(round(self.iouScore[i],2)))
+
+        # get add log flags from openGL
         self.addLog = self.openglWindow.flags['addLog']
+
+        # handle log management
         self.loghandle()
+
+        # test mode text ui handle
         self.testModeUIHandle(self.openglWindow.flags['lineupTestMode'])
+
+        # coordinate text ui handle
         self.coordinateUIHandle(self.openglWindow.flags['coordinate'])
+
+        # cursor speed handle
         self.cursorSpeedWidget()
+
+        # csv log name
+        self.logName()
+
+        # update camera value
         for i in range(3):
             self.storageCamera[i].value(self.openglWindow.cameravalue[i])
             self.storageInput[i].value(str(self.openglWindow.cameravalue[i]))
@@ -446,7 +491,11 @@ class Gui():
 
     # collect information from tester
     def loghandle(self):
+
+        # if call add log
         if self.addLog == True:
+
+            #init log value
             self.log = {
                         "name":None,
                         "department":None,
@@ -458,21 +507,35 @@ class Gui():
                         "totalTime":None,
                         "modelPerSec":None
                     }
+
+            # create log window
             self.createlogWindow()
+
+            # reset flags
             self.addLog = False
             self.openglWindow.flags['addLog'] = False
-            self.addLog = False
+
+        # call after test
         if self.openglWindow.flags['logFinish'] == True:
+
+            # update log
             self.log.update(self.openglWindow.log)
             with open(self.logFileName,"a+",newline='') as csvFile:
                 dictWriter = csv.DictWriter(csvFile,fieldnames = self.log.keys())
                 dictWriter.writerow(self.log)
+
+            
             print("\nFinished Test mode\nsave log at: {}\n".format(self.logFileName))
+
+            # create final log score
             self.createScoreWindow()
+
+            # reset flag
             self.openglWindow.flags['logFinish'] = False
 
     # pop up score window after finish testing 
     def createScoreWindow(self):
+        # set window x position, y position, width, height
         self.scoreWindow = fltk.Fl_Window(int(self.window.x() + self.window.w()/2-400/2),int(self.window.y()+self.window.h()/2-100/2),400,100)
         self.textbox = fltk.Fl_Box(100,10,200,25,"Finish Testing")
         self.textbox.box(fltk.FL_NO_BOX)
@@ -493,6 +556,7 @@ class Gui():
     # create log window
     def createlogWindow(self):
         x = 150
+        # set window x position, y position, width, height
         self.logWindow = fltk.Fl_Window(int(self.window.x() + self.window.w()/2-500/2),int(self.window.y()+self.window.h()/2-200/2),500,200)
         self.name = fltk.Fl_Input(x,10,300,25,"Name                  ")
         self.department = fltk.Fl_Input(x,40,300,25,"Department       ")
@@ -533,8 +597,6 @@ class Gui():
         # update opengl window
         self.openglWindow.redraw()
         self.updateFltk()
-        # update side output value
-        # self.updateOutput(cvtedPose)
         
         
             

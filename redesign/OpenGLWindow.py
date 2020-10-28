@@ -89,9 +89,6 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
                         "modelPerSec":None
                     }
         
-        #log file name
-        self.logFileName = "./testLogStylus.csv"
-        
         self.ctl = None
         
     
@@ -619,11 +616,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
             
             GL.glDisable( GL.GL_TEXTURE_2D )
 
+    # get camera value from GUI
     def getCameraFromSlider(self,num,value):
         self.cameravalue[num] = value
-        self.redraw() 
-        # self.positionValue[num] = value
-
-    def getCameraValue(self,value):
-        self.cameravalue= value
         self.redraw() 
