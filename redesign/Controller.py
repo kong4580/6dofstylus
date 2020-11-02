@@ -5,7 +5,7 @@ from OpenGL import GL, GLUT, GLU
 from scipy.spatial.transform import Rotation as R
 import math
 from Ray import Ray,Plane,Line
-
+import sys
 class Handler():
     def __init__(self):
         self.push = False
@@ -289,7 +289,7 @@ class CommonController(Handler):
                     -ratio/self.cameraValue[0]-ratio*self.cameraValue[2], 
                     ratio/self.cameraValue[0]-ratio*self.cameraValue[2],
                      1, 100)
-        # print(self.cameraValue)
+        print(self.cameraValue)
         GL.glTranslatef(0,0,-35)
 
         #offset camera view
@@ -426,11 +426,11 @@ class StylusController(CommonController):
                     # if model is selected
                 if model.isSelected:
                     speed = 1
-                    print(self.fineTran)
+                    # print(self.fineTran)
                     # move model follow cursor
                     # now use only newM because use transform matrix to draw model
                     newM = self.followCursor(model,self.cursor)
-                    print(newM)
+                    # print(newM)
                     self.updateModelPose(model,newM,artiModel)
                     
                         
@@ -452,7 +452,7 @@ class StylusController(CommonController):
 
                             # set new matrix model
                             newM = model.startWorldToLocal
-                            print(model.name)
+                            # print(model.name)
                             # move model to the new matrix model
                             self.updateModelPose(model,newM,artiModel)
                     model.cursorM = None
@@ -654,11 +654,14 @@ class StylusController(CommonController):
             ## hNewM = hInvCurrentMOffsetTrans * deltaCntoC0 * hInvCurrentMOffsetTrans * hCurrentM
             ## newM  = model.invOffsetTran * tranCnC0 * rotCnC0 * model.offsetTran * model.startclickM
             ## newM  = model.invOffsetTran * tranCn * inv(tranC0) * rotCn * inv(rotC0) * model.offsetTran * model.startclickM
-            if self.fineRot or self.fineTran:
+            if self.fineRot :
                 
                 self.cursorSpeed = self.speed
+            elif self.fineTran:
+                self.cursorSpeed = 0.1
+                
             else:
-                self.cursorSpeed = 1
+                self.cursorSpeed = 1.0
             # Split rot and trans from hC0 (model.cursorM)
             rotc0 = np.eye(4)
             rotc0[0:3,0:3] = model.cursorM[0:3,0:3].copy()
@@ -674,6 +677,7 @@ class StylusController(CommonController):
             # Find hCnC0 wuth split inverse
             rotC0CnM = np.dot(rotcn,np.linalg.inv(rotc0))
             tranC0CnM = np.dot(trancn,np.linalg.inv(tranc0))
+            # print(self.cursorSpeed,tranC0CnM)
             
             rotvec = R.from_matrix(rotC0CnM[0:3,0:3])
             angle = rotvec.magnitude()
@@ -684,13 +688,14 @@ class StylusController(CommonController):
             
             rotvecNew = R.from_rotvec(angle*self.cursorSpeed*rotvecOld)
             rotC0CnM[0:3,0:3] = rotvecNew.as_matrix()
+            # print(self.cursorSpeed,tranC0CnM)
             
             tranC0CnM[0,3] = tranC0CnM[0,3].copy() * self.cursorSpeed
             tranC0CnM[1,3] = tranC0CnM[1,3].copy() * self.cursorSpeed
             tranC0CnM[2,3] = tranC0CnM[2,3].copy() * self.cursorSpeed
             
             
-            print(self.cursorSpeed,tranC0CnM)
+            # print(self.cursorSpeed,tranC0CnM)
             hCnC0M = np.dot(tranC0CnM,rotC0CnM)
             
             # Cal NewM
@@ -703,9 +708,9 @@ class StylusController(CommonController):
                 newM[1,3] = model.startclickM[1,3]
                 newM[2,3] = model.startclickM[2,3]
             elif self.fineTran:
-                print("s",self.fineTran)
+                # print("s",self.fineTran)
                 newM[0:3,0:3] = model.startclickM[0:3,0:3]
-        
+                # sys.exit()
             
                 
         # return new model transform
@@ -1254,7 +1259,7 @@ class StylusController2(StylusController):
                                   [0,0,-1,0],
                                   [0,1,0,0],
                                   [0,0,0,1]])
-        self.cfg={"homeCfg":(54.1832069, 1.16402681,  7.97263312)}
+        self.cfg={"homeCfg":(72.6287059, -4.60903242,   20.4418449)}
         self.isImuInit = False
         self.imuTrans = np.eye(4)
         
