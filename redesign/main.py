@@ -82,14 +82,38 @@ def readSerial(conn):
                 # print("call")
             
                 scale = np.array([0.3,0.2,0.3])
-                scalePosed = posed*scale
-                scalePosed = np.sum(scalePosed,axis=0)/scalePosed.shape[0]
-                # print(scalePosed)
+                oldScalePosed = posed*scale
+                # print(posed.shape)
+                scalePosed = np.sum(oldScalePosed.copy(),axis=0)/oldScalePosed.shape[0]
+                # print(scalePosed.shape)
+                print(scalePosed-oldScalePosed[0,:])
+                gap = np.array([0.043,0.043,0.043])
                 try:
-                    pose[0,3] = scalePosed[0].copy()/scale[0]
-                    pose[1,3] = scalePosed[1].copy()/scale[1]
-                    pose[2,3] = scalePosed[2].copy()/scale[2]
-                    posed = np.array([scalePosed[0].copy()/scale[0],scalePosed[1].copy()/scale[1],scalePosed[2].copy()/scale[2]])
+                    if abs(scalePosed[0]-oldScalePosed[0,0]) > gap[0]:
+                        print("ss")
+                        newScalePosedX = scalePosed[0]
+                    else:
+                        newScalePosedX = oldScalePosed[0,0]
+                    
+                    if abs(scalePosed[1]-oldScalePosed[0,1]) > gap[1]:
+                        print("ddd")
+                        newScalePosedY = scalePosed[1]
+                    else:
+                        newScalePosedY = oldScalePosed[0,1]
+                        
+                    if abs(scalePosed[2]-oldScalePosed[0,2]) > gap[2]:
+                        print('sssssss')
+                        newScalePosedZ = scalePosed[2]
+                    else:
+                        newScalePosedZ = oldScalePosed[0,2]
+                    pose[0,3] = newScalePosedX.copy()/scale[0]
+                    pose[1,3] = newScalePosedY.copy()/scale[1]
+                    pose[2,3] = newScalePosedZ.copy()/scale[2]
+                    # pose[0,3] = scalePosed[0].copy()/scale[0]
+                    # pose[1,3] = scalePosed[1].copy()/scale[1]
+                    # pose[2,3] = scalePosed[2].copy()/scale[2]
+                    posed = np.array([newScalePosedX.copy()/scale[0],newScalePosedY.copy()/scale[1],newScalePosedZ.copy()/scale[2]])
+                    # print(scalePosed)
                 except:
                     print(posed)
                     print(posed.shape)
