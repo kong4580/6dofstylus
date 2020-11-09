@@ -69,10 +69,10 @@ def coordinate():
 #     glutSolidCylinder(sradius,height,10,10)
 #     glutSolidSphere(sradius,50,50)
 
-def drawAxisY():
+def drawAxisY(ratio = 1):
     glColor3f(0.0,1.0,0.0) # green y
-    length = 4
-    radius = 0.25
+    length = 4*ratio
+    radius = 0.25*ratio
     glRotatef(-90,1,0,0)
     glTranslatef(0,0,length)
     # glTranslatef(-radius,0,0)
@@ -81,10 +81,10 @@ def drawAxisY():
     glutSolidCylinder(radius/2,length,10,10)
     
 
-def drawAxisZ():
+def drawAxisZ(ratio = 1):
     glColor3f(0.0,0.0,1.0) # blue z
-    length = 4
-    radius = 0.25
+    length = 4*ratio
+    radius = 0.25*ratio
     # glTranslatef(-radius,0,0)
     glRotatef(90,0,0,1)
     glTranslatef(0,0,length)
@@ -92,10 +92,10 @@ def drawAxisZ():
     glTranslatef(0,0,-length)
     glutSolidCylinder(radius/2,length,10,10)
 
-def drawAxisX():
+def drawAxisX(ratio = 1):
     glColor3f(1.0,0.0,0.0) # red x
-    length = 4
-    radius = 0.25
+    length = 4*ratio
+    radius = 0.25*ratio
     # glTranslatef(-radius,0,0)
     glRotatef(90,0,1,0)
     glTranslatef(0,0,length)
@@ -157,22 +157,22 @@ def drawTeapot():
     glutWireTeapot(2)
     end = time.time()
     print("time =",end - start)
-def drawCircleZ():
+def drawCircleZ(ratio = 1):
     glColor3f(0.0,0.0,1.0)
-    inner = 0.1
-    outer = 5
+    inner = 0.1*ratio
+    outer = 5*ratio
     glutSolidTorus(inner,outer,10,100)
-def drawCircleX():
+def drawCircleX(ratio = 1):
     glColor3f(1.0,0.0,0.0)
     glRotatef(90,0,1,0)
-    inner = 0.1
-    outer = 5
+    inner = 0.1*ratio
+    outer = 5*ratio
     glutSolidTorus(inner,outer,10,100)
-def drawCircleY():
+def drawCircleY(ratio = 1):
     glColor3f(0.0,1.0,0.0)
     glRotatef(90,1,0,0)
-    inner = 0.1
-    outer = 5
+    inner = 0.1*ratio
+    outer = 5*ratio
     glutSolidTorus(inner,outer,10,100)
 def drawPyramid(length,modelId):
     scale = 1

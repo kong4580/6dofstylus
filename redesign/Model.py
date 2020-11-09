@@ -165,8 +165,7 @@ class Model(Transform):
     def argv(self):
         return 0
     # draw model with transform matrix
-    def drawMatrixModel(self, showFrame=True, enableLight = True,wireFrame = False, opacity = False,mode = 'trans',selectedMode = False,coordinate = True):
-        
+    def drawMatrixModel(self, showFrame=True, enableLight = True,wireFrame = False, opacity = False,mode = 'trans',selectedMode = False,coordinate = True,camera = [1,0,0]):
         # if model is obj firl
         if self.obj!=None:
             
@@ -283,7 +282,7 @@ class Model(Transform):
                     #     self.drawFrame(drawFunc.drawCircleY,202,selectedMode)
 
                     #     self.drawFrame(drawFunc.drawCircleZ,203,selectedMode)
-                    self.manipulator.drawManipulator(mode,coordinate,self.currentM,selectedMode)
+                    self.manipulator.drawManipulator(mode,coordinate,self.currentM,selectedMode,camera)
                         
                         # drawFunc.drawCircleZ()
                     # GL.glEnable(GL.GL_LIGHTING)
@@ -318,7 +317,7 @@ class Model(Transform):
                     
                         
                 else:
-                    self.manipulator.drawManipulator(mode,coordinate,self.currentM,selectedMode)
+                    self.manipulator.drawManipulator(mode,coordinate,self.currentM,selectedMode,camera)
                     
                 GL.glPopMatrix()
                 
