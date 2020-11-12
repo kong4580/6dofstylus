@@ -80,13 +80,17 @@ class CommonController(Handler):
             
             if type(model).__name__ != "Joint":
                 
-                # move transform
-                transform[0:3,0:3] = np.eye(3)
-                model.moveModel(transform)
+                # # move transform
+                # if model.name != 'base':
+                #     transform[0:3,0:3] = np.eye(3)
+                # else:
+                #     pass
+                model.moveModel(transform,mode='absolute')
+                print(model.name,transform)
                 try:
                     # rotate J2 back to align with J1
                     invJ2 = np.eye(4)
-                    invJ2[0:3,0:3] = np.linalg.inv(artiModel.listOfJoint[1].parentToLocal[0:3,0:3])
+                    invJ2[0:3,0:3] = np.linalg.inv(artiModel.listOfJoint[1].tt[0:3,0:3])
                     artiModel.listOfJoint[1].moveModel(invJ2,mode='relative')
                     
                     # calculate theta 2
@@ -289,7 +293,7 @@ class CommonController(Handler):
                     -ratio/self.cameraValue[0]-ratio*self.cameraValue[2], 
                     ratio/self.cameraValue[0]-ratio*self.cameraValue[2],
                      1, 100)
-        print(self.cameraValue)
+        # print(self.cameraValue)
         GL.glTranslatef(0,0,-35)
 
         #offset camera view
@@ -774,7 +778,7 @@ class MouseController(CommonController):
 
             # move method when model is selected 
             if model.isSelected:
-                    
+                
                 #mouse drag event
                 if event == fltk.FL_DRAG:
                     newM = self.mouseDrag()
@@ -783,7 +787,7 @@ class MouseController(CommonController):
                 if event == fltk.FL_RELEASE:
                     self.addHistory(self.old,newM,model)
                      # print(self.history)
-
+            print(newM)
             # move model with new matrix
             self.updateModelPose(model,newM,artiModel)
             
@@ -824,7 +828,7 @@ class MouseController(CommonController):
         model =self.selectedModel[0]
         newTranslate = np.eye(4)
         newM = model.worldToLocal.copy()
-
+        
         # drag to translate
         if self.flags['mouseMode'] == 'trans':
             if self.translationAxis == 'None':
@@ -842,7 +846,8 @@ class MouseController(CommonController):
         elif self.flags['mouseMode'] == 'rot':
             if self.rotationAxis != 'None':
                 newM = self.mouseRotate(self.xMousePosition,self.yMousePosition,self.rotationAxis,self.flags['coordinate'])
-
+        
+                
         # return homogenous matrix
         return newM
 
@@ -856,8 +861,11 @@ class MouseController(CommonController):
         # self.rotationAxis = None
         # check selection    
         for model in modelList:
+            print(self.mouseSelectedCheck())
             if self.mouseSelectedCheck() == model.modelId or self.mouseSelectedCheck() == True:
 
+                for m in modelList:
+                    m.isSelected = False
                 # model is selected
                 model.isSelected = True
                 self.rotationAxis = 'None'
@@ -868,39 +876,47 @@ class MouseController(CommonController):
 
             elif self.mouseSelectedCheck() == 201:
                 self.rotationAxis = 'rotX'
-                model.isSelected = True
-                selectModel.append(model)
+                print(model.isSelected)
+                if model.isSelected:
+                    model.isSelected = True
+                    selectModel.append(model)
 
             elif self.mouseSelectedCheck() == 202:
                 self.rotationAxis = 'rotY'
-                model.isSelected = True
-                selectModel.append(model)
+                if model.isSelected:
+                    model.isSelected = True
+                    selectModel.append(model)
 
             elif self.mouseSelectedCheck() == 203:
                 self.rotationAxis = 'rotZ'
-                model.isSelected = True
-                selectModel.append(model)
+                if model.isSelected:
+                    model.isSelected = True
+                    selectModel.append(model)
 
             elif self.mouseSelectedCheck() == 101:
                 self.translationAxis = 'transX'
-                model.isSelected = True
-                selectModel.append(model)
+                print(model.isSelected)
+                if model.isSelected:
+                    model.isSelected = True
+                    selectModel.append(model)
 
             elif self.mouseSelectedCheck() == 102:
                 self.translationAxis = 'transY'
-                model.isSelected = True
-                selectModel.append(model)
+                if model.isSelected:
+                    model.isSelected = True
+                    selectModel.append(model)
 
             elif self.mouseSelectedCheck() == 103:
                 self.translationAxis = 'transZ'
-                model.isSelected = True
-                selectModel.append(model)
+                if model.isSelected:
+                    model.isSelected = True
+                    selectModel.append(model)
 
             else:
 
                 #model is deselected
                 model.isSelected = False
-            
+        
         return selectModel
 
     # mouse click selection checking
@@ -1030,7 +1046,7 @@ class MouseController(CommonController):
 
         # set current ray for the next ray 
         self.oldRay = newRay
-
+        
         # return matrix for model
         return newN
 

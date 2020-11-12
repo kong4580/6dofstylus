@@ -18,14 +18,17 @@ class Transform():
         self.parentToLocal = np.eye(4)
         self.startWorldToLocal = np.eye(4)
         self.manipulator = Manipulator()
-    
+        self.tt = np.eye(4)
     @property
     def worldToLocal(self):
         if len(self.parent) > 0:
             for i in self.parent:
                 wTL = np.dot(i.worldToLocal , self.parentToLocal)
+                wTL = np.dot(wTL , self.tt)
+                
         else:
-            wTL = self.parentToLocal
+            
+            wTL = np.dot(self.parentToLocal , self.tt)
         
         return wTL
 
@@ -44,9 +47,10 @@ class Transform():
         
         # newT = np.dot(tranM,self.worldToLocal)
         # newT = np.dot(self.parentToLocal,transform)
-        newT = np.dot(tranM,self.parentToLocal)
+        print(transform)
+        newT = np.dot(tranM,self.tt)
         newT = np.dot(newT,rotM)
-
+        
         
         
         # newT = np.dot(newT,rotM)
@@ -58,7 +62,7 @@ class Transform():
             oldTParent = np.eye(4)
             
         # self.parentToLocal = np.dot(oldTParent,newT)
-        self.parentToLocal = newT
+        self.tt = newT
         
         # if self.parentToLocal[0,3] < 1e10:
         #     self.parentToLocal[0,3] = 0
@@ -73,10 +77,17 @@ class Transform():
     
     def goTo(self, matrix):
         
-        pT=np.eye(4)
-        pT[0:3,3] = self.worldToLocal[0:3,3].copy()
-        pR = np.eye(4)
-        pR[0:3,0:3] = self.worldToLocal[0:3,0:3].copy()
+        if len(self.parent) > 0:
+            pT=np.eye(4)
+            pT[0:3,3] = np.dot(self.parentToLocal,self.tt).copy()[0:3,3]
+            pR = np.eye(4)
+            pR[0:3,0:3] = np.dot(self.parentToLocal,self.tt).copy()[0:3,0:3]
+        else:
+            pT=np.eye(4)
+            pT[0:3,3] = self.worldToLocal[0:3,3].copy()
+            
+            pR = np.eye(4)
+            pR[0:3,0:3] = self.worldToLocal[0:3,0:3].copy()
         
         wT = np.eye(4)
         wT[0:3,3] = matrix[0:3,3].copy()
@@ -85,11 +96,25 @@ class Transform():
         
         t = np.dot(np.linalg.inv(pT),wT)
         # print(pR,wR)
+        # print("app",pT,np.linalg.inv(pT),wT,np.linalg.det(pR[0:3,0:3]))
         r = np.dot(np.linalg.pinv(pR),wR)
-        
+        # print(np.linalg.pinv(pR),pR.T)
         newM = np.eye(4)
         newM[0:3,3] = t[0:3,3]
         newM[0:3,0:3] = r[0:3,0:3] 
+        # print(newM,np.linalg.inv(self.parentToLocal))
+        # newM[0:3,0:3] = np.dot(np.linalg.inv(self.parentToLocal),newM)
+        if len(self.parent) > 0:
+            invW=np.eye(4)
+            invW[0:3,3] = self.parent[0].worldToLocal[0:3,3]
+            invW = np.linalg.inv(invW)
+            invR = np.eye(4)
+            invR[0:3,0:3] = self.parent[0].worldToLocal[0:3,0:3]
+            invR = np.linalg.inv(invR)
+            inn = np.eye(4)
+            inn[0:3,0:3] = invR[0:3,0:3]
+            inn[0:3,3] = invW[0:3,3]
+            newM = np.dot(inn,newM)
         return newM
 class Model(Transform):
     
@@ -318,7 +343,10 @@ class Model(Transform):
                     
                         
                 else:
-                    self.manipulator.drawManipulator(mode,coordinate,self.currentM,selectedMode)
+                    if self.isSelected:
+                        self.manipulator.drawManipulator(mode,coordinate,self.currentM,selectedMode)
+                    else:
+                        pass
                     
                 GL.glPopMatrix()
                 
@@ -328,6 +356,7 @@ class Model(Transform):
     def updateChild(self):
         if len(self.child) > 0:
             # print(self.child[0].renderM)
+            
             for c in self.child:
                 c.currentM = c.worldToLocal
             # print(self.child[0].renderM)
@@ -355,6 +384,7 @@ class Model(Transform):
         # if len(self.parent) > 0:
         #     matrix[0:3,3] = self.currentM[0:3,3]
         # print(self.name,matrix)
+        print("ptl",self.parentToLocal)
         if mode == 'absolute':
             
 
@@ -365,6 +395,11 @@ class Model(Transform):
             self.apply(matrix)
             
         self.currentM = self.worldToLocal
+        if self.name!= 'cursor':
+            try:
+                print(self.name,"tt",self.currentM,self.tt,transform,matrix,self.parentToLocal)
+            except:
+                pass
         # print(self.name,self.currentM,self.parentToLocal)
         
         self.updateChild()
@@ -841,8 +876,7 @@ class ArticulateModel(Model):
         self.poleVertex = Model('pole',62,drawFunc.DrawCube)
         self.showTarget = showTarget
         self.showPole = showPole
-        # self.target.goUnder(self.base)
-        # self.poleVertex.goUnder(self.base)
+        
         if len(self.listOfJoint)>0:
             self.listOfJoint[0].goUnder(self.base)
             for idx in range(len(self.listOfJoint)-1):
@@ -853,14 +887,19 @@ class ArticulateModel(Model):
                                       [0,1,0,0],
                                       [0,0,1,0],
                                       [0,0,0,1]]))
-        self.target.moveModel(np.array([[1,0,0,-1.],
+        self.target.parentToLocal = np.array([[1,0,0,-1.],
                                       [0,1,0,5],
                                       [0,0,1,0],
-                                      [0,0,0,1]]))
-        self.poleVertex.moveModel(np.array([[1,0,0,1.],
+                                      [0,0,0,1]])
+        self.poleVertex.parentToLocal = np.array([[1,0,0,1.],
                                       [0,1,0,5],
                                       [0,0,1,1],
-                                      [0,0,0,1]]))
+                                      [0,0,0,1]])
+        self.target.moveModel(np.eye(4),mode='relative')
+        self.poleVertex.moveModel(np.eye(4),mode='relative')
+        
+        self.target.goUnder(self.base)
+        self.poleVertex.goUnder(self.base)
         self.modelLists = [self.base,self.target,self.poleVertex]
         self.modelLists.extend(self.listOfJoint)
         for m in self.modelLists:
