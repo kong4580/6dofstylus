@@ -641,7 +641,7 @@ class Joint(Model):
     def __init__(self,name,modelId,drawFunction = None,position=(0,0,0),rotation=(0,0,0),obj=None,m =np.eye(4)):
         super().__init__(name,modelId,drawFunction,position,rotation,obj,m)
         
-    def drawMatrixModel(self, showFrame=True, enableLight = True,wireFrame = False, opacity = False,mode = 'trans',selectedMode = False):
+    def drawMatrixModel(self, showFrame=True, enableLight = True,wireFrame = False, opacity = False,mode = 'trans',selectedMode = False,camera = [1,0,0]):
 
         # if model is show
         if self.show:
@@ -869,17 +869,17 @@ class ArticulateModel(Model):
         for joint in self.listOfJoint:
             joint.initModel(matrixView)
     
-    def drawMatrixModel(self, showFrame=True, enableLight = True,wireFrame = False, opacity = False,mode = 'trans',selectedMode = False,coordinate = True):
-        self.base.drawMatrixModel(showFrame,enableLight,wireFrame,opacity,mode,selectedMode,coordinate)
+    def drawMatrixModel(self, showFrame=True, enableLight = True,wireFrame = False, opacity = False,mode = 'trans',selectedMode = False,coordinate = True,camera = [1,0,0]):
+        self.base.drawMatrixModel(showFrame,enableLight,wireFrame,opacity,mode,selectedMode,coordinate,camera = camera)
         if self.showTarget:
-            self.target.drawMatrixModel(showFrame,enableLight,wireFrame,opacity,mode,selectedMode,coordinate)
+            self.target.drawMatrixModel(showFrame,enableLight,wireFrame,opacity,mode,selectedMode,coordinate,camera = camera)
         if self.showPole:
             
-            self.poleVertex.drawMatrixModel(showFrame,enableLight,wireFrame,opacity,mode,selectedMode,coordinate)
+            self.poleVertex.drawMatrixModel(showFrame,enableLight,wireFrame,opacity,mode,selectedMode,coordinate,camera = camera)
         
         # print(self.base.currentM)
         for joint in self.listOfJoint:
-            joint.drawMatrixModel(showFrame,enableLight,wireFrame,opacity,mode,selectedMode)
+            joint.drawMatrixModel(showFrame,enableLight,wireFrame,opacity,mode,selectedMode,camera = camera)
     
     def getSubModel(self):
         return self.modelLists
