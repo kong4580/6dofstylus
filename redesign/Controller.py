@@ -289,7 +289,7 @@ class CommonController(Handler):
                     -ratio/self.cameraValue[0]-ratio*self.cameraValue[2], 
                     ratio/self.cameraValue[0]-ratio*self.cameraValue[2],
                      1, 100)
-        print(self.cameraValue)
+        # print(self.cameraValue)
         GL.glTranslatef(0,0,-35)
 
         #offset camera view
@@ -309,7 +309,7 @@ class CommonController(Handler):
         GL.glMatrixMode(GL.GL_MODELVIEW)
 
         # draw model in select mode
-        model.drawMatrixModel(selectedMode = True,mode = self.flags['mouseMode'],coordinate = self.flags['coordinate'])
+        model.drawMatrixModel(selectedMode = True,mode = self.flags['mouseMode'],coordinate = self.flags['coordinate'],camera = self.cameraValue[0:3])
 
         # return model id
         hits = GL.glRenderMode(GL.GL_RENDER)

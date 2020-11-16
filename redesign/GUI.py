@@ -133,7 +133,7 @@ class Gui():
         self.nameLabel = ["Zoom", "CameraX", "CameraY"]
 
         # init min value
-        minValue =       [ 0.01     , -1     , -1     ]
+        minValue =       [ 0.5     , -1     , -1     ]
 
         # init max value
         maxValue =       [ 10       ,  1     ,  1     ]

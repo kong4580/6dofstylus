@@ -222,7 +222,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
             model.flags['showModelFrame'] = self.flags['showModelFrame']
             # draw model with transform matrix
             # model.drawMatrixModel(showFrame=self.flags['showModelFrame'],wireFrame = self.flags['showModelWireframe'], opacity = self.flags['opacityMode'],mode=self.flags['mouseMode'])
-            model.drawMatrixModel(mode=self.flags['mouseMode'],coordinate = self.flags['coordinate'])
+            model.drawMatrixModel(mode=self.flags['mouseMode'],coordinate = self.flags['coordinate'],camera = self.cameravalue[0:3])
             
             
                 
@@ -459,9 +459,9 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         self.redraw()
         
         fltk.Fl_check()
-        # self.redraw()
+        self.redraw()
         
-        # fltk.Fl_check()
+        fltk.Fl_check()
         
         # change backdrop image to binary
         # fltk.Fl_wait(0.5)
@@ -493,9 +493,9 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         
         self.redraw()
         fltk.Fl_check()
-        # self.redraw()
+        self.redraw()
         
-        # fltk.Fl_check()
+        fltk.Fl_check()
         # fltk.Fl_wait(0.5)
         # self.snap("test",save=True)
 

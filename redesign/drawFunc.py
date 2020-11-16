@@ -1,9 +1,9 @@
-from OpenGL.GL import *
-from OpenGL.GLUT import *
-from OpenGL.GLU import *
+# from OpenGL.GL import *
+# from OpenGL.GLUT import *
+# from OpenGL.GLU import *
 import time
 import math
-from OpenGL import GL
+from OpenGL import GL,GLUT,GLU
 RedColorVector = (1,0,0)
 GreenColorVector = (0,1,0)
 BlueColorVector = (0,0,1)
@@ -19,161 +19,166 @@ BlackColorVector = (0,0,0)
 
 def drawCursor():
     ratio = 0.75
-    glColor3f(1,0,1)
+    GL.glColor3f(1,0,1)
     r  = 0.3*ratio
     height = (r/3) *10
     sradius = r/3
-    glutSolidSphere(r,50,50)
-    glTranslatef(0,height,0)
-    glRotatef(90,1,0,0)
-    glutSolidCylinder(sradius,height,10,10)
-    glutSolidSphere(sradius,50,50)
+    GLUT.glutSolidSphere(r,50,50)
+    GL.glTranslatef(0,height,0)
+    GL.glRotatef(90,1,0,0)
+    GLUT.glutSolidCylinder(sradius,height,10,10)
+    GLUT.glutSolidSphere(sradius,50,50)
 
 def point():
-    glEnable(GL_POINT_SMOOTH)
-    glPointSize(10)
-    glBegin(GL_POINTS)
-    glColor3fv(MagentaColorVector)
-    glVertex3f(0, 0, 0)
-    glEnd()
+    GL.glEnable(GL.GL_POINT_SMOOTH)
+    GL.glPointSize(10)
+    GL.glBegin(GL.GL_POINTS)
+    GL.glColor3fv(MagentaColorVector)
+    GL.glVertex3f(0, 0, 0)
+    GL.glEnd()
 def coordinate():
-    glColor3f(0.0,1.0,0.0) # green y
-    glBegin(GL_LINES)
+    GL.glColor3f(0.0,1.0,0.0) # green y
+    GL.glBegin(GL.GL_LINES)
     # x aix
-    glVertex3f(0, 0, 0.0)
-    glVertex3f(0.0, 4.0, 0.0)
-    glEnd()
+    GL.glVertex3f(0, 0, 0.0)
+    GL.glVertex3f(0.0, 4.0, 0.0)
+    GL.glEnd()
     
     # y 
-    glColor3f(0.0,0.0,1.0) # blue z
-    glBegin(GL_LINES)
-    glVertex3f(0.0, 0, 0.0)
-    glVertex3f(0.0, 0.0, 4.0)
-    glEnd()
+    GL.glColor3f(0.0,0.0,1.0) # blue z
+    GL.glBegin(GL.GL_LINES)
+    GL.glVertex3f(0.0, 0, 0.0)
+    GL.glVertex3f(0.0, 0.0, 4.0)
+    GL.glEnd()
  
     # z 
-    glColor3f(1.0,0.0,0.0) # red x
-    glBegin(GL_LINES)
-    glVertex3f(0.0, 0.0 ,0 )
-    glVertex3f(4.0, 0.0 ,0.0 )
-    glEnd()
+    GL.glColor3f(1.0,0.0,0.0) # red x
+    GL.glBegin(GL.GL_LINES)
+    GL.glVertex3f(0.0, 0.0 ,0 )
+    GL.glVertex3f(4.0, 0.0 ,0.0 )
+    GL.glEnd()
 
 # def drawCursor(ratio):
-#     glColor3f(1,0,1)
+#     GL.glColor3f(1,0,1)
 #     r  = 0.3*ratio
 #     height = (r/3) *10
 #     sradius = r/3
-#     glutSolidSphere(r,50,50)
-#     glTranslatef(0,height,0)
-#     glRotatef(90,1,0,0)
-#     glutSolidCylinder(sradius,height,10,10)
-#     glutSolidSphere(sradius,50,50)
+#     GLUT.glutSolidSphere(r,50,50)
+#     GL.glTranslatef(0,height,0)
+#     GL.glRotatef(90,1,0,0)
+#     GLUT.glutSolidCylinder(sradius,height,10,10)
+#     GLUT.glutSolidSphere(sradius,50,50)
 
-def drawAxisY():
-    glColor3f(0.0,1.0,0.0) # green y
-    length = 4
-    radius = 0.25
-    glRotatef(-90,1,0,0)
-    glTranslatef(0,0,length)
-    # glTranslatef(-radius,0,0)
-    glutSolidCone(radius,length/4,10,10)
-    glTranslatef(0,0,-length)
-    glutSolidCylinder(radius/2,length,10,10)
+def drawAxisY(ratio = 1):
+    GL.glColor3f(0.0,1.0,0.0) # green y
+    length = 4*ratio
+    radius = 0.25*ratio
+    GL.glRotatef(-90,1,0,0)
+    GL.glTranslatef(0,0,length)
+    # GL.glTranslatef(-radius,0,0)
+    GLUT.glutSolidCone(radius,length/4,10,10)
+    GL.glTranslatef(0,0,-length)
+    GLUT.glutSolidCylinder(radius/2,length,10,10)
     
 
-def drawAxisZ():
-    glColor3f(0.0,0.0,1.0) # blue z
-    length = 4
-    radius = 0.25
-    # glTranslatef(-radius,0,0)
-    glRotatef(90,0,0,1)
-    glTranslatef(0,0,length)
-    glutSolidCone(radius,length/4,10,10)
-    glTranslatef(0,0,-length)
-    glutSolidCylinder(radius/2,length,10,10)
+def drawAxisZ(ratio = 1):
+    GL.glColor3f(0.0,0.0,1.0) # blue z
+    length = 4*ratio
+    radius = 0.25*ratio
+    # GL.glTranslatef(-radius,0,0)
+    GL.glRotatef(90,0,0,1)
+    GL.glTranslatef(0,0,length)
+    GLUT.glutSolidCone(radius,length/4,10,10)
+    GL.glTranslatef(0,0,-length)
+    GLUT.glutSolidCylinder(radius/2,length,10,10)
 
-def drawAxisX():
-    glColor3f(1.0,0.0,0.0) # red x
-    length = 4
-    radius = 0.25
-    # glTranslatef(-radius,0,0)
-    glRotatef(90,0,1,0)
-    glTranslatef(0,0,length)
-    glutSolidCone(radius,length/4,10,10)
-    glTranslatef(0,0,-length)
-    glutSolidCylinder(radius/2,length,10,10)
+def drawAxisX(ratio = 1):
+    GL.glColor3f(1.0,0.0,0.0) # red x
+    length = 4*ratio
+    radius = 0.25*ratio
+    # GL.glTranslatef(-radius,0,0)
+    GL.glRotatef(90,0,1,0)
+    GL.glTranslatef(0,0,length)
+    GLUT.glutSolidCone(radius,length/4,10,10)
+    GL.glTranslatef(0,0,-length)
+    GLUT.glutSolidCylinder(radius/2,length,10,10)
 
 def DrawCube():
-    glBegin(GL_QUADS)
+    GL.glBegin(GL_QUADS)
 
-    glColor3f(1, 0, 0)
-    glVertex3f(-0.5, 0.5, 0.5)
-    glVertex3f(-0.5, -0.5, 0.5)
-    glVertex3f(0.5, -0.5, 0.5)
-    glVertex3f(0.5, 0.5, 0.5)
+    GL.glColor3f(1, 0, 0)
+    GL.glVertex3f(-0.5, 0.5, 0.5)
+    GL.glVertex3f(-0.5, -0.5, 0.5)
+    GL.glVertex3f(0.5, -0.5, 0.5)
+    GL.glVertex3f(0.5, 0.5, 0.5)
 
-    glColor3f(0, 1, 0)
-    glVertex3f(-0.5, 0.5, -0.5)
-    glVertex3f(0.5, 0.5, -0.5)
-    glVertex3f(0.5, -0.5, -0.5)
-    glVertex3f(-0.5, -0.5, -0.5)
+    GL.glColor3f(0, 1, 0)
+    GL.glVertex3f(-0.5, 0.5, -0.5)
+    GL.glVertex3f(0.5, 0.5, -0.5)
+    GL.glVertex3f(0.5, -0.5, -0.5)
+    GL.glVertex3f(-0.5, -0.5, -0.5)
 
-    glColor3f(0, 0, 1)
-    glVertex3f(-0.5, 0.5, -0.5)
-    glVertex3f(-0.5, 0.5, 0.5)
-    glVertex3f(0.5, 0.5, 0.5)
-    glVertex3f(0.5, 0.5, -0.5)
+    GL.glColor3f(0, 0, 1)
+    GL.glVertex3f(-0.5, 0.5, -0.5)
+    GL.glVertex3f(-0.5, 0.5, 0.5)
+    GL.glVertex3f(0.5, 0.5, 0.5)
+    GL.glVertex3f(0.5, 0.5, -0.5)
 
-    glColor3f(1, 1, 0)
-    glVertex3f(-0.5, -0.5, -0.5)
-    glVertex3f(0.5, -0.5, -0.5)
-    glVertex3f(0.5, -0.5, 0.5)
-    glVertex3f(-0.5, -0.5, 0.5)
+    GL.glColor3f(1, 1, 0)
+    GL.glVertex3f(-0.5, -0.5, -0.5)
+    GL.glVertex3f(0.5, -0.5, -0.5)
+    GL.glVertex3f(0.5, -0.5, 0.5)
+    GL.glVertex3f(-0.5, -0.5, 0.5)
 
-    glColor3f(0, 1, 1)
-    glVertex3f(-0.5, 0.5, -0.5)
-    glVertex3f(-0.5, -0.5, -0.5)
-    glVertex3f(-0.5, -0.5, 0.5)
-    glVertex3f(-0.5, 0.5, 0.5)
+    GL.glColor3f(0, 1, 1)
+    GL.glVertex3f(-0.5, 0.5, -0.5)
+    GL.glVertex3f(-0.5, -0.5, -0.5)
+    GL.glVertex3f(-0.5, -0.5, 0.5)
+    GL.glVertex3f(-0.5, 0.5, 0.5)
 
-    glColor3f(1, 0, 1)
-    glVertex3f(0.5, 0.5, 0.5)
-    glVertex3f(0.5, -0.5, 0.5)
-    glVertex3f(0.5, -0.5, -0.5)
-    glVertex3f(0.5, 0.5, -0.5)
-    glEnd()
+    GL.glColor3f(1, 0, 1)
+    GL.glVertex3f(0.5, 0.5, 0.5)
+    GL.glVertex3f(0.5, -0.5, 0.5)
+    GL.glVertex3f(0.5, -0.5, -0.5)
+    GL.glVertex3f(0.5, 0.5, -0.5)
+    GL.glEnd()
+
 def Grid():
-    glBegin(GL_LINES)
-    glColor3f(1, 1, 1)
+    GL.glBegin(GL.GL_LINES)
+    GL.glColor3f(1, 1, 1)
     for i in range(-10,10,1):
-        glVertex3f(i, 0, 10)
-        glVertex3f(i, 0, -10)
-        glVertex3f(10, 0, i) 
-        glVertex3f(-10, 0, i)
-    glEnd()
+        GL.glVertex3f(i, 0, 10)
+        GL.glVertex3f(i, 0, -10)
+        GL.glVertex3f(10, 0, i) 
+        GL.glVertex3f(-10, 0, i)
+    GL.glEnd()
     
 def drawTeapot():
     start = time.time()
-    glutWireTeapot(2)
+    GLUT.glutWireTeapot(2)
     end = time.time()
     print("time =",end - start)
-def drawCircleZ():
-    glColor3f(0.0,0.0,1.0)
-    inner = 0.1
-    outer = 5
-    glutSolidTorus(inner,outer,10,100)
-def drawCircleX():
-    glColor3f(1.0,0.0,0.0)
-    glRotatef(90,0,1,0)
-    inner = 0.1
-    outer = 5
-    glutSolidTorus(inner,outer,10,100)
-def drawCircleY():
-    glColor3f(0.0,1.0,0.0)
-    glRotatef(90,1,0,0)
-    inner = 0.1
-    outer = 5
-    glutSolidTorus(inner,outer,10,100)
+
+def drawCircleZ(ratio = 1):
+    GL.glColor3f(0.0,0.0,1.0)
+    inner = 0.1*ratio
+    outer = 5*ratio
+    GLUT.glutSolidTorus(inner,outer,10,100)
+
+def drawCircleX(ratio = 1):
+    GL.glColor3f(1.0,0.0,0.0)
+    GL.glRotatef(90,0,1,0)
+    inner = 0.1*ratio
+    outer = 5*ratio
+    GLUT.glutSolidTorus(inner,outer,10,100)
+
+def drawCircleY(ratio = 1):
+    GL.glColor3f(0.0,1.0,0.0)
+    GL.glRotatef(90,1,0,0)
+    inner = 0.1*ratio
+    outer = 5*ratio
+    GLUT.glutSolidTorus(inner,outer,10,100)
+
 def drawPyramid(length,modelId):
     scale = 1
     bl = (-length*1*scale,0.5*scale,0.5*scale)
@@ -187,7 +192,7 @@ def drawPyramid(length,modelId):
     
     if modelId != None:
         GL.glLoadName(modelId)
-    glutSolidSphere(.74,10,10)
+    GLUT.glutSolidSphere(.74,10,10)
     GL.glPopMatrix()
     
     GL.glPushMatrix()
@@ -232,4 +237,109 @@ def drawPyramid(length,modelId):
     GL.glVertex3fv( bl )
     GL.glEnd()
     GL.glPopMatrix()
-    
+
+def drawHex(ratio):
+    vertex = []
+    for i in range(6):
+        v = [ratio*math.sin(i/6.0*2*math.pi),ratio*math.cos(i/6.0*2*math.pi)]
+        vertex.append(v)
+    GL.glBegin(GL.GL_LINES)
+    GL.glVertex2d(vertex[0][0], vertex[0][1])
+    GL.glVertex2d(vertex[1][0], vertex[1][1])
+    GL.glEnd()
+    GL.glBegin(GL.GL_LINES)
+    GL.glVertex2d(vertex[1][0], vertex[1][1])
+    GL.glVertex2d(vertex[2][0], vertex[2][1])
+    GL.glEnd()
+    GL.glBegin(GL.GL_LINES)
+    GL.glVertex2d(vertex[2][0], vertex[2][1])
+    GL.glVertex2d(vertex[3][0], vertex[3][1])
+    GL.glEnd()
+    GL.glBegin(GL.GL_LINES)
+    GL.glVertex2d(vertex[3][0], vertex[3][1])
+    GL.glVertex2d(vertex[4][0], vertex[4][1])
+    GL.glEnd()
+    GL.glBegin(GL.GL_LINES)
+    GL.glVertex2d(vertex[4][0], vertex[4][1])
+    GL.glVertex2d(vertex[5][0], vertex[5][1])
+    GL.glEnd()
+    GL.glBegin(GL.GL_LINES)
+    GL.glVertex2d(vertex[5][0], vertex[5][1])
+    GL.glVertex2d(vertex[0][0], vertex[0][1])
+    GL.glEnd()
+
+    GL.glColor4f(1.0,1.0,1.0,0.0)
+    GL.glPushAttrib(GL.GL_COLOR_BUFFER_BIT)
+    GL.glEnable(GL.GL_BLEND)
+    GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
+    GL.glBegin(GL.GL_POLYGON)
+    for i in range(6):
+        GL.glVertex2d(ratio*math.sin(i/6.0*2*math.pi),ratio*math.cos(i/6.0*2*math.pi))
+    GL.glEnd()
+    GL.glDisable(GL.GL_BLEND)
+    GL.glPopAttrib()
+
+def drawBaseCircle(ratio):
+    GL.glBegin(GL.GL_LINE_LOOP)
+    for i in range(600):
+        angle = 2 * math.pi * i / 300
+        x = math.cos(angle)*ratio
+        y = math.sin(angle)*ratio
+        GL.glVertex2d(x,y)
+    GL.glEnd()
+    GL.glColor4f(1.0,1.0,1.0,0.0)
+    GL.glPushAttrib(GL.GL_COLOR_BUFFER_BIT)
+    GL.glEnable(GL.GL_BLEND)
+    GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
+    GL.glBegin(GL.GL_POLYGON)
+    for i in range(100):
+        GL.glVertex2d(ratio*math.sin(i/100*2*math.pi),ratio*math.cos(i/100*2*math.pi))
+    GL.glEnd()
+    GL.glDisable(GL.GL_BLEND)
+    GL.glPopAttrib()
+def drawCube(ratio):
+    GL.glTranslatef(0,ratio/2,0)
+    GLUT.glutWireCube(ratio)
+    GL.glColor4f(1.0,1.0,1.0,0.0)
+    GL.glPushAttrib(GL.GL_COLOR_BUFFER_BIT)
+    GL.glEnable(GL.GL_BLEND)
+    GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
+    GLUT.glutSolidCube(ratio)
+    GL.glDisable(GL.GL_BLEND)
+    GL.glPopAttrib()
+    GL.glTranslatef(0,-ratio/2,0)
+
+def drawBase(ratio):
+    GL.glColor3f(1.0,0.0,0.0)
+    drawCube(ratio)
+    GL.glRotatef(90,1,0,0)
+    GL.glColor3f(1.0,1.0,1.0)
+    drawBaseCircle(ratio)
+    drawHex(ratio*2)
+
+def drawCircle(ratio):
+    GL.glBegin(GL.GL_LINE_LOOP)
+    for i in range(600):
+        angle = 2 * math.pi * i / 300
+        x = math.cos(angle)*ratio
+        y = math.sin(angle)*ratio
+        GL.glVertex2d(x,y)
+    GL.glEnd()
+def drawPole(ratio):
+    # GL.glLineWidth(7)
+    GL.glColor3f(1.0,0.0,1.0)
+    drawCircle(ratio)
+    GL.glRotatef(90,1,0,0)
+    drawCircle(ratio)
+    GL.glRotatef(90,0,1,0)
+    drawCircle(ratio)
+    # GL.glLineWidth(1)
+    GL.glColor4f(1.0,1.0,1.0,0.0)
+    GL.glPushAttrib(GL.GL_COLOR_BUFFER_BIT)
+    GL.glEnable(GL.GL_BLEND)
+    GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
+    GLUT.glutSolidSphere(ratio,100,100)
+    GL.glDisable(GL.GL_BLEND)
+    GL.glPopAttrib()
+    GL.glTranslatef(0,-ratio/2,0)
+

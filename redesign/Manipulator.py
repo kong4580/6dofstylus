@@ -4,7 +4,13 @@ from OpenGL import GL, GLUT, GLU
 class Manipulator:
     def __init__(self):
         self.currentM = np.eye(4)
-    def drawManipulator(self,moveMode,dirMode,matrix,selectedMode):
+        self.cameravalue = [1,0,0,1,1,1]
+        self.w = 600
+        self.h = 600
+        self.lastwinZ = 0
+
+    def drawManipulator(self,moveMode,dirMode,matrix,selectedMode,camera):
+        self.cameravalue = camera
         self.currentM = matrix.copy().T
         if dirMode == False:
             self.currentM[0:3,0:3] = np.eye(3)
@@ -18,17 +24,21 @@ class Manipulator:
             self.drawFrame(drawFunc.drawCircleY,202,selectedMode)
 
             self.drawFrame(drawFunc.drawCircleZ,203,selectedMode)
+        # print(camera)
     def drawFrame(self,drawFrameFunc,frameId,selectedMode=False):
         GL.glMatrixMode(GL.GL_MODELVIEW)
         GL.glPushMatrix()
         GL.glLoadIdentity()
-        
-        # apply transform to model
         GL.glLoadMatrixf(self.currentM)
         GL.glDisable(GL.GL_LIGHTING)
         if selectedMode:
+            # pass
             GL.glLoadName(frameId)
-        drawFrameFunc()
+        ratio = (0.6/self.cameravalue[0])+0.4
+        drawFrameFunc(ratio)
+        
 
         GL.glEnable(GL.GL_LIGHTING)
         GL.glPopMatrix()
+        
+        
