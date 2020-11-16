@@ -85,12 +85,14 @@ class CommonController(Handler):
                 #     transform[0:3,0:3] = np.eye(3)
                 # else:
                 #     pass
+                ot = transform.copy()
+                
                 model.moveModel(transform,mode='absolute')
-                print(model.name,transform)
+                
                 try:
                     # rotate J2 back to align with J1
                     invJ2 = np.eye(4)
-                    invJ2[0:3,0:3] = np.linalg.inv(artiModel.listOfJoint[1].tt[0:3,0:3])
+                    invJ2[0:3,0:3] = np.linalg.inv(artiModel.listOfJoint[1].parentToLocal[0:3,0:3])
                     artiModel.listOfJoint[1].moveModel(invJ2,mode='relative')
                     
                     # calculate theta 2

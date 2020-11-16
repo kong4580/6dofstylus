@@ -18,17 +18,19 @@ class Transform():
         self.parentToLocal = np.eye(4)
         self.startWorldToLocal = np.eye(4)
         self.manipulator = Manipulator()
-        self.tt = np.eye(4)
+        # self.tt = np.eye(4)
     @property
     def worldToLocal(self):
         if len(self.parent) > 0:
-            for i in self.parent:
-                wTL = np.dot(i.worldToLocal , self.parentToLocal)
-                wTL = np.dot(wTL , self.tt)
+            # for i in self.parent:
+            wTL = np.dot(self.parent[0].worldToLocal , self.parentToLocal )
+            # wTL = np.dot(wTL ,self.tt)
                 
         else:
             
-            wTL = np.dot(self.parentToLocal , self.tt)
+            # wTL = np.dot(self.parentToLocal,self.tt )
+            wTL = self.parentToLocal
+            
         
         return wTL
 
@@ -44,13 +46,21 @@ class Transform():
         rotM[0:3,0:3] = transform[0:3,0:3]
         tranM[0:3,3] = transform[0:3,3]
         
+        oldttT = np.eye(4)
+        oldttR = np.eye(4)
+        
+        oldttT[0:3,3] = self.parentToLocal[0:3,3]
+        oldttR[0:3,0:3] = self.parentToLocal[0:3,0:3]
         
         # newT = np.dot(tranM,self.worldToLocal)
         # newT = np.dot(self.parentToLocal,transform)
         print(transform)
-        newT = np.dot(tranM,self.tt)
-        newT = np.dot(newT,rotM)
+        newT = np.eye(4)
+        newttT = np.dot(oldttT,tranM)
+        newttR = np.dot(oldttR,rotM)
         
+        newT[0:3,3] = newttT[0:3,3]
+        newT[0:3,0:3] = newttR[0:3,0:3]
         
         
         # newT = np.dot(newT,rotM)
@@ -62,14 +72,8 @@ class Transform():
             oldTParent = np.eye(4)
             
         # self.parentToLocal = np.dot(oldTParent,newT)
-        self.tt = newT
-        
-        # if self.parentToLocal[0,3] < 1e10:
-        #     self.parentToLocal[0,3] = 0
-        # # if self.parentToLocal[1,3] < 1e10:
-        # #     self.parentToLocal[1,3] = 0
-        # # if self.parentToLocal[2,3] < 1e10:
-        # #     self.parentToLocal[2,3] = 0
+        self.parentToLocal = newT
+      
     
     def goUnder(self,transform):
         self.parent.append(transform)
@@ -77,17 +81,12 @@ class Transform():
     
     def goTo(self, matrix):
         
-        if len(self.parent) > 0:
-            pT=np.eye(4)
-            pT[0:3,3] = np.dot(self.parentToLocal,self.tt).copy()[0:3,3]
-            pR = np.eye(4)
-            pR[0:3,0:3] = np.dot(self.parentToLocal,self.tt).copy()[0:3,0:3]
-        else:
-            pT=np.eye(4)
-            pT[0:3,3] = self.worldToLocal[0:3,3].copy()
-            
-            pR = np.eye(4)
-            pR[0:3,0:3] = self.worldToLocal[0:3,0:3].copy()
+        
+        pT=np.eye(4)
+        pT[0:3,3] = self.worldToLocal[0:3,3].copy()
+        
+        pR = np.eye(4)
+        pR[0:3,0:3] = self.worldToLocal[0:3,0:3].copy()
         
         wT = np.eye(4)
         wT[0:3,3] = matrix[0:3,3].copy()
@@ -95,27 +94,21 @@ class Transform():
         wR[0:3,0:3] = matrix[0:3,0:3].copy()
         
         t = np.dot(np.linalg.inv(pT),wT)
-        # print(pR,wR)
-        # print("app",pT,np.linalg.inv(pT),wT,np.linalg.det(pR[0:3,0:3]))
+        
         r = np.dot(np.linalg.pinv(pR),wR)
-        # print(np.linalg.pinv(pR),pR.T)
+        
         newM = np.eye(4)
         newM[0:3,3] = t[0:3,3]
         newM[0:3,0:3] = r[0:3,0:3] 
-        # print(newM,np.linalg.inv(self.parentToLocal))
-        # newM[0:3,0:3] = np.dot(np.linalg.inv(self.parentToLocal),newM)
+        
         if len(self.parent) > 0:
-            invW=np.eye(4)
-            invW[0:3,3] = self.parent[0].worldToLocal[0:3,3]
-            invW = np.linalg.inv(invW)
-            invR = np.eye(4)
-            invR[0:3,0:3] = self.parent[0].worldToLocal[0:3,0:3]
-            invR = np.linalg.inv(invR)
-            inn = np.eye(4)
-            inn[0:3,0:3] = invR[0:3,0:3]
-            inn[0:3,3] = invW[0:3,3]
-            newM = np.dot(inn,newM)
-        return newM
+            
+            self.parentToLocal = np.dot(np.linalg.inv(self.parent[0].worldToLocal),matrix)
+
+            return np.eye(4)
+        else:
+            return newM
+        
 class Model(Transform):
     
     # init model class
@@ -360,7 +353,7 @@ class Model(Transform):
             for c in self.child:
                 c.currentM = c.worldToLocal
             # print(self.child[0].renderM)
-            
+                
                 c.updateChild()
         else:
             pass
@@ -381,10 +374,8 @@ class Model(Transform):
         
     def moveModel(self,matrix,mode='absolute'):
         
-        # if len(self.parent) > 0:
-        #     matrix[0:3,3] = self.currentM[0:3,3]
-        # print(self.name,matrix)
-        print("ptl",self.parentToLocal)
+        
+        
         if mode == 'absolute':
             
 
@@ -395,11 +386,7 @@ class Model(Transform):
             self.apply(matrix)
             
         self.currentM = self.worldToLocal
-        if self.name!= 'cursor':
-            try:
-                print(self.name,"tt",self.currentM,self.tt,transform,matrix,self.parentToLocal)
-            except:
-                pass
+            
         # print(self.name,self.currentM,self.parentToLocal)
         
         self.updateChild()
