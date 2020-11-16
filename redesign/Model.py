@@ -857,9 +857,9 @@ class ArticulateModel(Model):
     def __init__(self,name,modelId,listOfJoint,showTarget = False,showPole = False):
         super().__init__(name,modelId)
         self.listOfJoint = listOfJoint
-        self.base = Model('base',60,drawFunc.DrawCube)
+        self.base = Model('base',60,drawFunc.drawBase)
         self.target = Model('target',61,drawFunc.DrawCube)
-        self.poleVertex = Model('pole',62,drawFunc.DrawCube)
+        self.poleVertex = Model('pole',62,drawFunc.drawPole)
         self.showTarget = showTarget
         self.showPole = showPole
         

@@ -309,7 +309,7 @@ def drawCube(ratio):
     GL.glPopAttrib()
     GL.glTranslatef(0,-ratio/2,0)
 
-def drawBase(ratio):
+def drawBase(ratio=1):
     GL.glColor3f(1.0,0.0,0.0)
     drawCube(ratio)
     GL.glRotatef(90,1,0,0)
@@ -325,7 +325,7 @@ def drawCircle(ratio):
         y = math.sin(angle)*ratio
         GL.glVertex2d(x,y)
     GL.glEnd()
-def drawPole(ratio):
+def drawPole(ratio=1):
     # GL.glLineWidth(7)
     GL.glColor3f(1.0,0.0,1.0)
     drawCircle(ratio)
