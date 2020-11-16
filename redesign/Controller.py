@@ -1052,7 +1052,7 @@ class MouseController(CommonController):
             newRay = Ray(x,y)
             newIntersect = newRay.intersects(plane)
             oldIntersect = self.oldRay.intersects(plane)
-            v = [intersect[0] - center[0],intersect[1] - center[1],intersect[2] - center[2]]
+            v = [newIntersect[0] - center[0],newIntersect[1] - center[1],newIntersect[2] - center[2]]
             newproject = self.sphereProjection(v[0],v[1],v[2],center)
 
         # return matrix for model
