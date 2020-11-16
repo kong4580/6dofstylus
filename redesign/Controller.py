@@ -840,8 +840,8 @@ class MouseController(CommonController):
             
         # drag to rotate
         elif self.flags['mouseMode'] == 'rot':
-            if self.rotationAxis != 'None':
-                newM = self.mouseRotate(self.xMousePosition,self.yMousePosition,self.rotationAxis,self.flags['coordinate'])
+            # if self.rotationAxis != 'None':
+            newM = self.mouseRotate(self.xMousePosition,self.yMousePosition,self.rotationAxis,self.flags['coordinate'])
 
         # return homogenous matrix
         return newM
@@ -953,87 +953,109 @@ class MouseController(CommonController):
             array = np.asarray([0.,1.,0.])
         elif rotationAxis == 'rotZ':
             axis = 2
-            array = np.asarray([0.,0.,1.])
-            
+            array = np.asarray([0.,0.,1.])   
         # get model currentM
         # model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
         model = self.selectedModel[0]
         newM = model.currentM.copy()
         newN = model.currentM.copy()
-
-        # rotate in world coordinate
-        if mode == False:
-            newM[0:3,0:3] = np.eye(3)
-
-        # set center position
-        center = [newM[0][3],newM[1][3],newM[2][3]]
-
-        # init plane Normal and Position
-        plane = Plane([newM[0][axis],newM[1][axis],newM[2][axis]],center)
-
-        # get current Ray casting position
-        newRay = Ray(x,y)
-
-        # get position where ray intersect with plane
-        newIntersect = newRay.intersects(plane)
-        oldIntersect = self.oldRay.intersects(plane)
-
-        # check if rays intersect plane or not
-        # if not project it on front plane
-        if newIntersect[0] ==  None:
-            newplane = Plane([0,0,1],[newM[0][3],newM[1][3],newM[2][3]+5])
-            newIntersect = newRay.intersects(newplane)
-            oldIntersect = self.oldRay.intersects(newplane)
-
-        #check again
-        if newIntersect[0]!= None and oldIntersect[0] != None:
-            
-            # get vector from center
-            vec1 = oldIntersect - center
-            vec2 = newIntersect - center
-
-            # normalize vector
-            vector1 = vec1/np.linalg.norm(vec1)
-            vector2 = vec2/np.linalg.norm(vec2)
-
-            #get rotate angle
-            angle = self.productAngle(vector1,vector2)
-
-            # check axis direction
-            axisDir  = np.dot(array,np.asarray([[newM[0][axis]],[newM[1][axis]],[newM[2][axis]]]))
-
-            # get angle direction
-            rotationM = self.getVectorAngle(vector1,vector2)
-            r = R.from_matrix(rotationM)
-            matDir = r.as_rotvec()
-
-            # set angle  ratio
-            ratio = 0.11
-
-            # get rotation matrix
-            if rotationAxis == 'rotX':
-                matrix = (self.matrixM(angle*ratio,axisDir*matDir[0],0,0))
-            elif rotationAxis == 'rotY':
-                matrix = (self.matrixM(angle*ratio,0,axisDir*matDir[1],0))
-            elif rotationAxis == 'rotZ':
-                matrix = (self.matrixM(angle*ratio,0,0,axisDir*matDir[2]))
-            else:
-                matrix = newM[0:3,0:3]
+        if rotationAxis != 'None':
+            # rotate in world coordinate
             if mode == False:
-                newMatrix = np.dot(matrix,newN[0:3,0:3])
+                newM[0:3,0:3] = np.eye(3)
+
+            # set center position
+            center = [newM[0][3],newM[1][3],newM[2][3]]
+
+            # init plane Normal and Position
+            plane = Plane([newM[0][axis],newM[1][axis],newM[2][axis]],center)
+
+            # get current Ray casting position
+            newRay = Ray(x,y)
+
+            # get position where ray intersect with plane
+            newIntersect = newRay.intersects(plane)
+            oldIntersect = self.oldRay.intersects(plane)
+
+            # check if rays intersect plane or not
+            # if not project it on front plane
+            if newIntersect[0] ==  None:
+                newplane = Plane([0,0,1],[newM[0][3],newM[1][3],newM[2][3]+5])
+                newIntersect = newRay.intersects(newplane)
+                oldIntersect = self.oldRay.intersects(newplane)
+
+            #check again
+            if newIntersect[0]!= None and oldIntersect[0] != None:
+                
+                # get vector from center
+                vec1 = oldIntersect - center
+                vec2 = newIntersect - center
+
+                # normalize vector
+                vector1 = vec1/np.linalg.norm(vec1)
+                vector2 = vec2/np.linalg.norm(vec2)
+
+                #get rotate angle
+                angle = self.productAngle(vector1,vector2)
+
+                # check axis direction
+                axisDir  = np.dot(array,np.asarray([[newM[0][axis]],[newM[1][axis]],[newM[2][axis]]]))
+
+                # get angle direction
+                rotationM = self.getVectorAngle(vector1,vector2)
+                r = R.from_matrix(rotationM)
+                matDir = r.as_rotvec()
+
+                # set angle  ratio
+                ratio = 0.11
+
+                # get rotation matrix
+                if rotationAxis == 'rotX':
+                    matrix = (self.matrixM(angle*ratio,axisDir*matDir[0],0,0))
+                elif rotationAxis == 'rotY':
+                    matrix = (self.matrixM(angle*ratio,0,axisDir*matDir[1],0))
+                elif rotationAxis == 'rotZ':
+                    matrix = (self.matrixM(angle*ratio,0,0,axisDir*matDir[2]))
+                else:
+                    matrix = newM[0:3,0:3]
+                if mode == False:
+                    newMatrix = np.dot(matrix,newN[0:3,0:3])
+                else:
+                    newMatrix = np.dot(newN[0:3,0:3],matrix)
+                newN[0:3,0:3] = newMatrix
+
             else:
-                newMatrix = np.dot(newN[0:3,0:3],matrix)
-            newN[0:3,0:3] = newMatrix
+                print("no intersect out")
 
+            # set current ray for the next ray 
+            # self.oldRay = newRay
         else:
-            print("no intersect out")
-
-        # set current ray for the next ray 
-        self.oldRay = newRay
+            center = [newM[0][3],newM[1][3],newM[2][3]]
+            plane = Plane([0,0,1],center)
+            newRay = Ray(x,y)
+            newIntersect = newRay.intersects(plane)
+            oldIntersect = self.oldRay.intersects(plane)
+            v = [intersect[0] - center[0],intersect[1] - center[1],intersect[2] - center[2]]
+            newproject = self.sphereProjection(v[0],v[1],v[2],center)
 
         # return matrix for model
+        self.oldRay = newRay
         return newN
 
+    def sphereProjection(self,x,y,z,center):
+        vector = np.array([x,y,z])
+        centernp = np.array(center)
+        d = math.sqrt(x*x + y*y + z*z)
+        ratio = (0.6/self.cameraValue[0])+0.4
+        radius = 5 * ratio
+        if d < radius:
+            d = radius
+        Q = (radius/d)*vector
+        R = Q + center
+        return R
+
+    def sphereAngle(self):
+        pass
     # translation function
     def mouseTranslate(self,x,y,translationAxis,mode):
 
@@ -1188,7 +1210,7 @@ class MouseController(CommonController):
             angle = ((angle/math.pi)*180)%1
 
         # return degree
-        return angle*0.7
+        return angle
     
     # project point on line receive line equation and point position
     def pointProjectOnLine(self,line,point):

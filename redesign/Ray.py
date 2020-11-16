@@ -51,7 +51,7 @@ class Ray:
         norm = p.Normal
         # self.vec[2] += 0.000001
         checkParallel = np.dot(norm,w)
-        # print(round(checkParallel,0))
+        # print(round(checkParallel,0),"intwersect")
         if round(checkParallel,0) ==0:
             # print(self.vec,norm,"no intersect")
             return np.asarray([None,None,None])

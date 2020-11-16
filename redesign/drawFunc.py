@@ -104,7 +104,7 @@ def drawAxisX(ratio = 1):
     GLUT.glutSolidCylinder(radius/2,length,10,10)
 
 def DrawCube():
-    GL.glBegin(GL_QUADS)
+    GL.glBegin(GL.GL_QUADS)
 
     GL.glColor3f(1, 0, 0)
     GL.glVertex3f(-0.5, 0.5, 0.5)
