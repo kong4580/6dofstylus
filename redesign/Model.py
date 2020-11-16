@@ -335,7 +335,7 @@ class Model(Transform):
                     
                         
                 else:
-                    if self.selected:
+                    if self.isSelected:
                         self.manipulator.drawManipulator(mode,coordinate,self.currentM,selectedMode,camera)
                     else:
                         pass
