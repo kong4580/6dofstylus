@@ -789,7 +789,7 @@ class MouseController(CommonController):
                 if event == fltk.FL_RELEASE:
                     self.addHistory(self.old,newM,model)
                      # print(self.history)
-            print(newM)
+            # print(newM)
             # move model with new matrix
             self.updateModelPose(model,newM,artiModel)
             
@@ -813,7 +813,7 @@ class MouseController(CommonController):
 
                 # set new matrix model
                 newM = model.startWorldToLocal
-                print(model.name)
+                # print(model.name)
 
                 # move model to the new matrix model
                 self.updateModelPose(model,newM,artiModel)
@@ -862,7 +862,7 @@ class MouseController(CommonController):
         # self.rotationAxis = None
         # check selection    
         for model in modelList:
-            print(self.mouseSelectedCheck())
+            # print(self.mouseSelectedCheck())
             if self.mouseSelectedCheck() == model.modelId or self.mouseSelectedCheck() == True:
 
                 for m in modelList:
@@ -877,7 +877,7 @@ class MouseController(CommonController):
 
             elif self.mouseSelectedCheck() == 201:
                 self.rotationAxis = 'rotX'
-                print(model.isSelected)
+                # print(model.isSelected)
                 if model.isSelected:
                     model.isSelected = True
                     selectModel.append(model)
@@ -896,7 +896,7 @@ class MouseController(CommonController):
 
             elif self.mouseSelectedCheck() == 101:
                 self.translationAxis = 'transX'
-                print(model.isSelected)
+                # print(model.isSelected)
                 if model.isSelected:
                     model.isSelected = True
                     selectModel.append(model)
