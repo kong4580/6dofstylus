@@ -183,8 +183,7 @@ class Model(Transform):
     def argv(self):
         return 0
     # draw model with transform matrix
-    def drawMatrixModel(self, showFrame=True, enableLight = True,wireFrame = False, opacity = False,mode = 'trans',selectedMode = False,coordinate = True):
-        
+    def drawMatrixModel(self, showFrame=True, enableLight = True,wireFrame = False, opacity = False,mode = 'trans',selectedMode = False,coordinate = True,camera = [1,0,0]):
         # if model is obj firl
         if self.obj!=None:
             
@@ -301,7 +300,7 @@ class Model(Transform):
                     #     self.drawFrame(drawFunc.drawCircleY,202,selectedMode)
 
                     #     self.drawFrame(drawFunc.drawCircleZ,203,selectedMode)
-                    self.manipulator.drawManipulator(mode,coordinate,self.currentM,selectedMode)
+                    self.manipulator.drawManipulator(mode,coordinate,self.currentM,selectedMode,camera)
                         
                         # drawFunc.drawCircleZ()
                     # GL.glEnable(GL.GL_LIGHTING)
@@ -336,8 +335,8 @@ class Model(Transform):
                     
                         
                 else:
-                    if self.isSelected:
-                        self.manipulator.drawManipulator(mode,coordinate,self.currentM,selectedMode)
+                    if self.selected:
+                        self.manipulator.drawManipulator(mode,coordinate,self.currentM,selectedMode,camera)
                     else:
                         pass
                     
@@ -664,7 +663,7 @@ class Joint(Model):
     def __init__(self,name,modelId,drawFunction = None,position=(0,0,0),rotation=(0,0,0),obj=None,m =np.eye(4)):
         super().__init__(name,modelId,drawFunction,position,rotation,obj,m)
         
-    def drawMatrixModel(self, showFrame=True, enableLight = True,wireFrame = False, opacity = False,mode = 'trans',selectedMode = False):
+    def drawMatrixModel(self, showFrame=True, enableLight = True,wireFrame = False, opacity = False,mode = 'trans',selectedMode = False,camera = [1,0,0]):
 
         # if model is show
         if self.show:
@@ -896,17 +895,17 @@ class ArticulateModel(Model):
         for joint in self.listOfJoint:
             joint.initModel(matrixView)
     
-    def drawMatrixModel(self, showFrame=True, enableLight = True,wireFrame = False, opacity = False,mode = 'trans',selectedMode = False,coordinate = True):
-        self.base.drawMatrixModel(showFrame,enableLight,wireFrame,opacity,mode,selectedMode,coordinate)
+    def drawMatrixModel(self, showFrame=True, enableLight = True,wireFrame = False, opacity = False,mode = 'trans',selectedMode = False,coordinate = True,camera = [1,0,0]):
+        self.base.drawMatrixModel(showFrame,enableLight,wireFrame,opacity,mode,selectedMode,coordinate,camera = camera)
         if self.showTarget:
-            self.target.drawMatrixModel(showFrame,enableLight,wireFrame,opacity,mode,selectedMode,coordinate)
+            self.target.drawMatrixModel(showFrame,enableLight,wireFrame,opacity,mode,selectedMode,coordinate,camera = camera)
         if self.showPole:
             
-            self.poleVertex.drawMatrixModel(showFrame,enableLight,wireFrame,opacity,mode,selectedMode,coordinate)
+            self.poleVertex.drawMatrixModel(showFrame,enableLight,wireFrame,opacity,mode,selectedMode,coordinate,camera = camera)
         
         # print(self.base.currentM)
         for joint in self.listOfJoint:
-            joint.drawMatrixModel(showFrame,enableLight,wireFrame,opacity,mode,selectedMode)
+            joint.drawMatrixModel(showFrame,enableLight,wireFrame,opacity,mode,selectedMode,camera = camera)
     
     def getSubModel(self):
         return self.modelLists

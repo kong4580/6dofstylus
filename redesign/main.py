@@ -86,23 +86,23 @@ def readSerial(conn):
                 # print(posed.shape)
                 scalePosed = np.sum(oldScalePosed.copy(),axis=0)/oldScalePosed.shape[0]
                 # print(scalePosed.shape)
-                print(scalePosed-oldScalePosed[0,:])
+                # print(scalePosed-oldScalePosed[0,:])
                 gap = np.array([0.043,0.043,0.043])
                 try:
                     if abs(scalePosed[0]-oldScalePosed[0,0]) > gap[0]:
-                        print("ss")
+                        # print("ss")
                         newScalePosedX = scalePosed[0]
                     else:
                         newScalePosedX = oldScalePosed[0,0]
                     
                     if abs(scalePosed[1]-oldScalePosed[0,1]) > gap[1]:
-                        print("ddd")
+                        # print("ddd")
                         newScalePosedY = scalePosed[1]
                     else:
                         newScalePosedY = oldScalePosed[0,1]
                         
                     if abs(scalePosed[2]-oldScalePosed[0,2]) > gap[2]:
-                        print('sssssss')
+                        # print('sssssss')
                         newScalePosedZ = scalePosed[2]
                     else:
                         newScalePosedZ = oldScalePosed[0,2]
