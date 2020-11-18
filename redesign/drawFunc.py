@@ -344,7 +344,7 @@ def drawPole(**kwargs):
     GL.glEnable(GL.GL_BLEND)
     GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
     if selectedMode:
-        GLUT.glutSolidSphere(ratio,100,100)
+        GLUT.glutSolidSphere(ratio,10,10)
     GL.glDisable(GL.GL_BLEND)
     GL.glPopAttrib()
     GL.glTranslatef(0,-ratio/2,0)
