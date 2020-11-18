@@ -161,7 +161,8 @@ class Model(Transform):
                       
                       'enableLight': True,
                       
-                      'showModelFrame':False
+                      'showModelFrame':False,
+                      'snapMode':False
                       }
         
     def updateFlags(self, flags,data):
@@ -178,7 +179,8 @@ class Model(Transform):
                       
                       'enableLight': True,
                       
-                      'showModelFrame':False
+                      'showModelFrame':False,
+                      'snapMode':False
                       }
         
     @property
@@ -924,7 +926,9 @@ class ArticulateObj(Model):
     def drawMatrixModel(self, showFrame=True, enableLight = True,wireFrame = False, opacity = False,mode = 'trans',selectedMode = False,coordinate = True,camera = [1,0,0]):
         
         # if model is show
-            if self.show:
+            print(self.flags)
+            if not self.flags['snapMode'] and self.show :
+                
                 # print(self.name,self.show)
                 # start transform matrix in model view
                 GL.glMatrixMode(GL.GL_MODELVIEW)
@@ -946,17 +950,17 @@ class ArticulateObj(Model):
                     # set model color to white
                     color = drawFunc.WhiteColorVector
                 
-                # if opacity is enable
-                if self.flags['opacityMode']:
+                # # if opacity is enable
+                # if self.flags['opacityMode']:
                     
-                    # set model opacity to 0.75
-                    self.opacityValue = 0.75
+                #     # set model opacity to 0.75
+                #     self.opacityValue = 0.75
                     
-                # if opacity is disable
-                else:
+                # # if opacity is disable
+                # else:
                     
-                    # set model opacity to 1
-                    self.opacityValue = 1
+                #     # set model opacity to 1
+                #     self.opacityValue = 1
                 
                 # add opacityValue to color vector
                 color = list(color).copy()
@@ -1041,11 +1045,13 @@ class ArticulateModel(Model):
             joint.initModel(matrixView)
     
     def drawMatrixModel(self, showFrame=True, enableLight = True,wireFrame = False, opacity = False,mode = 'trans',selectedMode = False,coordinate = True,camera = [1,0,0]):
+        
+        
         for model in self.getSubModel():
-            # print(self.flags)
             model.flags = self.flags
             
             model.show = model.flags['showModel']
+            
         self.base.drawMatrixModel(showFrame,enableLight,wireFrame,opacity,mode,selectedMode,coordinate,camera = camera)
         if self.showTarget:
             self.target.drawMatrixModel(showFrame,enableLight,wireFrame,opacity,mode,selectedMode,coordinate,camera = camera)

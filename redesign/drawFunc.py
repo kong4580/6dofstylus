@@ -239,7 +239,8 @@ def drawPyramid(length,modelId):
     GL.glEnd()
     GL.glPopMatrix()
 
-def drawHex(ratio):
+def drawHex(ratio,selectedMode):
+    
     vertex = []
     for i in range(6):
         v = [ratio*math.sin(i/6.0*2*math.pi),ratio*math.cos(i/6.0*2*math.pi)]
@@ -273,10 +274,11 @@ def drawHex(ratio):
     GL.glPushAttrib(GL.GL_COLOR_BUFFER_BIT)
     GL.glEnable(GL.GL_BLEND)
     GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
-    GL.glBegin(GL.GL_POLYGON)
-    for i in range(6):
-        GL.glVertex2d(ratio*math.sin(i/6.0*2*math.pi),ratio*math.cos(i/6.0*2*math.pi))
-    GL.glEnd()
+    if selectedMode:
+        GL.glBegin(GL.GL_POLYGON)
+        for i in range(6):
+            GL.glVertex2d(ratio*math.sin(i/6.0*2*math.pi),ratio*math.cos(i/6.0*2*math.pi))
+        GL.glEnd()
     GL.glDisable(GL.GL_BLEND)
     GL.glPopAttrib()
 
@@ -313,12 +315,15 @@ def drawCube(ratio):
 def drawBase(**kwargs):
     
     ratio = kwargs['ratio']
+    selectedMode = kwargs['selectedMode']
+    
     GL.glColor3f(1.0,0.0,0.0)
     drawCube(ratio)
     GL.glRotatef(90,1,0,0)
     GL.glColor3f(1.0,1.0,1.0)
     drawBaseCircle(ratio)
-    drawHex(ratio*2)
+    GL.glColor3f(1.0,1.0,1.0)
+    drawHex(ratio*2,selectedMode)
 
 def drawCircle(ratio):
     GL.glBegin(GL.GL_LINE_LOOP)

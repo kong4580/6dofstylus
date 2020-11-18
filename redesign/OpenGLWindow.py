@@ -221,6 +221,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
             # set show or not show model
             model.show = model.flags['showModel']
             model.flags['showModelFrame'] = self.flags['showModelFrame']
+            model.flags['snapMode'] = self.flags['snapMode']
             # draw model with transform matrix
             # model.drawMatrixModel(showFrame=self.flags['showModelFrame'],wireFrame = self.flags['showModelWireframe'], opacity = self.flags['opacityMode'],mode=self.flags['mouseMode'])
             model.drawMatrixModel(mode=self.flags['mouseMode'],coordinate = self.flags['coordinate'],camera = self.cameravalue[0:3])
