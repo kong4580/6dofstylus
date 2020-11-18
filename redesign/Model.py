@@ -685,17 +685,8 @@ class Joint(Model):
             GL.glLoadMatrixf(self.renderM.T)
             
             scale = 1
-            # if model is selected
-            if self.isSelected:
-                
-                # set model color to sky color
-                color = drawFunc.SkyColorVector
-                
-            # if model is not selected
-            else:
-                
-                # set model color to white
-                color = drawFunc.WhiteColorVector
+            
+            color = drawFunc.WhiteColorVector
             
             # if opacity is enable
             if self.flags['opacityMode']:
@@ -731,36 +722,21 @@ class Joint(Model):
             if selectedMode:
                 GL.glLoadName(self.modelId)
             GLUT.glutSolidSphere(.74,10,10)
-            # r,lats,longs = 0.74,10,10
-            # #  i, j
-            # for i in range(lats):
-            #     lat0 = math.pi * (-0.5 + (i - 1) / lats)
-            #     z0  = math.sin(lat0)
-            #     zr0 =  math.cos(lat0)
-
-            #     lat1 = math.pi * (-0.5 + i / lats)
-            #     z1 = math.sin(lat1)
-            #     zr1 = math.cos(lat1)
-
-            #     GL.glBegin(GL.GL_QUAD_STRIP)
-            #     for j in range(longs):
-            #         lng = 2 * math.pi * (j - 1) / longs
-            #         x = math.cos(lng)
-            #         y = math.sin(lng)
-
-            #         GL.glNormal3f(x * zr0, y * zr0, z0)
-            #         GL.glVertex3f(r * x * zr0, r * y * zr0, r * z0)
-            #         GL.glNormal3f(x * zr1, y * zr1, z1)
-            #         GL.glVertex3f(r * x * zr1, r * y * zr1, r * z1)
-                # GL.glEnd()
-                 # if disable lighting
+            
             if not self.flags['enableLight']:
                 # turn on lighting
                 GL.glEnable(GL.GL_LIGHTING)
             
             # change draw mode to solid
-            GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL)
+            GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_LINE)
             
+            color = drawFunc.MagentaColorVector
+            color = list(color).copy()
+            color.append(self.opacityValue)
+            
+            # set model color
+            GL.glColor4fv(tuple(color))
+            GL.glLineWidth(3)
             # reset attribute to remain attribute
             GL.glDisable(GL.GL_BLEND)
             GL.glPopAttrib()
@@ -770,7 +746,9 @@ class Joint(Model):
             GL.glPushMatrix()
             GL.glLoadIdentity()
             GL.glLoadMatrixf(self.renderM.T)
+            GL.glPushAttrib(GL.GL_COLOR_BUFFER_BIT)
             
+            GL.glDisable(GL.GL_LIGHTING)
             bl = (-length*1*scale,0.5*scale,0.5*scale)
             br = (-length*1*scale,0.5*scale,-0.5*scale)
             fl = (-length*1*scale,-0.5*scale,0.5*scale)
@@ -818,13 +796,20 @@ class Joint(Model):
             GL.glVertex3fv( fl )
             GL.glVertex3fv( bl )
             GL.glEnd()
-            GL.glPopMatrix()
             
-            if showFrame:
+            GL.glEnable(GL.GL_LIGHTING)
+            GL.glPopAttrib()
+            
+            GL.glPopMatrix()
+            GL.glLineWidth(1)
+            
+            GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL)
+            if showFrame and not self.flags['snapMode']:
                 # disable light to draw model frame
                 GL.glDisable(GL.GL_LIGHTING)
                 self.drawFrame(drawFunc.coordinate,10,selectedMode)
                 GL.glEnable(GL.GL_LIGHTING)
+                
             # GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL)
             # GL.glDisable(GL.GL_CULL_FACE)
                 
@@ -926,7 +911,7 @@ class ArticulateObj(Model):
     def drawMatrixModel(self, showFrame=True, enableLight = True,wireFrame = False, opacity = False,mode = 'trans',selectedMode = False,coordinate = True,camera = [1,0,0]):
         
         # if model is show
-            print(self.flags)
+            
             if not self.flags['snapMode'] and self.show :
                 
                 # print(self.name,self.show)
@@ -976,9 +961,9 @@ class ArticulateObj(Model):
                 
                 
                 # if disable lighting
-                if not self.flags['enableLight']:
+                # if not self.flags['enableLight']:
                     # turn off lighting
-                    GL.glDisable(GL.GL_LIGHTING)
+                GL.glDisable(GL.GL_LIGHTING)
                     
                 # draw model
                 if selectedMode:

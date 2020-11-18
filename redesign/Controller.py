@@ -1064,7 +1064,7 @@ class MouseController(CommonController):
                 axis[1] = last[2]*cur[0] - last[0]*cur[2]
                 axis[2] = last[0]*cur[1] - last[1]*cur[0]
                 # print("angle: ",angle,axis)
-                matrix = self.matrixM(angle*0.005,-axis[0],-axis[1],-axis[2])
+                matrix = self.matrixM(angle*0.0005,-axis[0],-axis[1],-axis[2])
                 newMatrix = np.dot(matrix,newN[0:3,0:3])
                 newN[0:3,0:3] = newMatrix
         self.oldRay = newRay

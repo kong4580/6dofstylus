@@ -270,7 +270,7 @@ def drawHex(ratio,selectedMode):
     GL.glVertex2d(vertex[0][0], vertex[0][1])
     GL.glEnd()
 
-    GL.glColor4f(1.0,1.0,1.0,0.0)
+    # GL.glColor4f(1.0,1.0,1.0,0.0)
     GL.glPushAttrib(GL.GL_COLOR_BUFFER_BIT)
     GL.glEnable(GL.GL_BLEND)
     GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
@@ -282,7 +282,7 @@ def drawHex(ratio,selectedMode):
     GL.glDisable(GL.GL_BLEND)
     GL.glPopAttrib()
 
-def drawBaseCircle(ratio):
+def drawBaseCircle(ratio,selectedMode):
     GL.glBegin(GL.GL_LINE_LOOP)
     for i in range(600):
         angle = 2 * math.pi * i / 300
@@ -290,24 +290,26 @@ def drawBaseCircle(ratio):
         y = math.sin(angle)*ratio
         GL.glVertex2d(x,y)
     GL.glEnd()
-    GL.glColor4f(1.0,1.0,1.0,0.0)
+    # GL.glColor4f(1.0,1.0,1.0,0.0)
     GL.glPushAttrib(GL.GL_COLOR_BUFFER_BIT)
     GL.glEnable(GL.GL_BLEND)
     GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
-    GL.glBegin(GL.GL_POLYGON)
-    for i in range(100):
-        GL.glVertex2d(ratio*math.sin(i/100*2*math.pi),ratio*math.cos(i/100*2*math.pi))
-    GL.glEnd()
+    if selectedMode:
+        GL.glBegin(GL.GL_POLYGON)
+        for i in range(100):
+            GL.glVertex2d(ratio*math.sin(i/100*2*math.pi),ratio*math.cos(i/100*2*math.pi))
+        GL.glEnd()
     GL.glDisable(GL.GL_BLEND)
     GL.glPopAttrib()
-def drawCube(ratio):
+def drawCube(ratio,selectedMode):
     GL.glTranslatef(0,ratio/2,0)
     GLUT.glutWireCube(ratio)
-    GL.glColor4f(1.0,1.0,1.0,0.0)
+    # GL.glColor4f(1.0,1.0,1.0,0.0)
     GL.glPushAttrib(GL.GL_COLOR_BUFFER_BIT)
     GL.glEnable(GL.GL_BLEND)
     GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
-    GLUT.glutSolidCube(ratio)
+    if selectedMode:
+        GLUT.glutSolidCube(ratio)
     GL.glDisable(GL.GL_BLEND)
     GL.glPopAttrib()
     GL.glTranslatef(0,-ratio/2,0)
@@ -317,13 +319,13 @@ def drawBase(**kwargs):
     ratio = kwargs['ratio']
     selectedMode = kwargs['selectedMode']
     
-    GL.glColor3f(1.0,0.0,0.0)
-    drawCube(ratio)
+    # GL.glColor3f(1.0,0.0,0.0)
+    # drawCube(ratio,selectedMode)
     GL.glRotatef(90,1,0,0)
-    GL.glColor3f(1.0,1.0,1.0)
-    drawBaseCircle(ratio)
-    GL.glColor3f(1.0,1.0,1.0)
-    drawHex(ratio*2,selectedMode)
+    # GL.glColor3f(1.0,1.0,1.0)
+    drawBaseCircle(ratio*2,selectedMode)
+    # GL.glColor3f(1.0,1.0,1.0)
+    drawHex(ratio*4,selectedMode)
 
 def drawCircle(ratio):
     GL.glBegin(GL.GL_LINE_LOOP)
@@ -336,7 +338,7 @@ def drawCircle(ratio):
 def drawPole(**kwargs):
     ratio = kwargs['ratio']
     selectedMode = kwargs['selectedMode']
-    GL.glLineWidth(5)
+    GL.glLineWidth(3)
     # GL.glColor3f(1.0,0.0,1.0)
     drawCircle(ratio)
     GL.glRotatef(90,1,0,0)
