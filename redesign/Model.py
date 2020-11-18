@@ -807,7 +807,7 @@ class Joint(Model):
             if showFrame and not self.flags['snapMode']:
                 # disable light to draw model frame
                 GL.glDisable(GL.GL_LIGHTING)
-                self.drawFrame(drawFunc.coordinate,10,selectedMode)
+                # self.drawFrame(drawFunc.coordinate,10,selectedMode)
                 GL.glEnable(GL.GL_LIGHTING)
                 
             # GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL)
