@@ -303,7 +303,8 @@ class Model(Transform):
                     #     self.drawFrame(drawFunc.drawCircleY,202,selectedMode)
 
                     #     self.drawFrame(drawFunc.drawCircleZ,203,selectedMode)
-                    self.manipulator.drawManipulator(mode,coordinate,self.currentM,selectedMode,camera)
+                    if self.isSelected:
+                        self.manipulator.drawManipulator(mode,coordinate,self.currentM,selectedMode,camera)
                         
                         # drawFunc.drawCircleZ()
                     # GL.glEnable(GL.GL_LIGHTING)
@@ -677,7 +678,10 @@ class Joint(Model):
             GL.glLoadIdentity()
 
             # apply transform to model
+            newRender = self.renderM.copy()
+            d = np.linalg.det(newRender[0:3, 0:3])
             GL.glLoadMatrixf(self.renderM.T)
+            print(self.name,d)
             scale = 1
             # if model is selected
             if self.isSelected:
@@ -837,6 +841,10 @@ class Joint(Model):
             # print(self.getDist)
             
             newM[0:3,0] = (vAB.T.copy())/self.getDist
+            # print(np.linalg.norm(newM[0:3,0]))
+            
+            newM[0:3,0] = newM[0:3,0]/np.linalg.norm(newM[0:3,0])
+            # print(np.linalg.norm(newM[0:3,0]))
             if newM[0,0] > 0:
                 sign0 = 1
             else:
@@ -851,6 +859,12 @@ class Joint(Model):
             newM[1,1] = -1 *sign1 * abs(newM[0,0])
             newM[0:3,2] = np.cross(newM[0:3,0].copy(), newM[0:3,1].copy())
             newM[0:3,3] = self.worldToLocal[0:3,3].T.copy()
+            
+            newM[0:3,0] = newM[0:3,0]/np.linalg.norm(newM[0:3,0])
+            newM[0:3,1] = newM[0:3,1]/np.linalg.norm(newM[0:3,1])
+            newM[0:3,2] = newM[0:3,2]/np.linalg.norm(newM[0:3,2])
+            
+            
             return newM
         else:
             return self.worldToLocal

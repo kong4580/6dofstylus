@@ -288,8 +288,8 @@ class CommonController(Handler):
         # GLU.gluPerspective(30,self.windowWidth/self.windowHeight,1,100)
         
         
-        # ratio = 0.2679491924311227
-        ratio = 0.5773502691896257
+        ratio = 0.2679491924311227
+        # ratio = 0.5773502691896257
 
         
         GL.glFrustum(((-ratio*(self.windowWidth/self.windowHeight))/self.cameraValue[0])-ratio*self.cameraValue[1], 
@@ -298,7 +298,7 @@ class CommonController(Handler):
                     ratio/self.cameraValue[0]-ratio*self.cameraValue[2],
                      1, 100)
         # print(self.cameraValue)
-        GL.glTranslatef(0,0,-20)
+        GL.glTranslatef(0,0,-35)
 
         #offset camera view
         GL.glTranslatef(0,-5,0)
@@ -864,7 +864,7 @@ class MouseController(CommonController):
         # self.rotationAxis = None
         # check selection    
         for model in modelList:
-            # print(self.mouseSelectedCheck())
+            
             if self.mouseSelectedCheck() == model.modelId or self.mouseSelectedCheck() == True:
 
                 for m in modelList:
@@ -892,6 +892,7 @@ class MouseController(CommonController):
 
             elif self.mouseSelectedCheck() == 203:
                 self.rotationAxis = 'rotZ'
+                
                 if model.isSelected:
                     model.isSelected = True
                     selectModel.append(model)
