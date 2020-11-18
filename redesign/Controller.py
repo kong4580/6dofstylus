@@ -867,8 +867,9 @@ class MouseController(CommonController):
             
             if self.mouseSelectedCheck() == model.modelId or self.mouseSelectedCheck() == True:
 
-                for m in modelList:
-                    m.isSelected = False
+                # for m in modelList:
+                if len(self.selectedModel) >0:
+                    self.selectedModel[0].isSelected = False
                 # model is selected
                 model.isSelected = True
                 self.rotationAxis = 'None'
