@@ -163,6 +163,7 @@ class Model(Transform):
                       
                       'showModelFrame':False
                       }
+        
     def updateFlags(self, flags,data):
         self.flags[flags] = data
     
@@ -179,9 +180,11 @@ class Model(Transform):
                       
                       'showModelFrame':False
                       }
+        
     @property
     def argv(self):
         return 0
+    
     # draw model with transform matrix
     def drawMatrixModel(self, showFrame=True, enableLight = True,wireFrame = False, opacity = False,mode = 'trans',selectedMode = False,coordinate = True,camera = [1,0,0]):
         # if model is obj firl
@@ -300,47 +303,48 @@ class Model(Transform):
                     #     self.drawFrame(drawFunc.drawCircleY,202,selectedMode)
 
                     #     self.drawFrame(drawFunc.drawCircleZ,203,selectedMode)
-                    self.manipulator.drawManipulator(mode,coordinate,self.currentM,selectedMode,camera)
+                    if self.isSelected:
+                        self.manipulator.drawManipulator(mode,coordinate,self.currentM,selectedMode,camera)
                         
                         # drawFunc.drawCircleZ()
                     # GL.glEnable(GL.GL_LIGHTING)
                     # drawFunc.coordinate()
         # if model is not obj file    
         else:
-            
-            # if model is show
-            if self.show:
-                # start transform matrix in model view
-                GL.glMatrixMode(GL.GL_MODELVIEW)
-                GL.glPushMatrix()
-                GL.glLoadIdentity()
+            pass
+            # # if model is show
+            # if self.show:
+            #     # start transform matrix in model view
+            #     GL.glMatrixMode(GL.GL_MODELVIEW)
+            #     GL.glPushMatrix()
+            #     GL.glLoadIdentity()
 
-                # apply transform to model
-                GL.glLoadMatrixf(self.renderM.T)
-                # # draw model from drawFunction
+            #     # apply transform to model
+            #     GL.glLoadMatrixf(self.renderM.T)
+            #     # # draw model from drawFunction
                 
-                # draw model
-                if selectedMode:
+            #     # draw model
+            #     if selectedMode:
                     
-                    GL.glLoadName(self.modelId)
-                self.drawFunction()
+            #         GL.glLoadName(self.modelId)
+            #     self.drawFunction()
                     
-                if self.name == 'cursor':
+            #     if self.name == 'cursor':
                 
-                    if showFrame:
-                        # disable light to draw model frame
-                        GL.glDisable(GL.GL_LIGHTING)
-                        self.drawFrame(drawFunc.coordinate,10,selectedMode)
-                        GL.glEnable(GL.GL_LIGHTING)
+            #         if showFrame:
+            #             # disable light to draw model frame
+            #             GL.glDisable(GL.GL_LIGHTING)
+            #             self.drawFrame(drawFunc.coordinate,10,selectedMode)
+            #             GL.glEnable(GL.GL_LIGHTING)
                     
                         
-                else:
-                    if self.isSelected:
-                        self.manipulator.drawManipulator(mode,coordinate,self.currentM,selectedMode,camera)
-                    else:
-                        pass
+            #     else:
+            #         if self.isSelected:
+            #             self.manipulator.drawManipulator(mode,coordinate,self.currentM,selectedMode,camera)
+            #         else:
+            #             pass
                     
-                GL.glPopMatrix()
+            #     GL.glPopMatrix()
                 
         
                 
@@ -674,10 +678,52 @@ class Joint(Model):
             GL.glLoadIdentity()
 
             # apply transform to model
+            newRender = self.renderM.copy()
+            d = np.linalg.det(newRender[0:3, 0:3])
             GL.glLoadMatrixf(self.renderM.T)
+            print(self.name,d)
             scale = 1
+            # if model is selected
+            if self.isSelected:
+                
+                # set model color to sky color
+                color = drawFunc.SkyColorVector
+                
+            # if model is not selected
+            else:
+                
+                # set model color to white
+                color = drawFunc.WhiteColorVector
             
-            GL.glColor4f(1,1,1,1)
+            # if opacity is enable
+            if self.flags['opacityMode']:
+                
+                # set model opacity to 0.75
+                self.opacityValue = 0.75
+                
+            # if opacity is disable
+            else:
+                
+                # set model opacity to 1
+                self.opacityValue = 1
+            
+            # add opacityValue to color vector
+            color = list(color).copy()
+            color.append(self.opacityValue)
+            
+            # set model color
+            GL.glColor4fv(tuple(color))
+            
+            # set mode attribute
+            GL.glPushAttrib(GL.GL_COLOR_BUFFER_BIT)
+            GL.glEnable(GL.GL_BLEND)
+            GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
+            
+            # if disable lighting
+            if not self.flags['enableLight']:
+                # turn off lighting
+                GL.glDisable(GL.GL_LIGHTING)
+            # GL.glColor4f(1,1,1,1)
             
             
             if selectedMode:
@@ -705,6 +751,17 @@ class Joint(Model):
             #         GL.glNormal3f(x * zr1, y * zr1, z1)
             #         GL.glVertex3f(r * x * zr1, r * y * zr1, r * z1)
                 # GL.glEnd()
+                 # if disable lighting
+            if not self.flags['enableLight']:
+                # turn on lighting
+                GL.glEnable(GL.GL_LIGHTING)
+            
+            # change draw mode to solid
+            GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL)
+            
+            # reset attribute to remain attribute
+            GL.glDisable(GL.GL_BLEND)
+            GL.glPopAttrib()
             GL.glPopMatrix()
             
             GL.glMatrixMode(GL.GL_MODELVIEW)
@@ -784,6 +841,10 @@ class Joint(Model):
             # print(self.getDist)
             
             newM[0:3,0] = (vAB.T.copy())/self.getDist
+            # print(np.linalg.norm(newM[0:3,0]))
+            
+            newM[0:3,0] = newM[0:3,0]/np.linalg.norm(newM[0:3,0])
+            # print(np.linalg.norm(newM[0:3,0]))
             if newM[0,0] > 0:
                 sign0 = 1
             else:
@@ -798,6 +859,12 @@ class Joint(Model):
             newM[1,1] = -1 *sign1 * abs(newM[0,0])
             newM[0:3,2] = np.cross(newM[0:3,0].copy(), newM[0:3,1].copy())
             newM[0:3,3] = self.worldToLocal[0:3,3].T.copy()
+            
+            newM[0:3,0] = newM[0:3,0]/np.linalg.norm(newM[0:3,0])
+            newM[0:3,1] = newM[0:3,1]/np.linalg.norm(newM[0:3,1])
+            newM[0:3,2] = newM[0:3,2]/np.linalg.norm(newM[0:3,2])
+            
+            
             return newM
         else:
             return self.worldToLocal
@@ -852,14 +919,92 @@ class Joint(Model):
         
         pass
     
+class ArticulateObj(Model):
+    
+    def drawMatrixModel(self, showFrame=True, enableLight = True,wireFrame = False, opacity = False,mode = 'trans',selectedMode = False,coordinate = True,camera = [1,0,0]):
+        
+        # if model is show
+            if self.show:
+                # print(self.name,self.show)
+                # start transform matrix in model view
+                GL.glMatrixMode(GL.GL_MODELVIEW)
+                GL.glPushMatrix()
+                GL.glLoadIdentity()
 
+                # apply transform to model
+                GL.glLoadMatrixf(self.renderM.T)
+                # # draw model from drawFunction
+               # if model is selected
+                if self.isSelected:
+                    
+                    # set model color to sky color
+                    color = drawFunc.SkyColorVector
+                    
+                # if model is not selected
+                else:
+                    
+                    # set model color to white
+                    color = drawFunc.WhiteColorVector
+                
+                # if opacity is enable
+                if self.flags['opacityMode']:
+                    
+                    # set model opacity to 0.75
+                    self.opacityValue = 0.75
+                    
+                # if opacity is disable
+                else:
+                    
+                    # set model opacity to 1
+                    self.opacityValue = 1
+                
+                # add opacityValue to color vector
+                color = list(color).copy()
+                color.append(self.opacityValue)
+                
+                # set model color
+                GL.glColor4fv(tuple(color))
+                
+                # set mode attribute
+                GL.glPushAttrib(GL.GL_COLOR_BUFFER_BIT)
+                GL.glEnable(GL.GL_BLEND)
+                GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
+                
+                
+                # if disable lighting
+                if not self.flags['enableLight']:
+                    # turn off lighting
+                    GL.glDisable(GL.GL_LIGHTING)
+                    
+                # draw model
+                if selectedMode:
+                    GL.glLoadName(self.modelId)
+                    
+                self.drawFunction(ratio = 1,selectedMode = selectedMode)
+                
+                if self.isSelected:
+                    self.manipulator.drawManipulator(mode,coordinate,self.currentM,selectedMode,camera)
+                    
+                # if disable lighting
+                if not self.flags['enableLight']:
+                    # turn on lighting
+                    GL.glEnable(GL.GL_LIGHTING)
+                
+                # change draw mode to solid
+                GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL)
+                
+                # reset attribute to remain attribute
+                GL.glDisable(GL.GL_BLEND)
+                GL.glPopAttrib()
+                GL.glPopMatrix()
+    
 class ArticulateModel(Model):
     def __init__(self,name,modelId,listOfJoint,showTarget = False,showPole = False):
         super().__init__(name,modelId)
         self.listOfJoint = listOfJoint
-        self.base = Model('base',60,drawFunc.DrawCube)
-        self.target = Model('target',61,drawFunc.DrawCube)
-        self.poleVertex = Model('pole',62,drawFunc.DrawCube)
+        self.base = ArticulateObj('base',60,drawFunc.drawBase)
+        self.target = ArticulateObj('target',61,drawFunc.DrawCube)
+        self.poleVertex = ArticulateObj('pole',62,drawFunc.drawPole)
         self.showTarget = showTarget
         self.showPole = showPole
         
@@ -896,6 +1041,11 @@ class ArticulateModel(Model):
             joint.initModel(matrixView)
     
     def drawMatrixModel(self, showFrame=True, enableLight = True,wireFrame = False, opacity = False,mode = 'trans',selectedMode = False,coordinate = True,camera = [1,0,0]):
+        for model in self.getSubModel():
+            # print(self.flags)
+            model.flags = self.flags
+            
+            model.show = model.flags['showModel']
         self.base.drawMatrixModel(showFrame,enableLight,wireFrame,opacity,mode,selectedMode,coordinate,camera = camera)
         if self.showTarget:
             self.target.drawMatrixModel(showFrame,enableLight,wireFrame,opacity,mode,selectedMode,coordinate,camera = camera)
@@ -910,38 +1060,45 @@ class ArticulateModel(Model):
     def getSubModel(self):
         return self.modelLists
     
+class Cursor(Model):
     
+    def drawMatrixModel(self, showFrame=True, enableLight = True,wireFrame = False, opacity = False,mode = 'trans',selectedMode = False,coordinate = True,camera = [1,0,0]):
+        
+        # if model is show
+            if self.show:
+                # start transform matrix in model view
+                GL.glMatrixMode(GL.GL_MODELVIEW)
+                GL.glPushMatrix()
+                GL.glLoadIdentity()
+
+                # apply transform to model
+                GL.glLoadMatrixf(self.renderM.T)
+                # # draw model from drawFunction
+                
+                # draw model
+                if selectedMode:
+                    
+                    GL.glLoadName(self.modelId)
+                self.drawFunction()
+                    
+                if self.name == 'cursor':
+                
+                    if showFrame:
+                        # disable light to draw model frame
+                        GL.glDisable(GL.GL_LIGHTING)
+                        self.drawFrame(drawFunc.coordinate,10,selectedMode)
+                        GL.glEnable(GL.GL_LIGHTING)
+                    
+                        
+                else:
+                    if self.isSelected:
+                        self.manipulator.drawManipulator(mode,coordinate,self.currentM,selectedMode,camera)
+                    else:
+                        pass
+                    
+                GL.glPopMatrix()
     
-    
-    
+
 if __name__ == "__main__":
-    a = Transform()
-    b = Transform()
-    c = Transform()
-    b.parentToLocal[0,3] = 2
-    a.parentToLocal[0,3] = 0
-    c.parentToLocal[0,3] = 9
-    
-    b.goUnder(a)
-    # b.parent.append(a)
-    # a.child.append(b)
-    # a.parentToLocal[1,3] = 5
-    b.apply(np.array([[0,-1,0,0],
-                        [1,0,0,0],
-                        [0,0,1,0],
-                        [0,0,0,1]]))
-    a.apply(np.array([[0,-1,0,5],
-                        [1,0,0,2],
-                        [0,0,1,0],
-                        [0,0,0,1]]))
-    # a.parentToLocal = np.dot(np.array([[0,-1,0,0],
-    #                                      [1,0,0,0],
-    #                                      [0,0,1,0],
-    #                                      [0,0,0,1]]),a.parentToLocal)
-    c.goUnder(b)
-    
-    
-    print(b.worldToLocal)
-    
-    print(a.worldToLocal)
-    
+    c = Cursor('cursor',99,drawFunc.drawCursor,obj=None)
+    print(c.name)

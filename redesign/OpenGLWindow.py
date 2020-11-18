@@ -12,7 +12,7 @@ from scipy.spatial.transform import Rotation as R
 import csv
 
 import drawFunc
-from Model import Model,OBJ,Joint,ArticulateModel
+from Model import Model,OBJ,Joint,ArticulateModel,Cursor
 
 class OpenGLWindow(fltk.Fl_Gl_Window):
     
@@ -43,7 +43,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
                            'modelNum':0}
         
         # init cursor model
-        self.cursor = Model('cursor',99,drawFunc.drawCursor,obj=None)
+        self.cursor = Cursor('cursor',99,drawFunc.drawCursor,obj=None)
         
         # init grid model
         self.grid = Model("grid",drawFunc.Grid)
@@ -171,6 +171,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         # implement zoom and tramslate view
         # minX, maxX, minY, maxY, minZ, maxZ
         ratio = 0.2679491924311227
+        # ratio = 0.5773502691896257
         GL.glFrustum(((-ratio*(self.w()/self.h()))/self.cameravalue[0])-ratio*self.cameravalue[1], 
                     ((ratio*(self.w()/self.h()))/self.cameravalue[0])-ratio*self.cameravalue[1], 
                     -ratio/self.cameravalue[0]-ratio*self.cameravalue[2], 

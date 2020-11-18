@@ -103,7 +103,8 @@ def drawAxisX(ratio = 1):
     GL.glTranslatef(0,0,-length)
     GLUT.glutSolidCylinder(radius/2,length,10,10)
 
-def DrawCube():
+def DrawCube(**kwargs):
+    
     GL.glBegin(GL.GL_QUADS)
 
     GL.glColor3f(1, 0, 0)
@@ -309,7 +310,9 @@ def drawCube(ratio):
     GL.glPopAttrib()
     GL.glTranslatef(0,-ratio/2,0)
 
-def drawBase(ratio):
+def drawBase(**kwargs):
+    
+    ratio = kwargs['ratio']
     GL.glColor3f(1.0,0.0,0.0)
     drawCube(ratio)
     GL.glRotatef(90,1,0,0)
@@ -324,22 +327,26 @@ def drawCircle(ratio):
         x = math.cos(angle)*ratio
         y = math.sin(angle)*ratio
         GL.glVertex2d(x,y)
-    GL.glEnd(),sele
-def drawPole(ratio,):
-    # GL.glLineWidth(7)
-    GL.glColor3f(1.0,0.0,1.0)
+    GL.glEnd()
+def drawPole(**kwargs):
+    ratio = kwargs['ratio']
+    selectedMode = kwargs['selectedMode']
+    GL.glLineWidth(5)
+    # GL.glColor3f(1.0,0.0,1.0)
     drawCircle(ratio)
     GL.glRotatef(90,1,0,0)
     drawCircle(ratio)
     GL.glRotatef(90,0,1,0)
     drawCircle(ratio)
-    # GL.glLineWidth(1)
-    GL.glColor4f(1.0,1.0,1.0,0.0)
+    GL.glLineWidth(1)
+    # GL.glColor4f(1.0,1.0,1.0,0.0)
     GL.glPushAttrib(GL.GL_COLOR_BUFFER_BIT)
     GL.glEnable(GL.GL_BLEND)
     GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
-    GLUT.glutSolidSphere(ratio,100,100)
+    if selectedMode:
+        GLUT.glutSolidSphere(ratio,100,100)
     GL.glDisable(GL.GL_BLEND)
     GL.glPopAttrib()
     GL.glTranslatef(0,-ratio/2,0)
+    
 
