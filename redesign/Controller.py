@@ -195,11 +195,12 @@ class CommonController(Handler):
     def toggleModelFlags(self,flags):
         artiModel = self.modelDicts['model'][self.modelDicts['runModelIdx']]
         modelList = artiModel.getSubModel()
-        for model in modelList:
-            # if model.isSelected:
-            newFlags = not model.flags[flags]
-            model.updateFlags(flags,newFlags)
-                
+        # for model in modelList:
+        #     # if model.isSelected:
+        #     newFlags = not model.flags[flags]
+        #     model.updateFlags(flags,newFlags)
+        newFlags = not artiModel.flags[flags]
+        artiModel.updateFlags(flags,newFlags)    
         
     def undo(self):
         
@@ -288,6 +289,7 @@ class CommonController(Handler):
         
         
         ratio = 0.2679491924311227
+        # ratio = 0.5773502691896257
 
         
         GL.glFrustum(((-ratio*(self.windowWidth/self.windowHeight))/self.cameraValue[0])-ratio*self.cameraValue[1], 
