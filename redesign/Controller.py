@@ -1052,8 +1052,8 @@ class MouseController(CommonController):
         else:
             center = [newM[0][3],newM[1][3],newM[2][3]]
             newRay = Ray(x,y)
-            cur = newRay.sphereIntersect(center,10)
-            last = self.oldRay.sphereIntersect(center,10)
+            cur = newRay.sphereIntersect(center,20)
+            last = self.oldRay.sphereIntersect(center,20)
             if cur[0]!= None and last[0] != None:
                 diff = cur - last
                 angle = 90 * math.sqrt(diff[0]*diff[0] + diff[1]*diff[1] + diff[2]*diff[2])
