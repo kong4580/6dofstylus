@@ -713,6 +713,7 @@ class Joint(Model):
             GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
             
             # if disable lighting
+            
             if not self.flags['enableLight']:
                 # turn off lighting
                 GL.glDisable(GL.GL_LIGHTING)
@@ -727,6 +728,18 @@ class Joint(Model):
                 # turn on lighting
                 GL.glEnable(GL.GL_LIGHTING)
             
+            
+            # reset attribute to remain attribute
+            GL.glDisable(GL.GL_BLEND)
+            GL.glPopAttrib()
+            GL.glPopMatrix()
+            
+            
+            GL.glMatrixMode(GL.GL_MODELVIEW)
+            GL.glPushMatrix()
+            GL.glLoadIdentity()
+            GL.glLoadMatrixf(self.renderM.T)
+            GL.glPushAttrib(GL.GL_COLOR_BUFFER_BIT)
             # change draw mode to solid
             GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_LINE)
             
@@ -737,17 +750,6 @@ class Joint(Model):
             # set model color
             GL.glColor4fv(tuple(color))
             GL.glLineWidth(3)
-            # reset attribute to remain attribute
-            GL.glDisable(GL.GL_BLEND)
-            GL.glPopAttrib()
-            GL.glPopMatrix()
-            
-            GL.glMatrixMode(GL.GL_MODELVIEW)
-            GL.glPushMatrix()
-            GL.glLoadIdentity()
-            GL.glLoadMatrixf(self.renderM.T)
-            GL.glPushAttrib(GL.GL_COLOR_BUFFER_BIT)
-            
             GL.glDisable(GL.GL_LIGHTING)
             bl = (-length*1*scale,0.5*scale,0.5*scale)
             br = (-length*1*scale,0.5*scale,-0.5*scale)
@@ -802,7 +804,7 @@ class Joint(Model):
             
             GL.glPopMatrix()
             GL.glLineWidth(1)
-            
+            GL.glEnable(GL.GL_LIGHTING)
             GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL)
             if showFrame and not self.flags['snapMode']:
                 # disable light to draw model frame
@@ -851,9 +853,11 @@ class Joint(Model):
             newM[0:3,1] = newM[0:3,1]/np.linalg.norm(newM[0:3,1])
             newM[0:3,2] = newM[0:3,2]/np.linalg.norm(newM[0:3,2])
             
-            
+            if np.isnan(newM).any():
+                newM = self.worldToLocal
             return newM
         else:
+            print(self.name)
             return self.worldToLocal
     
     @property
@@ -974,10 +978,8 @@ class ArticulateObj(Model):
                 if self.isSelected:
                     self.manipulator.drawManipulator(mode,coordinate,self.currentM,selectedMode,camera)
                     
-                # if disable lighting
-                if not self.flags['enableLight']:
-                    # turn on lighting
-                    GL.glEnable(GL.GL_LIGHTING)
+                
+                GL.glEnable(GL.GL_LIGHTING)
                 
                 # change draw mode to solid
                 GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL)
@@ -992,7 +994,7 @@ class ArticulateModel(Model):
         super().__init__(name,modelId)
         self.listOfJoint = listOfJoint
         self.base = ArticulateObj('base',60,drawFunc.drawBase)
-        self.target = ArticulateObj('target',61,drawFunc.DrawCube)
+        self.target = ArticulateObj('target',61,drawFunc.drawTarget)
         self.poleVertex = ArticulateObj('pole',62,drawFunc.drawPole)
         self.showTarget = showTarget
         self.showPole = showPole
@@ -1008,11 +1010,11 @@ class ArticulateModel(Model):
                                       [0,0,1,0],
                                       [0,0,0,1]]))
         self.target.parentToLocal = np.array([[1,0,0,-1.],
-                                      [0,1,0,5],
+                                      [0,1,0,8],
                                       [0,0,1,0],
                                       [0,0,0,1]])
         self.poleVertex.parentToLocal = np.array([[1,0,0,1.],
-                                      [0,1,0,5],
+                                      [0,1,0,8],
                                       [0,0,1,1],
                                       [0,0,0,1]])
         self.target.moveModel(np.eye(4),mode='relative')

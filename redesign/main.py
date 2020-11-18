@@ -178,7 +178,7 @@ def openGUI(conn,samplingRate = 0.005):
         elif modelMode == 'ik':
             gui.addModel('Arti1',6,objType = 'joint',listOfJoint=[jointA,jointB,jointC],showTarget = True,showPole = True)
         jointB.moveModel(np.array([[1,0,0,0],
-                            [0,1,0,3],
+                            [0,1,0,5],
                             [0,0,1,0],
                             [0,0,0,1]]))
         # jointB.moveModel(np.array([[1,0,0,0],
@@ -186,7 +186,7 @@ def openGUI(conn,samplingRate = 0.005):
         #                     [0,0,1,0],
         #                     [0,0,0,1]]),mode='relative')
         jointC.moveModel(np.array([[1,0,0,0],
-                            [0,1,0,3],
+                            [0,1,0,5],
                             [0,0,1,0],
                             [0,0,0,1]]),mode='relative')
         # jointA.moveModel(np.array([[1,0,0,0],

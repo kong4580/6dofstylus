@@ -338,7 +338,7 @@ def drawCircle(ratio):
 def drawPole(**kwargs):
     ratio = kwargs['ratio']
     selectedMode = kwargs['selectedMode']
-    GL.glLineWidth(3)
+    GL.glLineWidth(2)
     # GL.glColor3f(1.0,0.0,1.0)
     drawCircle(ratio)
     GL.glRotatef(90,1,0,0)
@@ -357,11 +357,15 @@ def drawPole(**kwargs):
     GL.glTranslatef(0,-ratio/2,0)
     
 def drawTarget(**kwargs):
-    ratio = kwargs['ratio']
+    ratio = kwargs['ratio'] * 0.8
     selectedMode = kwargs['selectedMode']
+    GL.glLineWidth(2)
+    
     GL.glRotatef(90,0,1,0)
     GL.glScalef(ratio,ratio,ratio)
     GLUT.glutWireDodecahedron()
+    GL.glLineWidth(1)
+    
     GL.glPushAttrib(GL.GL_COLOR_BUFFER_BIT)
     GL.glEnable(GL.GL_BLEND)
     GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
