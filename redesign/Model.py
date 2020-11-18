@@ -681,7 +681,7 @@ class Joint(Model):
             newRender = self.renderM.copy()
             d = np.linalg.det(newRender[0:3, 0:3])
             GL.glLoadMatrixf(self.renderM.T)
-            print(self.name,d)
+            
             scale = 1
             # if model is selected
             if self.isSelected:
