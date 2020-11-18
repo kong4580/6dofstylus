@@ -356,4 +356,16 @@ def drawPole(**kwargs):
     GL.glPopAttrib()
     GL.glTranslatef(0,-ratio/2,0)
     
-
+def drawTarget(**kwargs):
+    ratio = kwargs['ratio']
+    selectedMode = kwargs['selectedMode']
+    GL.glRotatef(90,0,1,0)
+    GL.glScalef(ratio,ratio,ratio)
+    GLUT.glutWireDodecahedron()
+    GL.glPushAttrib(GL.GL_COLOR_BUFFER_BIT)
+    GL.glEnable(GL.GL_BLEND)
+    GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
+    if selectedMode:
+        GLUT.glutSolidDodecahedron()
+    GL.glDisable(GL.GL_BLEND)
+    GL.glPopAttrib()
