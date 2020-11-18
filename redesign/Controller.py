@@ -862,10 +862,11 @@ class MouseController(CommonController):
         modelList = artiModel.getSubModel()
         
         # self.rotationAxis = None
-        # check selection    
+        # check selection   
+        mouseSelectedCheck = self.mouseSelectedCheck()
         for model in modelList:
             
-            if self.mouseSelectedCheck() == model.modelId or self.mouseSelectedCheck() == True:
+            if mouseSelectedCheck == model.modelId or mouseSelectedCheck == True:
 
                 # for m in modelList:
                 if len(self.selectedModel) >0:
@@ -878,40 +879,40 @@ class MouseController(CommonController):
                 #add to selected model buffer
                 selectModel.append(model)
 
-            elif self.mouseSelectedCheck() == 201:
+            elif mouseSelectedCheck == 201:
                 self.rotationAxis = 'rotX'
                 # print(model.isSelected)
                 if model.isSelected:
                     model.isSelected = True
                     selectModel.append(model)
 
-            elif self.mouseSelectedCheck() == 202:
+            elif mouseSelectedCheck == 202:
                 self.rotationAxis = 'rotY'
                 if model.isSelected:
                     model.isSelected = True
                     selectModel.append(model)
 
-            elif self.mouseSelectedCheck() == 203:
+            elif mouseSelectedCheck == 203:
                 self.rotationAxis = 'rotZ'
                 
                 if model.isSelected:
                     model.isSelected = True
                     selectModel.append(model)
 
-            elif self.mouseSelectedCheck() == 101:
+            elif mouseSelectedCheck == 101:
                 self.translationAxis = 'transX'
                 # print(model.isSelected)
                 if model.isSelected:
                     model.isSelected = True
                     selectModel.append(model)
 
-            elif self.mouseSelectedCheck() == 102:
+            elif mouseSelectedCheck == 102:
                 self.translationAxis = 'transY'
                 if model.isSelected:
                     model.isSelected = True
                     selectModel.append(model)
 
-            elif self.mouseSelectedCheck() == 103:
+            elif mouseSelectedCheck == 103:
                 self.translationAxis = 'transZ'
                 if model.isSelected:
                     model.isSelected = True
@@ -921,7 +922,7 @@ class MouseController(CommonController):
 
                 #model is deselected
                 model.isSelected = False
-        
+            
         return selectModel
 
     # mouse click selection checking
