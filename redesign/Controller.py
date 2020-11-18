@@ -288,8 +288,8 @@ class CommonController(Handler):
         # GLU.gluPerspective(30,self.windowWidth/self.windowHeight,1,100)
         
         
-        ratio = 0.2679491924311227
-        # ratio = 0.5773502691896257
+        # ratio = 0.2679491924311227
+        ratio = 0.5773502691896257
 
         
         GL.glFrustum(((-ratio*(self.windowWidth/self.windowHeight))/self.cameraValue[0])-ratio*self.cameraValue[1], 
@@ -298,7 +298,7 @@ class CommonController(Handler):
                     ratio/self.cameraValue[0]-ratio*self.cameraValue[2],
                      1, 100)
         # print(self.cameraValue)
-        GL.glTranslatef(0,0,-35)
+        GL.glTranslatef(0,0,-20)
 
         #offset camera view
         GL.glTranslatef(0,-5,0)
