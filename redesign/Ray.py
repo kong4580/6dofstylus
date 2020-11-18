@@ -74,6 +74,40 @@ class Ray:
         # #     print("Noneeeee")
         #     print("Noneeeee")
         return I
+
+    def sphereIntersect(self,center,radius):
+
+        # direction of line
+        u = self.vec
+
+        # origin of line
+        o = self.p1
+
+        # center of sphere
+        c = np.asarray(center)
+
+        # radius of sphere
+        r = radius
+
+        a = np.dot(u,u)
+
+        b = 2*(np.dot(u,o-c))
+
+        c = np.dot(o-c,o-c) - (r*r)
+
+        if (b*b) - 4*a*c < 0:
+            # print("no sphere intersect")
+            return np.asarray([None,None,None])
+
+        d = (-b + math.sqrt((b*b) - 4*a*c))/(2*a)
+        x = self.p1[0] + (self.vec[0]*d)
+        y = self.p1[1] + (self.vec[1]*d)
+        z = self.p1[2] + (self.vec[2]*d)
+
+        I = np.asarray([x,y,z])
+
+        return I
+
 class Plane:
     def __init__(self,norm,pos):
         self.Normal = np.asarray([0.,0.,0.])

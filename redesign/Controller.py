@@ -1039,40 +1039,32 @@ class MouseController(CommonController):
                     newMatrix = np.dot(matrix,newN[0:3,0:3])
                 else:
                     newMatrix = np.dot(newN[0:3,0:3],matrix)
-                newN[0:3,0:3] = newMatrix
 
             else:
                 print("no intersect out")
 
             # set current ray for the next ray 
             # self.oldRay = newRay
+            newN[0:3,0:3] = newMatrix
         else:
             center = [newM[0][3],newM[1][3],newM[2][3]]
-            plane = Plane([0,0,1],center)
             newRay = Ray(x,y)
-            newIntersect = newRay.intersects(plane)
-            oldIntersect = self.oldRay.intersects(plane)
-            v = [newIntersect[0] - center[0],newIntersect[1] - center[1],newIntersect[2] - center[2]]
-            newproject = self.sphereProjection(v[0],v[1],v[2],center)
-
-        # return matrix for model
+            cur = newRay.sphereIntersect(center,10)
+            last = self.oldRay.sphereIntersect(center,10)
+            if cur[0]!= None and last[0] != None:
+                diff = cur - last
+                angle = 90 * math.sqrt(diff[0]*diff[0] + diff[1]*diff[1] + diff[2]*diff[2])
+                axis = [0,0,0]
+                axis[0] = last[1]*cur[2] - last[2]*cur[1]
+                axis[1] = last[2]*cur[0] - last[0]*cur[2]
+                axis[2] = last[0]*cur[1] - last[1]*cur[0]
+                # print("angle: ",angle,axis)
+                matrix = self.matrixM(angle*0.005,-axis[0],-axis[1],-axis[2])
+                newMatrix = np.dot(matrix,newN[0:3,0:3])
+                newN[0:3,0:3] = newMatrix
         self.oldRay = newRay
         return newN
 
-    def sphereProjection(self,x,y,z,center):
-        vector = np.array([x,y,z])
-        centernp = np.array(center)
-        d = math.sqrt(x*x + y*y + z*z)
-        ratio = (0.6/self.cameraValue[0])+0.4
-        radius = 5 * ratio
-        if d < radius:
-            d = radius
-        Q = (radius/d)*vector
-        R = Q + center
-        return R
-
-    def sphereAngle(self):
-        pass
     # translation function
     def mouseTranslate(self,x,y,translationAxis,mode):
 

@@ -54,7 +54,7 @@ class Transform():
         
         # newT = np.dot(tranM,self.worldToLocal)
         # newT = np.dot(self.parentToLocal,transform)
-        print(transform)
+        # print(transform)
         newT = np.eye(4)
         newttT = np.dot(oldttT,tranM)
         newttR = np.dot(oldttR,rotM)

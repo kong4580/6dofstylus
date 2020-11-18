@@ -324,8 +324,8 @@ def drawCircle(ratio):
         x = math.cos(angle)*ratio
         y = math.sin(angle)*ratio
         GL.glVertex2d(x,y)
-    GL.glEnd()
-def drawPole(ratio):
+    GL.glEnd(),sele
+def drawPole(ratio,):
     # GL.glLineWidth(7)
     GL.glColor3f(1.0,0.0,1.0)
     drawCircle(ratio)
