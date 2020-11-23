@@ -373,3 +373,42 @@ def drawTarget(**kwargs):
         GLUT.glutSolidDodecahedron()
     GL.glDisable(GL.GL_BLEND)
     GL.glPopAttrib()
+
+def drawSquareY(ratio=1):
+    GL.glColor3f(0.0,1.0,0.0)
+    length = 2.5 * ratio
+    GL.glTranslatef(0,length,length)
+    GL.glRotatef(90,0,1,0)
+    halfside = ratio*0.5
+    GL.glBegin(GL.GL_POLYGON)
+    GL.glVertex2d( halfside,  halfside)
+    GL.glVertex2d( halfside,  - halfside)
+    GL.glVertex2d( - halfside,  - halfside)
+    GL.glVertex2d( - halfside,  halfside)
+    GL.glEnd()
+
+def drawSquareZ(ratio=1):
+    GL.glColor3f(0.0,0.0,1.0)
+    length = 2.5 * ratio
+    GL.glTranslatef(length,0,length)
+    GL.glRotatef(-90,1,0,0)
+    halfside = ratio*0.5
+    GL.glBegin(GL.GL_POLYGON)
+    GL.glVertex2d( halfside,  halfside)
+    GL.glVertex2d( halfside,  - halfside)
+    GL.glVertex2d( - halfside,  - halfside)
+    GL.glVertex2d( - halfside,  halfside)
+    GL.glEnd()
+
+def drawSquareX(ratio=1):
+    GL.glColor3f(1.0,0.0,0.0)
+    length = 2.5 * ratio
+    GL.glTranslatef(length,length,0)
+    GL.glRotatef(90,0,0,1)
+    halfside = ratio*0.5
+    GL.glBegin(GL.GL_POLYGON)
+    GL.glVertex2d( halfside,  halfside)
+    GL.glVertex2d( halfside,  - halfside)
+    GL.glVertex2d( - halfside,  - halfside)
+    GL.glVertex2d( - halfside,  halfside)
+    GL.glEnd()
