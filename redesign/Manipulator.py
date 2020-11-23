@@ -18,6 +18,9 @@ class Manipulator:
             self.drawFrame(drawFunc.drawAxisX,101,selectedMode)
             self.drawFrame(drawFunc.drawAxisY,102,selectedMode)
             self.drawFrame(drawFunc.drawAxisZ,103,selectedMode)
+            self.drawFrame(drawFunc.drawSquareX,301,selectedMode)
+            self.drawFrame(drawFunc.drawSquareY,302,selectedMode)
+            self.drawFrame(drawFunc.drawSquareZ,303,selectedMode)
         if moveMode == 'rot':
             self.drawFrame(drawFunc.drawCircleX,201,selectedMode)
 

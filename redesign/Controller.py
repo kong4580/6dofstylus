@@ -917,6 +917,24 @@ class MouseController(CommonController):
                     model.isSelected = True
                     selectModel.append(model)
 
+            elif mouseSelectedCheck == 301:
+                self.translationAxis = 'transXY'
+                if model.isSelected:
+                    model.isSelected = True
+                    selectModel.append(model)
+
+            elif mouseSelectedCheck == 302:
+                self.translationAxis = 'transYZ'
+                if model.isSelected:
+                    model.isSelected = True
+                    selectModel.append(model)
+
+            elif mouseSelectedCheck == 303:
+                self.translationAxis = 'transXZ'
+                if model.isSelected:
+                    model.isSelected = True
+                    selectModel.append(model)
+
             else:
 
                 #model is deselected
@@ -1046,7 +1064,7 @@ class MouseController(CommonController):
 
             else:
                 print("no intersect out")
-
+                newMatrix = newN[0:3,0:3]
             # set current ray for the next ray 
             # self.oldRay = newRay
             newN[0:3,0:3] = newMatrix
@@ -1081,32 +1099,6 @@ class MouseController(CommonController):
         oldPoint = np.asarray([0,0,0])
         norm1 = 0
         norm2 = 0
-
-        # check rotation axis 
-        if translationAxis == 'transX':
-            # itself axis
-            axis0 = 0
-
-            # near by axis
-            axis1 = 1
-            axis2 = 2
-            
-        elif translationAxis == 'transY':
-            # itself axis
-            axis0 = 1
-
-            # near by axis
-            axis1 = 0
-            axis2 = 2
-            
-        elif translationAxis == 'transZ':
-            # itself axis
-            axis0 = 2
-
-            # near by axis
-            axis1 = 0
-            axis2 = 1
-            
         # get model currentM
         # model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
         model = self.selectedModel[0]
@@ -1121,56 +1113,99 @@ class MouseController(CommonController):
 
         # get current Ray casting position
         newRay = Ray(x,y)
+        if translationAxis == 'transX' or translationAxis == 'transY' or translationAxis == 'transZ':
+            # check rotation axis 
+            if translationAxis == 'transX':
+                # itself axis
+                axis0 = 0
 
-        # check moving coordinate
-        if mode == True or mode == False:
+                # near by axis
+                axis1 = 1
+                axis2 = 2
+                
+            elif translationAxis == 'transY':
+                # itself axis
+                axis0 = 1
 
-            # init plane Normal and Position
-            plane1 = Plane([newM[0][axis1],newM[1][axis1],newM[2][axis1]],center)
-            plane2 = Plane([newM[0][axis2],newM[1][axis2],newM[2][axis2]],center)
+                # near by axis
+                axis1 = 0
+                axis2 = 2
+                
+            elif translationAxis == 'transZ':
+                # itself axis
+                axis0 = 2
 
-            # get position where ray intersect with 2 planes
-            newIntersect1 = newRay.intersects(plane1)
-            newIntersect2 = newRay.intersects(plane2)
-            oldIntersect1 = self.oldRay.intersects(plane1)
-            oldIntersect2 = self.oldRay.intersects(plane2)
-            
-            # init line equation
-            lineIntersect = Line([newM[0][axis0],newM[1][axis0],newM[2][axis0]],center)
+                # near by axis
+                axis1 = 0
+                axis2 = 1
+                
 
-            # check intersection for 2 ray
-            if newIntersect1[0] != None and oldIntersect1[0] != None:
+            # check moving coordinate
+            if mode == True or mode == False:
 
-                # project the point on plane to line equation
-                newPoint1 = self.pointProjectOnLine(lineIntersect,newIntersect1)
-                oldPoint1 = self.pointProjectOnLine(lineIntersect,oldIntersect1)
-                norm1 = np.linalg.norm(newIntersect1)
+                # init plane Normal and Position
+                plane1 = Plane([newM[0][axis1],newM[1][axis1],newM[2][axis1]],center)
+                plane2 = Plane([newM[0][axis2],newM[1][axis2],newM[2][axis2]],center)
 
-            if newIntersect2[0] != None and oldIntersect2[0] != None:
+                # get position where ray intersect with 2 planes
+                newIntersect1 = newRay.intersects(plane1)
+                newIntersect2 = newRay.intersects(plane2)
+                oldIntersect1 = self.oldRay.intersects(plane1)
+                oldIntersect2 = self.oldRay.intersects(plane2)
+                
+                # init line equation
+                lineIntersect = Line([newM[0][axis0],newM[1][axis0],newM[2][axis0]],center)
 
-                # project the point on plane to line equation
-                newPoint2 = self.pointProjectOnLine(lineIntersect,newIntersect2)
-                oldPoint2 = self.pointProjectOnLine(lineIntersect,oldIntersect2)
-                norm2 = np.linalg.norm(newIntersect2)
+                # check intersection for 2 ray
+                if newIntersect1[0] != None and oldIntersect1[0] != None:
 
-            # choose the moving point
-            # choose the lower norm (the closest)
-            if newPoint1[0] != None and newPoint2[0] != None:
-                if norm1>=norm2:
-                    newPoint = newPoint2
-                    oldPoint = oldPoint2
-                elif norm1<norm2:
+                    # project the point on plane to line equation
+                    newPoint1 = self.pointProjectOnLine(lineIntersect,newIntersect1)
+                    oldPoint1 = self.pointProjectOnLine(lineIntersect,oldIntersect1)
+                    norm1 = round(math.sqrt(np.linalg.norm(newIntersect1)),0)
+                    # print("norm1",int(math.sqrt(np.linalg.norm(newIntersect1))))
+
+                if newIntersect2[0] != None and oldIntersect2[0] != None:
+
+                    # project the point on plane to line equation
+                    newPoint2 = self.pointProjectOnLine(lineIntersect,newIntersect2)
+                    oldPoint2 = self.pointProjectOnLine(lineIntersect,oldIntersect2)
+                    norm2 = round(math.sqrt(np.linalg.norm(newIntersect2)),0)
+                    # print("norm2",int(math.sqrt(np.linalg.norm(newIntersect2))))
+                # choose the moving point
+                # choose the lower norm (the closest)
+                if newPoint1[0] != None and newPoint2[0] != None:
+                    if norm1>=norm2:
+                        newPoint = newPoint2
+                        oldPoint = oldPoint2
+                        # print("norm2")
+                    elif norm1<norm2:
+                        newPoint = newPoint1
+                        oldPoint = oldPoint1
+                        # print("norm1")
+                # if one have no intersect choose another
+                elif newPoint1[0] != None and newPoint2[0] == None:
                     newPoint = newPoint1
                     oldPoint = oldPoint1
+                elif newPoint1[0] == None and newPoint2[0] != None:
+                    newPoint = newPoint2
+                    oldPoint = oldPoint2
+        # print(norm1,norm2)
 
-            # if one have no intersect choose another
-            elif newPoint1[0] != None and newPoint2[0] == None:
-                newPoint = newPoint1
-                oldPoint = oldPoint1
-            elif newPoint1[0] == None and newPoint2[0] != None:
-                newPoint = newPoint2
-                oldPoint = oldPoint2
+        elif translationAxis == 'transXY' or translationAxis == 'transYZ' or translationAxis == 'transXZ':
+            if translationAxis == 'transXY':
+                axis = 2
 
+            if translationAxis == 'transYZ':
+                axis = 0
+            
+            if translationAxis == 'transXZ':
+                axis = 1
+
+            plane = Plane([newM[0][axis],newM[1][axis],newM[2][axis]],center)
+            newPoint = newRay.intersects(plane)
+            oldPoint = self.oldRay.intersects(plane)
+            
         # moving along the screen
         if mode == "worldxy":
 
@@ -1183,7 +1218,6 @@ class MouseController(CommonController):
 
         #  distant vector
         distant = newPoint - oldPoint
-
         # set current ray for the next ray
         self.oldRay = newRay
         
