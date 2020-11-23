@@ -1009,12 +1009,12 @@ class ArticulateModel(Model):
                                       [0,1,0,0],
                                       [0,0,1,0],
                                       [0,0,0,1]]))
-        self.target.parentToLocal = np.array([[1,0,0,-1.],
-                                      [0,1,0,8],
+        self.target.parentToLocal = np.array([[1,0,0,-3.],
+                                      [0,1,0,6],
                                       [0,0,1,0],
                                       [0,0,0,1]])
-        self.poleVertex.parentToLocal = np.array([[1,0,0,1.],
-                                      [0,1,0,8],
+        self.poleVertex.parentToLocal = np.array([[1,0,0,3.],
+                                      [0,1,0,6],
                                       [0,0,1,1],
                                       [0,0,0,1]])
         self.target.moveModel(np.eye(4),mode='relative')
