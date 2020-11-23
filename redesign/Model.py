@@ -723,6 +723,7 @@ class Joint(Model):
             if selectedMode:
                 GL.glLoadName(self.modelId)
             GLUT.glutSolidSphere(.74,10,10)
+            # GLUT.glutSolidCone(1,length,4,4)
             
             if not self.flags['enableLight']:
                 # turn on lighting
@@ -738,67 +739,79 @@ class Joint(Model):
             GL.glMatrixMode(GL.GL_MODELVIEW)
             GL.glPushMatrix()
             GL.glLoadIdentity()
-            GL.glLoadMatrixf(self.renderM.T)
-            GL.glPushAttrib(GL.GL_COLOR_BUFFER_BIT)
-            # change draw mode to solid
-            GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_LINE)
+            # GL.glRotatef(-90,1,0,0)
             
-            color = drawFunc.MagentaColorVector
+            GL.glLoadMatrixf(self.renderM.T)
+            GL.glTranslatef(-length,0,0,1)
+            
+            GL.glRotatef(90,0,1,0)
+            # GL.glRotatef(180,1,0,0)
+            
+            GL.glPushAttrib(GL.GL_COLOR_BUFFER_BIT)
+            GL.glEnable(GL.GL_BLEND)
+            GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
+            # change draw mode to solid
+            GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL)
+            
+            color = drawFunc.WhiteColorVector
             color = list(color).copy()
             color.append(self.opacityValue)
             
             # set model color
             GL.glColor4fv(tuple(color))
-            GL.glLineWidth(3)
-            GL.glDisable(GL.GL_LIGHTING)
-            bl = (-length*1*scale,0.5*scale,0.5*scale)
-            br = (-length*1*scale,0.5*scale,-0.5*scale)
-            fl = (-length*1*scale,-0.5*scale,0.5*scale)
-            fr = (-length*1*scale,-0.5*scale,-0.5*scale)
-            t = (0,0,0)
             if selectedMode:
                 GL.glLoadName(9999)
-            GL.glBegin(GL.GL_TRIANGLES)
-            GL.glVertex3fv( fr )
-            GL.glVertex3fv(br )
-            GL.glVertex3fv( bl )
-            GL.glEnd()
+            GLUT.glutSolidCone(0.74,length,4,1)
+            # GL.glLineWidth(3)
+            # GL.glDisable(GL.GL_LIGHTING)
+            # bl = (-length*1*scale,0.5*scale,0.5*scale)
+            # br = (-length*1*scale,0.5*scale,-0.5*scale)
+            # fl = (-length*1*scale,-0.5*scale,0.5*scale)
+            # fr = (-length*1*scale,-0.5*scale,-0.5*scale)
+            # t = (0,0,0)
+            # if selectedMode:
+            #     GL.glLoadName(9999)
+            # GL.glBegin(GL.GL_TRIANGLES)
+            # GL.glVertex3fv( fr )
+            # GL.glVertex3fv(br )
+            # GL.glVertex3fv( bl )
+            # GL.glEnd()
             
-            GL.glBegin(GL.GL_TRIANGLES)
-            GL.glVertex3fv( fl )
+            # GL.glBegin(GL.GL_TRIANGLES)
+            # GL.glVertex3fv( fl )
             
-            GL.glVertex3fv( fr )
-            GL.glVertex3fv( bl )
-            GL.glEnd()
+            # GL.glVertex3fv( fr )
+            # GL.glVertex3fv( bl )
+            # GL.glEnd()
             
-            GL.glBegin(GL.GL_TRIANGLES)
-            GL.glVertex3fv( t )
+            # GL.glBegin(GL.GL_TRIANGLES)
+            # GL.glVertex3fv( t )
             
-            GL.glVertex3fv( bl )
-            GL.glVertex3fv( br )
-            GL.glEnd()
+            # GL.glVertex3fv( bl )
+            # GL.glVertex3fv( br )
+            # GL.glEnd()
 
-            GL.glBegin(GL.GL_TRIANGLES)
-            GL.glVertex3fv( t )
+            # GL.glBegin(GL.GL_TRIANGLES)
+            # GL.glVertex3fv( t )
             
-            GL.glVertex3fv( br )
-            GL.glVertex3fv( fr )
-            GL.glEnd()
+            # GL.glVertex3fv( br )
+            # GL.glVertex3fv( fr )
+            # GL.glEnd()
             
-            GL.glBegin(GL.GL_TRIANGLES)
-            GL.glVertex3fv( t )
+            # GL.glBegin(GL.GL_TRIANGLES)
+            # GL.glVertex3fv( t )
             
-            GL.glVertex3fv( fr )
-            GL.glVertex3fv( fl )
-            GL.glEnd()
+            # GL.glVertex3fv( fr )
+            # GL.glVertex3fv( fl )
+            # GL.glEnd()
             
-            GL.glBegin(GL.GL_TRIANGLES)
-            GL.glVertex3fv( t )
+            # GL.glBegin(GL.GL_TRIANGLES)
+            # GL.glVertex3fv( t )
             
-            GL.glVertex3fv( fl )
-            GL.glVertex3fv( bl )
-            GL.glEnd()
-            
+            # GL.glVertex3fv( fl )
+            # GL.glVertex3fv( bl )
+            # GL.glEnd()
+            GL.glDisable(GL.GL_BLEND)
             GL.glEnable(GL.GL_LIGHTING)
             GL.glPopAttrib()
             
