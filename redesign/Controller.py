@@ -6,6 +6,7 @@ from scipy.spatial.transform import Rotation as R
 import math
 from Ray import Ray,Plane,Line
 import sys
+import time
 class Handler():
     def __init__(self):
         self.push = False
@@ -410,6 +411,8 @@ class StylusController(CommonController):
                                   [0,0,0,1]])
         self.cursorSpeed = self.flags['cursorSpeed']
         self.speed = 0.1
+        self.lastClick = 0
+        self.stillClick = False
     def runEvent(self,event):
         
         # Run common event
@@ -509,7 +512,7 @@ class StylusController(CommonController):
                 self.push = True
                 self.release = False
                 self.buttonNum = 2
-                self.rightClick()
+                # self.rightClick()
                 
             
             # REALEASE ALL BUTTON
@@ -517,12 +520,25 @@ class StylusController(CommonController):
                 self.push = False
                 self.release = True
                 self.buttonNum = None
+                self.stillClick = False
+                
     def leftClick(self):
         # Check select model
-        self.selectedModel = self.selectModel(mode = "buffer")
-        if self.selectedModel != []:
-            self.old=self.selectedModel[0].currentM.copy()
-        print("left click!")
+        newClick = time.time()
+        deltaTime = newClick-self.lastClick    
+            
+        if self.selectedModel == [] and self.stillClick == False:
+            
+            self.selectedModel = self.selectModel(mode = "buffer")
+            if self.selectedModel != []:
+                self.old=self.selectedModel[0].currentM.copy()
+            self.lastClick = newClick
+            self.stillClick = True
+            print("left click!")
+            
+        elif self.selectedModel != [] and self.stillClick == False:
+            self.rightClick()
+            self.stillClick = True
         
     def rightClick(self):
         # Check select model
