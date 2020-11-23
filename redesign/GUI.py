@@ -438,6 +438,9 @@ class Gui():
     # update fltk from opengl 
     def updateFltk(self):
         
+        # csv log name
+        self.logName()
+
         # get model
         model = self.openglWindow.modelDicts['model'][self.openglWindow.modelDicts['runModelIdx']]
         # get model rotation matrix
@@ -479,9 +482,6 @@ class Gui():
 
         # cursor speed handle
         self.cursorSpeedWidget()
-
-        # csv log name
-        self.logName()
 
         # update camera value
         for i in range(3):
