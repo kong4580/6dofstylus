@@ -353,6 +353,8 @@ class CommonController(Handler):
         
         if self.keyCha == ord('s'):
             self.toggleFlags('snapMode')
+        
+        
             
         if self.keyCha == ord('d'):
             self.toggleFlags('checkIoU')

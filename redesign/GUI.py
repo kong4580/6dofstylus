@@ -636,14 +636,16 @@ class Gui():
                 if self.openglWindow.flags['lineupTestMode']:
                     
                     # open next backdrop
-                    self.openglWindow.openBackdropFile("backdropImg/backdrop_"+str(self.openglWindow.testNumber)+".jpg")
+                    self.openglWindow.openBackdropFile("backdropImg/"+self.openglWindow.modelType+"/backdrop_"+str(self.openglWindow.testNumber)+".jpg")
             
             
             
         if self.openglWindow.flags['testMode']:
             print("Enable test mode\nNumber of test: ",self.openglWindow.log['testNumber'])
+            print(self.openglWindow.modelType)
             self.openglWindow.testMode(self.openglWindow.log['testNumber'])
             # print( self.openglWindow.flags['testMode'])
+            
             self.openglWindow.flags['testMode'] = False
             
         fltk.Fl_check()

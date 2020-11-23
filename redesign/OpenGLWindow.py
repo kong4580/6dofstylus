@@ -56,7 +56,8 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         self.testNumber = 0
         
         # read backdrop file
-        self.openBackdropFile("backdropImg/backdrop_0.jpg")
+        self.modelType = 'rig'
+        self.openBackdropFile("backdropImg/"+self.modelType+"/backdrop_0.jpg")
         
         # iou score buffer
         self.iouScore = np.array([])
@@ -216,7 +217,11 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
                     self.modelDicts['isModelInit'][idx] = 1
             
             # select model to draw ## because use for test mode ##
-            self.modelDicts['runModelIdx'] = self.testNumber % 2
+            if self.modelType == 'rig':
+                self.modelDicts['runModelIdx'] = self.testNumber % 2
+            else:
+                self.modelDicts['runModelIdx'] = 0
+                
             model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
             # set show or not show model
             model.show = model.flags['showModel']
@@ -229,14 +234,28 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
             
                 
                 
-                
+    def setModelType(self,modelType):
+        self.modelType = modelType
+        self.openBackdropFile("backdropImg/"+self.modelType+"/backdrop_0.jpg")
+        
     # handle function of opengl window class
     def handle(self,event):
         self.ctl.setWindowWidthHeight(self.w(),self.h())
         self.ctl.readEvent(event)
         # return fltk.Fl_Gl_Window.handle(self, event)
+        # if fltk.Fl.event_key() == ord(' ') and self.flags['snapMode']:
+                
+        #         # set backdrop file name
+        #         backdropName = "backdropImg/backdrop_" + str(self.nameNumber)
+                
+        #         # snap current opengl window image and save
+        #         self.snap(backdropName)
+                
+        #         # update backdrop number name
+        #         self.nameNumber = self.nameNumber + 1
         if event == fltk.FL_PUSH:
             return 1
+        
         else:
             return fltk.Fl_Gl_Window.handle(self, event)
 
@@ -309,7 +328,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
 
             self.testNumber = 0  
             self.iouScore = np.array([])
-            self.openBackdropFile("backdropImg/backdrop_"+str(self.testNumber)+".jpg")
+            self.openBackdropFile("backdropImg/"+str(self.modelType)+"/backdrop_"+str(self.testNumber)+".jpg")
             self.flags['resetModelTransform'] = True
             self.flags['tutorial'] = True
             
@@ -332,7 +351,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
             self.flags['addLog'] = False
             self.iouScore = np.array([])
             
-            self.openBackdropFile("backdropImg/backdrop_"+str(self.testNumber)+".jpg")
+            self.openBackdropFile("backdropImg/"+str(self.modelType)+"/backdrop_"+str(self.testNumber)+".jpg")
             
             self.flags['resetModelTransform'] = True
             

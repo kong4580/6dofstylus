@@ -203,6 +203,7 @@ def openGUI(conn,samplingRate = 0.005):
         print("wrong model type")
         sys.exit()
     
+    gui.openglWindow.setModelType(modelType)
     
     # open GUI window
     gui.window.show()
