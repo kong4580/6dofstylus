@@ -770,20 +770,27 @@ class Joint(Model):
                 # change draw mode to solid
                 GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL)
                 
-                color = drawFunc.WhiteColorVector
-                color = list(color).copy()
-                color.append(self.opacityValue)
                 
-                # set model color
-                GL.glColor4fv(tuple(color))
                 if selectedMode:
                     GL.glLoadName(9999)
                 
                 if not self.flags['showModelWireframe']:
+                    color = drawFunc.WhiteColorVector
+                    color = list(color).copy()
+                    color.append(self.opacityValue)
+                    
+                    # set model color
+                    GL.glColor4fv(tuple(color))
                     GL.glDisable(GL.GL_CULL_FACE)
                     
                     GLUT.glutSolidCone(0.74,length,20,4)
                 else:
+                    color = drawFunc.RedColorVector
+                    color = list(color).copy()
+                    # color.append(self.opacityValue)
+                    
+                    # set model color
+                    GL.glColor3fv(tuple(color))
                     GL.glEnable(GL.GL_CULL_FACE)
                     GL.glCullFace(GL.GL_BACK)
                     GLUT.glutWireCone(0.74,length,20,4)
