@@ -1059,8 +1059,8 @@ class ArticulateModel(Model):
         self.target.moveModel(np.eye(4),mode='relative')
         self.poleVertex.moveModel(np.eye(4),mode='relative')
         
-        self.target.goUnder(self.base)
-        self.poleVertex.goUnder(self.base)
+        # self.target.goUnder(self.base)
+        # self.poleVertex.goUnder(self.base)
         self.modelLists = [self.base,self.target,self.poleVertex]
         self.modelLists.extend(self.listOfJoint)
         for m in self.modelLists:
