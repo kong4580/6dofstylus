@@ -329,7 +329,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
             self.testNumber = 0  
             self.iouScore = np.array([])
             self.openBackdropFile("backdropImg/"+str(self.modelType)+"/backdrop_"+str(self.testNumber)+".jpg")
-            # self.flags['resetModelTransform'] = True
+            self.flags['resetModelTransform'] = True
             self.flags['tutorial'] = True
             
         # if test mode is not start
