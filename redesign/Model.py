@@ -709,6 +709,25 @@ class Joint(Model):
             # set model color
             GL.glColor4fv(tuple(color))
             
+            if not self.flags['showModelWireframe']:
+                    color = drawFunc.WhiteColorVector
+                    color = list(color).copy()
+                    color.append(self.opacityValue)
+                    
+                    # set model color
+                    GL.glColor4fv(tuple(color))
+                    
+                    
+            else:
+                color = drawFunc.SkyColorVector
+                color = list(color).copy()
+                # color.append(self.opacityValue)
+                
+                # set model color
+                GL.glColor3fv(tuple(color))
+                    
+                    
+            
             # set mode attribute
             GL.glPushAttrib(GL.GL_COLOR_BUFFER_BIT)
             GL.glEnable(GL.GL_BLEND)
@@ -785,7 +804,7 @@ class Joint(Model):
                     
                     GLUT.glutSolidCone(0.74,length,20,4)
                 else:
-                    color = drawFunc.RedColorVector
+                    color = drawFunc.SkyColorVector
                     color = list(color).copy()
                     # color.append(self.opacityValue)
                     
