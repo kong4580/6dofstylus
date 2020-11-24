@@ -661,7 +661,7 @@ class StylusController(CommonController):
         elif origin == "centermodel":
             
             # if not init
-            if type(model.cursorM) == type(None) or ((self.fineRot or self.fineTran) and self.cursorSpeed != self.speed) or ((not (self.fineRot or self.fineTran)) and self.cursorSpeed != 1.0):
+            if type(model.cursorM) == type(None) or ((self.fineRot or self.fineTran) and self.cursorSpeed != self.speed) or ((not (self.fineRot or self.fineTran)) and self.cursorSpeed != 0.5):
                 
                 # remember cursor transform matrix when first clicked
                 model.cursorM = cursor.currentM.copy()
@@ -689,7 +689,7 @@ class StylusController(CommonController):
                 self.cursorSpeed = self.speed
                 
             else:
-                self.cursorSpeed = 1.0
+                self.cursorSpeed = 0.5
             # Split rot and trans from hC0 (model.cursorM)
             rotc0 = np.eye(4)
             rotc0[0:3,0:3] = model.cursorM[0:3,0:3].copy()
