@@ -169,10 +169,10 @@ def openGUI(conn,samplingRate = 0.005):
     gui.openglWindow.ctl = mainController
     # add model
     if modelType == "articulate":
-        jointA = Joint('A',1,drawFunc.drawPyramid)
-        jointB = Joint('B',2,drawFunc.drawPyramid)
+        jointA = Joint('A',1,'torus')
+        jointB = Joint('B',2,'torus')
         
-        jointC = Joint('C',3,drawFunc.drawPyramid)
+        jointC = Joint('C',3,'torus')
         if modelMode =='fk':
             gui.addModel('Arti1',6,objType = 'joint',listOfJoint=[jointA,jointB,jointC],showTarget = False,showPole = False)
         elif modelMode == 'ik':
