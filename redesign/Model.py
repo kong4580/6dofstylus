@@ -725,11 +725,21 @@ class Joint(Model):
             if selectedMode:
                 GL.glLoadName(self.modelId)
             
-            if self.drawFunction == 'sphere':
-                GLUT.glutSolidSphere(.74,10,10)
-            elif self.drawFunction == 'torus':
-                GLUT.glutSolidTorus(0.2,0.74,10,10)
             
+            if not self.flags['showModelWireframe']:
+                GL.glDisable(GL.GL_CULL_FACE)
+                
+                if self.drawFunction == 'sphere':
+                    GLUT.glutSolidSphere(.74,10,10)
+                elif self.drawFunction == 'torus':
+                    GLUT.glutSolidTorus(0.2,0.74,10,10)
+            else:
+                GL.glEnable(GL.GL_CULL_FACE)
+                GL.glCullFace(GL.GL_BACK)
+                if self.drawFunction == 'sphere':
+                    GLUT.glutWireSphere(.74,10,10)
+                elif self.drawFunction == 'torus':
+                    GLUT.glutWireTorus(0.2,0.74,10,10)
             # GLUT.glutSolidCone(1,length,4,4)
             
             if not self.flags['enableLight']:
@@ -768,7 +778,16 @@ class Joint(Model):
                 GL.glColor4fv(tuple(color))
                 if selectedMode:
                     GL.glLoadName(9999)
-                GLUT.glutSolidCone(0.74,length,20,4)
+                
+                if not self.flags['showModelWireframe']:
+                    GL.glDisable(GL.GL_CULL_FACE)
+                    
+                    GLUT.glutSolidCone(0.74,length,20,4)
+                else:
+                    GL.glEnable(GL.GL_CULL_FACE)
+                    GL.glCullFace(GL.GL_BACK)
+                    GLUT.glutWireCone(0.74,length,20,4)
+                    
                 # GL.glLineWidth(3)
                 # GL.glDisable(GL.GL_LIGHTING)
                 # bl = (-length*1*scale,0.5*scale,0.5*scale)
@@ -994,9 +1013,9 @@ class ArticulateObj(Model):
                     GL.glLoadName(self.modelId)
                     
                 self.drawFunction(ratio = 1,selectedMode = selectedMode)
-                
-                if self.isSelected:
-                    self.manipulator.drawManipulator(mode,coordinate,self.currentM,selectedMode,camera)
+                if self.flags['showModelFrame']:
+                    if self.isSelected:
+                        self.manipulator.drawManipulator(mode,coordinate,self.currentM,selectedMode,camera)
                     
                 
                 GL.glEnable(GL.GL_LIGHTING)

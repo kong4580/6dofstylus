@@ -243,16 +243,16 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         self.ctl.setWindowWidthHeight(self.w(),self.h())
         self.ctl.readEvent(event)
         # return fltk.Fl_Gl_Window.handle(self, event)
-        # if fltk.Fl.event_key() == ord(' ') and self.flags['snapMode']:
+        if fltk.Fl.event_key() == ord(' ') and self.flags['snapMode']:
                 
-        #         # set backdrop file name
-        #         backdropName = "backdropImg/backdrop_" + str(self.nameNumber)
+                # set backdrop file name
+                backdropName = "backdropImg/backdrop_" + str(self.nameNumber)
                 
-        #         # snap current opengl window image and save
-        #         self.snap(backdropName)
+                # snap current opengl window image and save
+                self.snap(backdropName)
                 
-        #         # update backdrop number name
-        #         self.nameNumber = self.nameNumber + 1
+                # update backdrop number name
+                self.nameNumber = self.nameNumber + 1
         if event == fltk.FL_PUSH:
             return 1
         
@@ -329,7 +329,7 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
             self.testNumber = 0  
             self.iouScore = np.array([])
             self.openBackdropFile("backdropImg/"+str(self.modelType)+"/backdrop_"+str(self.testNumber)+".jpg")
-            self.flags['resetModelTransform'] = True
+            # self.flags['resetModelTransform'] = True
             self.flags['tutorial'] = True
             
         # if test mode is not start

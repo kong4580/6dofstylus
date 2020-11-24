@@ -351,8 +351,8 @@ class CommonController(Handler):
         if self.keyCha == ord('2'):
             self.toggleModelFlags('opacityMode')
         
-        if self.keyCha == ord('s'):
-            self.toggleFlags('snapMode')
+        # if self.keyCha == ord('s'):
+        #     self.toggleFlags('snapMode')
         
         
             
@@ -415,6 +415,8 @@ class StylusController(CommonController):
         self.speed = 0.1
         self.lastClick = 0
         self.stillClick = False
+        self.flags['showModelFrame'] = False
+        
     def runEvent(self,event):
         
         # Run common event
