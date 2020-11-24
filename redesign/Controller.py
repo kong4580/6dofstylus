@@ -881,6 +881,7 @@ class MouseController(CommonController):
         # self.rotationAxis = None
         # check selection   
         mouseSelectedCheck = self.mouseSelectedCheck()
+        
         for model in modelList:
             
             if mouseSelectedCheck == model.modelId or mouseSelectedCheck == True:
@@ -894,6 +895,11 @@ class MouseController(CommonController):
                 self.translationAxis = 'None'
 
                 #add to selected model buffer
+                if len(selectModel)>0:
+                    for i in selectModel:
+                        i.isSelected = False
+                        selectModel.remove(i)
+                # print(selectModel,"select")
                 selectModel.append(model)
 
             elif mouseSelectedCheck == 201:
@@ -957,7 +963,7 @@ class MouseController(CommonController):
 
                 #model is deselected
                 model.isSelected = False
-            
+        # print(selectModel)
         return selectModel
 
     # mouse click selection checking
