@@ -1233,7 +1233,7 @@ class MouseController(CommonController):
             oldPoint = self.oldRay.intersects(plane)
             
         # moving along the screen
-        if mode == "worldxy":
+        elif mode == "worldxy":
 
             # init plane Normal and Position
             plane = Plane([0,0,1],center)
@@ -1241,7 +1241,9 @@ class MouseController(CommonController):
             # point that the ray intersect on the plane
             newPoint = newRay.intersects(plane)
             oldPoint = self.oldRay.intersects(plane)
-
+        else:
+            newPoint = np.asarray([0,0,0])
+            oldPoint = np.asarray([0,0,0])
         #  distant vector
         distant = newPoint - oldPoint
         # set current ray for the next ray

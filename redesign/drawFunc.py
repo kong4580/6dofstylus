@@ -69,39 +69,54 @@ def coordinate():
 #     GLUT.glutSolidCylinder(sradius,height,10,10)
 #     GLUT.glutSolidSphere(sradius,50,50)
 
-def drawAxisY(ratio = 1):
+def drawAxisY(**kwargs):
+    ratio = kwargs['ratio']
+    selectedMode = kwargs['selectedMode']
     GL.glColor3f(0.0,1.0,0.0) # green y
     length = 4*ratio
-    radius = 0.25*ratio
+    radius = 0.2 * ratio
+    cyradius = 0.1*ratio
+    if selectedMode:
+        cyradius = 0.25*ratio
     GL.glRotatef(-90,1,0,0)
     GL.glTranslatef(0,0,length)
     # GL.glTranslatef(-radius,0,0)
-    GLUT.glutSolidCone(radius,length/4,10,10)
+    GLUT.glutSolidCone(radius,length/5,10,10)
     GL.glTranslatef(0,0,-length)
-    GLUT.glutSolidCylinder(radius/2,length,10,10)
+    GLUT.glutSolidCylinder(cyradius/2,length,10,10)
     
 
-def drawAxisZ(ratio = 1):
+def drawAxisZ(**kwargs):
+    ratio = kwargs['ratio']
+    selectedMode = kwargs['selectedMode']
     GL.glColor3f(0.0,0.0,1.0) # blue z
     length = 4*ratio
-    radius = 0.25*ratio
+    radius = 0.2*ratio
+    cyradius = 0.1*ratio
+    if selectedMode:
+        cyradius = 0.25*ratio
     # GL.glTranslatef(-radius,0,0)
     GL.glRotatef(90,0,0,1)
     GL.glTranslatef(0,0,length)
-    GLUT.glutSolidCone(radius,length/4,10,10)
+    GLUT.glutSolidCone(radius,length/5,10,10)
     GL.glTranslatef(0,0,-length)
-    GLUT.glutSolidCylinder(radius/2,length,10,10)
+    GLUT.glutSolidCylinder(cyradius/2,length,10,10)
 
-def drawAxisX(ratio = 1):
+def drawAxisX(**kwargs):
+    ratio = kwargs['ratio']
+    selectedMode = kwargs['selectedMode']
     GL.glColor3f(1.0,0.0,0.0) # red x
     length = 4*ratio
-    radius = 0.25*ratio
+    radius = 0.2*ratio
+    cyradius = 0.1*ratio
+    if selectedMode:
+        cyradius = 0.25*ratio
     # GL.glTranslatef(-radius,0,0)
     GL.glRotatef(90,0,1,0)
     GL.glTranslatef(0,0,length)
-    GLUT.glutSolidCone(radius,length/4,10,10)
+    GLUT.glutSolidCone(radius,length/5,10,10)
     GL.glTranslatef(0,0,-length)
-    GLUT.glutSolidCylinder(radius/2,length,10,10)
+    GLUT.glutSolidCylinder(cyradius/2,length,10,10)
 
 def DrawCube(**kwargs):
     
@@ -160,24 +175,36 @@ def drawTeapot():
     end = time.time()
     print("time =",end - start)
 
-def drawCircleZ(ratio = 1):
+def drawCircleZ(**kwargs):
+    ratio = kwargs['ratio']
+    selectedMode = kwargs['selectedMode']
     GL.glColor3f(0.0,0.0,1.0)
-    inner = 0.1*ratio
-    outer = 5*ratio
+    inner = 0.05*ratio
+    outer = 4*ratio
+    if selectedMode:
+        inner = 0.1*ratio
     GLUT.glutSolidTorus(inner,outer,10,100)
 
-def drawCircleX(ratio = 1):
+def drawCircleX(**kwargs):
+    ratio = kwargs['ratio']
+    selectedMode = kwargs['selectedMode']
     GL.glColor3f(1.0,0.0,0.0)
     GL.glRotatef(90,0,1,0)
-    inner = 0.1*ratio
-    outer = 5*ratio
+    inner = 0.05*ratio
+    outer = 4*ratio
+    if selectedMode:
+        inner = 0.1*ratio
     GLUT.glutSolidTorus(inner,outer,10,100)
 
-def drawCircleY(ratio = 1):
+def drawCircleY(**kwargs):
+    ratio = kwargs['ratio']
+    selectedMode = kwargs['selectedMode']
     GL.glColor3f(0.0,1.0,0.0)
     GL.glRotatef(90,1,0,0)
-    inner = 0.1*ratio
-    outer = 5*ratio
+    inner = 0.05*ratio
+    outer = 4*ratio
+    if selectedMode:
+        inner = 0.1*ratio
     GLUT.glutSolidTorus(inner,outer,10,100)
 
 def drawPyramid(length,modelId):
@@ -374,9 +401,11 @@ def drawTarget(**kwargs):
     GL.glDisable(GL.GL_BLEND)
     GL.glPopAttrib()
 
-def drawSquareY(ratio=1):
+def drawSquareY(**kwargs):
+    ratio = kwargs['ratio']
+    selectedMode = kwargs['selectedMode']
     GL.glColor3f(0.0,1.0,0.0)
-    length = 2.5 * ratio
+    length = 2* ratio
     GL.glTranslatef(0,length,length)
     GL.glRotatef(90,0,1,0)
     halfside = ratio*0.5
@@ -387,9 +416,11 @@ def drawSquareY(ratio=1):
     GL.glVertex2d( - halfside,  halfside)
     GL.glEnd()
 
-def drawSquareZ(ratio=1):
+def drawSquareZ(**kwargs):
+    ratio = kwargs['ratio']
+    selectedMode = kwargs['selectedMode']
     GL.glColor3f(0.0,0.0,1.0)
-    length = 2.5 * ratio
+    length = 2* ratio
     GL.glTranslatef(length,0,length)
     GL.glRotatef(-90,1,0,0)
     halfside = ratio*0.5
@@ -400,9 +431,11 @@ def drawSquareZ(ratio=1):
     GL.glVertex2d( - halfside,  halfside)
     GL.glEnd()
 
-def drawSquareX(ratio=1):
+def drawSquareX(**kwargs):
+    ratio = kwargs['ratio']
+    selectedMode = kwargs['selectedMode']
     GL.glColor3f(1.0,0.0,0.0)
-    length = 2.5 * ratio
+    length = 2* ratio
     GL.glTranslatef(length,length,0)
     GL.glRotatef(90,0,0,1)
     halfside = ratio*0.5

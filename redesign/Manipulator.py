@@ -38,7 +38,7 @@ class Manipulator:
             # pass
             GL.glLoadName(frameId)
         ratio = (0.6/self.cameravalue[0])+0.4
-        drawFrameFunc(ratio)
+        drawFrameFunc(ratio = ratio,selectedMode = selectedMode)
         
 
         GL.glEnable(GL.GL_LIGHTING)
