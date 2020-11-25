@@ -621,7 +621,7 @@ class Gui():
             if self.openglWindow.flags['lineupTestMode']:
                
                 # reset model position
-                self.openglWindow.flags['resetModelTransform'] = True         
+                # self.openglWindow.flags['resetModelTransform'] = True         
                 
                 # add iou score to buffer
                 self.openglWindow.iouScore = np.append(self.openglWindow.iouScore,score)

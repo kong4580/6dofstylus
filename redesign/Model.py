@@ -709,6 +709,25 @@ class Joint(Model):
             # set model color
             GL.glColor4fv(tuple(color))
             
+            if not self.flags['showModelWireframe']:
+                    color = drawFunc.WhiteColorVector
+                    color = list(color).copy()
+                    color.append(self.opacityValue)
+                    
+                    # set model color
+                    GL.glColor4fv(tuple(color))
+                    
+                    
+            else:
+                color = drawFunc.SkyColorVector
+                color = list(color).copy()
+                # color.append(self.opacityValue)
+                
+                # set model color
+                GL.glColor3fv(tuple(color))
+                    
+                    
+            
             # set mode attribute
             GL.glPushAttrib(GL.GL_COLOR_BUFFER_BIT)
             GL.glEnable(GL.GL_BLEND)
@@ -770,20 +789,27 @@ class Joint(Model):
                 # change draw mode to solid
                 GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL)
                 
-                color = drawFunc.WhiteColorVector
-                color = list(color).copy()
-                color.append(self.opacityValue)
                 
-                # set model color
-                GL.glColor4fv(tuple(color))
                 if selectedMode:
                     GL.glLoadName(9999)
                 
                 if not self.flags['showModelWireframe']:
+                    color = drawFunc.WhiteColorVector
+                    color = list(color).copy()
+                    color.append(self.opacityValue)
+                    
+                    # set model color
+                    GL.glColor4fv(tuple(color))
                     GL.glDisable(GL.GL_CULL_FACE)
                     
                     GLUT.glutSolidCone(0.74,length,20,4)
                 else:
+                    color = drawFunc.SkyColorVector
+                    color = list(color).copy()
+                    # color.append(self.opacityValue)
+                    
+                    # set model color
+                    GL.glColor3fv(tuple(color))
                     GL.glEnable(GL.GL_CULL_FACE)
                     GL.glCullFace(GL.GL_BACK)
                     GLUT.glutWireCone(0.74,length,20,4)
@@ -1059,8 +1085,8 @@ class ArticulateModel(Model):
         self.target.moveModel(np.eye(4),mode='relative')
         self.poleVertex.moveModel(np.eye(4),mode='relative')
         
-        self.target.goUnder(self.base)
-        self.poleVertex.goUnder(self.base)
+        # self.target.goUnder(self.base)
+        # self.poleVertex.goUnder(self.base)
         self.modelLists = [self.base,self.target,self.poleVertex]
         self.modelLists.extend(self.listOfJoint)
         for m in self.modelLists:
