@@ -306,6 +306,11 @@ def drawHex(ratio,selectedMode):
         for i in range(6):
             GL.glVertex2d(ratio*math.sin(i/6.0*2*math.pi),ratio*math.cos(i/6.0*2*math.pi))
         GL.glEnd()
+        inner = 0.3
+        outer = 4
+        GL.glRotatef(30,0,0,1)
+        GLUT.glutSolidTorus(inner,outer,6,6)
+        GL.glRotatef(-30,0,0,1)
     GL.glDisable(GL.GL_BLEND)
     GL.glPopAttrib()
 
