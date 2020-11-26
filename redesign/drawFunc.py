@@ -1,6 +1,3 @@
-# from OpenGL.GL import *
-# from OpenGL.GLUT import *
-# from OpenGL.GLU import *
 import time
 import math
 from OpenGL import GL,GLUT,GLU
@@ -58,17 +55,6 @@ def coordinate():
     GL.glVertex3f(4.0, 0.0 ,0.0 )
     GL.glEnd()
 
-# def drawCursor(ratio):
-#     GL.glColor3f(1,0,1)
-#     r  = 0.3*ratio
-#     height = (r/3) *10
-#     sradius = r/3
-#     GLUT.glutSolidSphere(r,50,50)
-#     GL.glTranslatef(0,height,0)
-#     GL.glRotatef(90,1,0,0)
-#     GLUT.glutSolidCylinder(sradius,height,10,10)
-#     GLUT.glutSolidSphere(sradius,50,50)
-
 def drawAxisY(**kwargs):
     ratio = kwargs['ratio']
     selectedMode = kwargs['selectedMode']
@@ -80,7 +66,6 @@ def drawAxisY(**kwargs):
         cyradius = 0.25*ratio
     GL.glRotatef(-90,1,0,0)
     GL.glTranslatef(0,0,length)
-    # GL.glTranslatef(-radius,0,0)
     GLUT.glutSolidCone(radius,length/5,10,10)
     GL.glTranslatef(0,0,-length)
     GLUT.glutSolidCylinder(cyradius/2,length,10,10)
@@ -95,7 +80,6 @@ def drawAxisZ(**kwargs):
     cyradius = 0.1*ratio
     if selectedMode:
         cyradius = 0.25*ratio
-    # GL.glTranslatef(-radius,0,0)
     GL.glRotatef(90,0,0,1)
     GL.glTranslatef(0,0,length)
     GLUT.glutSolidCone(radius,length/5,10,10)
@@ -111,7 +95,6 @@ def drawAxisX(**kwargs):
     cyradius = 0.1*ratio
     if selectedMode:
         cyradius = 0.25*ratio
-    # GL.glTranslatef(-radius,0,0)
     GL.glRotatef(90,0,1,0)
     GL.glTranslatef(0,0,length)
     GLUT.glutSolidCone(radius,length/5,10,10)
@@ -297,7 +280,6 @@ def drawHex(ratio,selectedMode):
     GL.glVertex2d(vertex[0][0], vertex[0][1])
     GL.glEnd()
 
-    # GL.glColor4f(1.0,1.0,1.0,0.0)
     GL.glPushAttrib(GL.GL_COLOR_BUFFER_BIT)
     GL.glEnable(GL.GL_BLEND)
     GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
@@ -318,7 +300,6 @@ def drawBaseCircle(ratio,selectedMode):
         y = math.sin(angle)*ratio
         GL.glVertex2d(x,y)
     GL.glEnd()
-    # GL.glColor4f(1.0,1.0,1.0,0.0)
     GL.glPushAttrib(GL.GL_COLOR_BUFFER_BIT)
     GL.glEnable(GL.GL_BLEND)
     GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
@@ -332,7 +313,6 @@ def drawBaseCircle(ratio,selectedMode):
 def drawCube(ratio,selectedMode):
     GL.glTranslatef(0,ratio/2,0)
     GLUT.glutWireCube(ratio)
-    # GL.glColor4f(1.0,1.0,1.0,0.0)
     GL.glPushAttrib(GL.GL_COLOR_BUFFER_BIT)
     GL.glEnable(GL.GL_BLEND)
     GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
@@ -346,13 +326,8 @@ def drawBase(**kwargs):
     
     ratio = kwargs['ratio']
     selectedMode = kwargs['selectedMode']
-    
-    # GL.glColor3f(1.0,0.0,0.0)
-    # drawCube(ratio,selectedMode)
     GL.glRotatef(90,1,0,0)
-    # GL.glColor3f(1.0,1.0,1.0)
     drawBaseCircle(ratio*2,selectedMode)
-    # GL.glColor3f(1.0,1.0,1.0)
     drawHex(ratio*4,selectedMode)
 
 def drawCircle(ratio):
@@ -367,14 +342,12 @@ def drawPole(**kwargs):
     ratio = kwargs['ratio']
     selectedMode = kwargs['selectedMode']
     GL.glLineWidth(2)
-    # GL.glColor3f(1.0,0.0,1.0)
     drawCircle(ratio)
     GL.glRotatef(90,1,0,0)
     drawCircle(ratio)
     GL.glRotatef(90,0,1,0)
     drawCircle(ratio)
     GL.glLineWidth(1)
-    # GL.glColor4f(1.0,1.0,1.0,0.0)
     GL.glPushAttrib(GL.GL_COLOR_BUFFER_BIT)
     GL.glEnable(GL.GL_BLEND)
     GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)

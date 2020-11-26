@@ -29,13 +29,13 @@ def readSerial(conn):
                     s = time.time()
                     
                     command,rawData = srec.recieve()
-                    # print(rawData)
+    
                     # update joint state command
                     if command == 0xFF and controllerMode == 'stylus':
-                        # print(mode)
+            
                         # get joint states and button states
                         jointStates,buttonStates = srec.readCommand(command,rawData)
-                        # print(jointStates)
+
                         pose = stylus.getEndTransforms(jointStates)
                         
                         device.setTransform(pose)
@@ -58,51 +58,36 @@ def readSerial(conn):
                         pose = stylus.getEndTransforms(jointStates)
                         posed = np.vstack((posed,np.array(pose[0:3,3])))
                         
-                        # if calibrateState and not device.isImuInit:
-                        #     print("IMU calibrate finish")
-                        #     print("Set home position then press k ")
-
-                        # device.setTransform(pose,imuData)
-                        # gui.openglWindow.ctl.readEvent(999)
-                        
-                        # if buttonStates[0] == True and buttonStates[1] == False:
-                        #     gui.openglWindow.ctl.readEvent(1001)
-                        # elif buttonStates[0] == False and buttonStates[1] == True:
-                        #     gui.openglWindow.ctl.readEvent(1002)
-                        # else:
-                        #     gui.openglWindow.ctl.readEvent(1000)
-                    # print(time.time() - s)
             
         except:
             pass
-        # print(conn.recv())
         if conn.poll(0.0000000000000000005):
             recvMsg = conn.recv()
             if recvMsg == 1 and pose is not None:
-                # print("call")
+                
             
                 scale = np.array([0.3,0.2,0.3])
                 oldScalePosed = posed*scale
-                # print(posed.shape)
+                
                 scalePosed = np.sum(oldScalePosed.copy(),axis=0)/oldScalePosed.shape[0]
-                # print(scalePosed.shape)
-                # print(scalePosed-oldScalePosed[0,:])
+                
+                
                 gap = np.array([0.043,0.043,0.043])
                 try:
                     if abs(scalePosed[0]-oldScalePosed[0,0]) > gap[0]:
-                        # print("ss")
+                        
                         newScalePosedX = scalePosed[0]
                     else:
                         newScalePosedX = oldScalePosed[0,0]
                     
                     if abs(scalePosed[1]-oldScalePosed[0,1]) > gap[1]:
-                        # print("ddd")
+                        
                         newScalePosedY = scalePosed[1]
                     else:
                         newScalePosedY = oldScalePosed[0,1]
                         
                     if abs(scalePosed[2]-oldScalePosed[0,2]) > gap[2]:
-                        # print('sssssss')
+                        
                         newScalePosedZ = scalePosed[2]
                     else:
                         newScalePosedZ = oldScalePosed[0,2]
@@ -113,7 +98,7 @@ def readSerial(conn):
                     # pose[1,3] = scalePosed[1].copy()/scale[1]
                     # pose[2,3] = scalePosed[2].copy()/scale[2]
                     posed = np.array([newScalePosedX.copy()/scale[0],newScalePosedY.copy()/scale[1],newScalePosedZ.copy()/scale[2]])
-                    # print(scalePosed)
+                    
                 except:
                     print(posed)
                     print(posed.shape)
@@ -123,7 +108,7 @@ def readSerial(conn):
         
     # time.sleep(1)
 def callback(samplingRate,gui,conn):
-    # print(conn)
+    
     while gui.openglWindow.shown():
         recvMsg = []
         # if recieve serial messages
@@ -137,7 +122,7 @@ def callback(samplingRate,gui,conn):
         
         if len(recvMsg)>0 and recvMsg[0] == 1:
             pose,imuData,buttonStates = recvMsg[1],recvMsg[2],recvMsg[3]
-            # print(pose)
+            
             device.setTransform(pose,imuData)
             gui.openglWindow.ctl.readEvent(999)
             
@@ -147,7 +132,7 @@ def callback(samplingRate,gui,conn):
                 gui.openglWindow.ctl.readEvent(1002)
             else:
                 gui.openglWindow.ctl.readEvent(1000)
-        # print(time.time()-s)   
+          
         
         
         try:
@@ -212,7 +197,7 @@ def openGUI(conn,samplingRate = 0.005):
     uiCallback = partial(callback,samplingRate,gui,conn)
     fltk.Fl_add_timeout(samplingRate,uiCallback)
     # fltk.Fl_check()
-    # print description
+    
     print("Start Program ...")
     print("""
             Key\t\tDescription

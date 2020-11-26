@@ -54,7 +54,6 @@ class Transform():
         
         # newT = np.dot(tranM,self.worldToLocal)
         # newT = np.dot(self.parentToLocal,transform)
-        # print(transform)
         newT = np.eye(4)
         newttT = np.dot(oldttT,tranM)
         newttR = np.dot(oldttR,rotM)
@@ -202,7 +201,7 @@ class Model(Transform):
                 # apply transform to model
                 GL.glLoadMatrixf(self.currentM.T)
                 if self.obj!=None:
-                    # print(tuple(self.obb.current_centroid))
+
                     GL.glTranslatef(-tuple(self.obb.centroid)[0],-tuple(self.obb.centroid)[1],-tuple(self.obb.centroid)[2])
                 # if show OBB
                 if self.obb.show:
@@ -292,72 +291,19 @@ class Model(Transform):
 
             # draw model frame
                 if self.flags['showModelFrame']:
-                    # if mode == 'trans':
-                    #     self.drawFrame(drawFunc.drawAxisX,101,selectedMode)
-                    #     self.drawFrame(drawFunc.drawAxisY,102,selectedMode)
-                    #     self.drawFrame(drawFunc.drawAxisZ,103,selectedMode)
-                    # # print(mode)
-                    # # if mode == 'trans':
-                    # #     drawFunc.coordinate()
-                    # if mode == 'rot':
-                    #     self.drawFrame(drawFunc.drawCircleX,201,selectedMode)
-
-                    #     self.drawFrame(drawFunc.drawCircleY,202,selectedMode)
-
-                    #     self.drawFrame(drawFunc.drawCircleZ,203,selectedMode)
+            
                     if self.isSelected:
                         self.manipulator.drawManipulator(mode,coordinate,self.currentM,selectedMode,camera)
                         
-                        # drawFunc.drawCircleZ()
-                    # GL.glEnable(GL.GL_LIGHTING)
-                    # drawFunc.coordinate()
         # if model is not obj file    
         else:
             pass
-            # # if model is show
-            # if self.show:
-            #     # start transform matrix in model view
-            #     GL.glMatrixMode(GL.GL_MODELVIEW)
-            #     GL.glPushMatrix()
-            #     GL.glLoadIdentity()
 
-            #     # apply transform to model
-            #     GL.glLoadMatrixf(self.renderM.T)
-            #     # # draw model from drawFunction
-                
-            #     # draw model
-            #     if selectedMode:
-                    
-            #         GL.glLoadName(self.modelId)
-            #     self.drawFunction()
-                    
-            #     if self.name == 'cursor':
-                
-            #         if showFrame:
-            #             # disable light to draw model frame
-            #             GL.glDisable(GL.GL_LIGHTING)
-            #             self.drawFrame(drawFunc.coordinate,10,selectedMode)
-            #             GL.glEnable(GL.GL_LIGHTING)
-                    
-                        
-            #     else:
-            #         if self.isSelected:
-            #             self.manipulator.drawManipulator(mode,coordinate,self.currentM,selectedMode,camera)
-            #         else:
-            #             pass
-                    
-            #     GL.glPopMatrix()
-                
-        
-                
-        # GL.glPopMatrix()
     def updateChild(self):
         if len(self.child) > 0:
-            # print(self.child[0].renderM)
             
             for c in self.child:
                 c.currentM = c.worldToLocal
-            # print(self.child[0].renderM)
                 
                 c.updateChild()
         else:
@@ -392,32 +338,11 @@ class Model(Transform):
             
         self.currentM = self.worldToLocal
             
-        # print(self.name,self.currentM,self.parentToLocal)
         
         self.updateChild()
         # set current model matrix from modelview matrix
         # set model center position
         self.centerPosition = self.currentM[0:3,3]
-        # if self.obj!=None and self.obb != None:
-        # # set obb transform matrix
-        #     # print(self.name)
-        #     self.obb.current_homo = self.currentM
-        #     tl = np.eye(4)
-        #     tl[0:3,3] = np.array([-tuple(self.obb.centroid)[0],-tuple(self.obb.centroid)[1],-tuple(self.obb.centroid)[2]]).T
-        #     off = np.dot(self.currentM,tl)
-        #     # transform obb point to current model transform
-        #     for idx in range(len(self.obb.points)):
-        #         pointIdx = np.append(self.obb.points[idx].copy(),1)
-        #         self.obb.current_point[idx] = np.dot(self.obb.current_homo.copy(),pointIdx.T)[0:3]
-                
-        #     # update obb centroid
-        #     obbCentroid = np.append(self.obb.current_centroid,1)
-        #     self.obb.current_centroid = np.dot(self.obb.current_homo,obbCentroid)[0:3]
-            
-        #     # update model vertices position
-        #     for idx in range(len(self.obj.vertices)):
-        #         verIdx = np.append(self.obj.vertices[idx].copy(),1)
-        #         self.obj.current_vertices[idx] = np.dot(off,verIdx.T)[0:3]
                 
     @property
     def renderM(self):
@@ -538,7 +463,6 @@ class Model(Transform):
         self.obb.current_centroid = self.obb.centroid
         self.obb.current_homo = np.dot(matrixView,self.obb.homo)
         if self.obj != None:
-            # print(self.name)
             self.centerPosition -=self.obb.current_centroid
     
     def getSubModel(self):
@@ -607,7 +531,6 @@ class OBJ():
         self.gl_list = GL.glGenLists(1)
         GL.glNewList(self.gl_list, GL.GL_COMPILE)
         
-        # glEnable(GL_TEXTURE_2D)
         GL.glFrontFace(GL.GL_CCW)
         start = time.time()
         for vertices in self.faces:
@@ -625,7 +548,6 @@ class OBJ():
                 
             GL.glEnd()
         end = time.time()
-        # glDisable(GL_TEXTURE_2D)
         
         GL.glEndList()
         
@@ -738,7 +660,6 @@ class Joint(Model):
             if not self.flags['enableLight']:
                 # turn off lighting
                 GL.glDisable(GL.GL_LIGHTING)
-            # GL.glColor4f(1,1,1,1)
             
             
             if selectedMode:
@@ -759,7 +680,6 @@ class Joint(Model):
                     GLUT.glutWireSphere(.74,10,10)
                 elif self.drawFunction == 'torus':
                     GLUT.glutWireTorus(0.2,0.74,10,10)
-            # GLUT.glutSolidCone(1,length,4,4)
             
             if not self.flags['enableLight']:
                 # turn on lighting
@@ -775,13 +695,11 @@ class Joint(Model):
                 GL.glMatrixMode(GL.GL_MODELVIEW)
                 GL.glPushMatrix()
                 GL.glLoadIdentity()
-                # GL.glRotatef(-90,1,0,0)
                 
                 GL.glLoadMatrixf(self.renderM.T)
                 GL.glTranslatef(-length,0,0,1)
                 
                 GL.glRotatef(90,0,1,0)
-                # GL.glRotatef(180,1,0,0)
                 
                 GL.glPushAttrib(GL.GL_COLOR_BUFFER_BIT)
                 GL.glEnable(GL.GL_BLEND)
@@ -806,7 +724,6 @@ class Joint(Model):
                 else:
                     color = drawFunc.SkyColorVector
                     color = list(color).copy()
-                    # color.append(self.opacityValue)
                     
                     # set model color
                     GL.glColor3fv(tuple(color))
@@ -814,55 +731,6 @@ class Joint(Model):
                     GL.glCullFace(GL.GL_BACK)
                     GLUT.glutWireCone(0.74,length,20,4)
                     
-                # GL.glLineWidth(3)
-                # GL.glDisable(GL.GL_LIGHTING)
-                # bl = (-length*1*scale,0.5*scale,0.5*scale)
-                # br = (-length*1*scale,0.5*scale,-0.5*scale)
-                # fl = (-length*1*scale,-0.5*scale,0.5*scale)
-                # fr = (-length*1*scale,-0.5*scale,-0.5*scale)
-                # t = (0,0,0)
-                # if selectedMode:
-                #     GL.glLoadName(9999)
-                # GL.glBegin(GL.GL_TRIANGLES)
-                # GL.glVertex3fv( fr )
-                # GL.glVertex3fv(br )
-                # GL.glVertex3fv( bl )
-                # GL.glEnd()
-                
-                # GL.glBegin(GL.GL_TRIANGLES)
-                # GL.glVertex3fv( fl )
-                
-                # GL.glVertex3fv( fr )
-                # GL.glVertex3fv( bl )
-                # GL.glEnd()
-                
-                # GL.glBegin(GL.GL_TRIANGLES)
-                # GL.glVertex3fv( t )
-                
-                # GL.glVertex3fv( bl )
-                # GL.glVertex3fv( br )
-                # GL.glEnd()
-
-                # GL.glBegin(GL.GL_TRIANGLES)
-                # GL.glVertex3fv( t )
-                
-                # GL.glVertex3fv( br )
-                # GL.glVertex3fv( fr )
-                # GL.glEnd()
-                
-                # GL.glBegin(GL.GL_TRIANGLES)
-                # GL.glVertex3fv( t )
-                
-                # GL.glVertex3fv( fr )
-                # GL.glVertex3fv( fl )
-                # GL.glEnd()
-                
-                # GL.glBegin(GL.GL_TRIANGLES)
-                # GL.glVertex3fv( t )
-                
-                # GL.glVertex3fv( fl )
-                # GL.glVertex3fv( bl )
-                # GL.glEnd()
                 GL.glDisable(GL.GL_BLEND)
                 GL.glEnable(GL.GL_LIGHTING)
                 GL.glPopAttrib()
@@ -874,13 +742,8 @@ class Joint(Model):
             if showFrame and not self.flags['snapMode']:
                 # disable light to draw model frame
                 GL.glDisable(GL.GL_LIGHTING)
-                # self.drawFrame(drawFunc.coordinate,10,selectedMode)
                 GL.glEnable(GL.GL_LIGHTING)
                 
-            # GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL)
-            # GL.glDisable(GL.GL_CULL_FACE)
-                
-            # GL.glPopMatrix()
     @property
     def argv(self):
         return self.getDist
@@ -892,13 +755,10 @@ class Joint(Model):
             vAB = self.worldToLocal[0:3,3]-self.parent[0].worldToLocal[0:3,3]
             
             newM = np.eye(4)
-            # print(self.getDist)
             
             newM[0:3,0] = (vAB.T.copy())/self.getDist
-            # print(np.linalg.norm(newM[0:3,0]))
             
             newM[0:3,0] = newM[0:3,0]/np.linalg.norm(newM[0:3,0])
-            # print(np.linalg.norm(newM[0:3,0]))
             if newM[0,0] > 0:
                 sign0 = 1
             else:
@@ -931,7 +791,6 @@ class Joint(Model):
         from scipy.spatial import distance
         if len(self.parent) > 0:
             for i in self.parent:
-                # d = i.worldToLocal[0:3,3] - self.worldToLocal[0:3,3]
                 return distance.euclidean( self.worldToLocal[0:3,3].T,i.worldToLocal[0:3,3].T)
         else:
             return 0
@@ -941,9 +800,6 @@ class Joint(Model):
         return self.pointTo
     
     def moveModel(self,matrix,mode='absolute'):
-        # if len(self.parent) > 0:
-        #     matrix[0:3,3] = self.currentM[0:3,3]
-        # print(self.name,matrix)
         if mode == 'absolute':
             transform = self.goTo(matrix)
             self.apply(transform)
@@ -951,7 +807,6 @@ class Joint(Model):
             self.apply(matrix)
             
         self.currentM = self.worldToLocal
-        # print(self.name,self.currentM,self.parentToLocal)
         
         self.updateChild()
         # set current model matrix from modelview matrix
@@ -961,10 +816,8 @@ class Joint(Model):
         
     def updateChild(self):
         if len(self.child) > 0:
-            # print(self.child[0].renderM)
             for c in self.child:
                 c.currentM = c.worldToLocal
-            # print(self.child[0].renderM)
             
                 c.updateChild()
         else:
@@ -983,7 +836,6 @@ class ArticulateObj(Model):
             
             if not self.flags['snapMode'] and self.show :
                 
-                # print(self.name,self.show)
                 # start transform matrix in model view
                 GL.glMatrixMode(GL.GL_MODELVIEW)
                 GL.glPushMatrix()
@@ -1004,18 +856,6 @@ class ArticulateObj(Model):
                     # set model color to white
                     color = drawFunc.WhiteColorVector
                 
-                # # if opacity is enable
-                # if self.flags['opacityMode']:
-                    
-                #     # set model opacity to 0.75
-                #     self.opacityValue = 0.75
-                    
-                # # if opacity is disable
-                # else:
-                    
-                #     # set model opacity to 1
-                #     self.opacityValue = 1
-                
                 # add opacityValue to color vector
                 color = list(color).copy()
                 color.append(self.opacityValue)
@@ -1030,8 +870,7 @@ class ArticulateObj(Model):
                 
                 
                 # if disable lighting
-                # if not self.flags['enableLight']:
-                    # turn off lighting
+                # turn off lighting
                 GL.glDisable(GL.GL_LIGHTING)
                     
                 # draw model
@@ -1085,8 +924,6 @@ class ArticulateModel(Model):
         self.target.moveModel(np.eye(4),mode='relative')
         self.poleVertex.moveModel(np.eye(4),mode='relative')
         
-        # self.target.goUnder(self.base)
-        # self.poleVertex.goUnder(self.base)
         self.modelLists = [self.base,self.target,self.poleVertex]
         self.modelLists.extend(self.listOfJoint)
         for m in self.modelLists:
@@ -1111,7 +948,6 @@ class ArticulateModel(Model):
             
             self.poleVertex.drawMatrixModel(showFrame,enableLight,wireFrame,opacity,mode,selectedMode,coordinate,camera = camera)
         
-        # print(self.base.currentM)
         for joint in self.listOfJoint:
             joint.drawMatrixModel(showFrame,enableLight,wireFrame,opacity,mode,selectedMode,camera = camera)
     

@@ -552,7 +552,6 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
         # self.flags['resetModelTransform'] =True
         self.redraw()
         fltk.Fl_check()
-        # print(self.cameravalue)
         self.ctl.getController().cameraValue = self.cameravalue
         # return iou score
         return iou

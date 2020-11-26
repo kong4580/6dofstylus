@@ -276,6 +276,8 @@ class Gui():
     # text test mode off
     def testModeUIOff(self):
         testStr = "Testing Mode : " + "OFF"
+
+        # set text property
         self.testTextOff = fltk.Fl_Box(600,250,200,25,testStr)
         self.testTextOff.labelsize(18)
         self.testTextOff.labelfont(fltk.FL_BOLD)
@@ -285,6 +287,8 @@ class Gui():
     # text test mode on
     def testModeUIOn(self):
         testStr = "Testing Mode : " + "ON"
+
+        # text property
         self.testTextOn = fltk.Fl_Box(600,250,200,25,testStr)
         self.testTextOn.labelsize(18)
         self.testTextOn.labelfont(fltk.FL_BOLD)
@@ -537,16 +541,23 @@ class Gui():
     def createScoreWindow(self):
         # set window x position, y position, width, height
         self.scoreWindow = fltk.Fl_Window(int(self.window.x() + self.window.w()/2-400/2),int(self.window.y()+self.window.h()/2-100/2),400,100)
+
+        # set text
         self.textbox = fltk.Fl_Box(100,10,200,25,"Finish Testing")
         self.textbox.box(fltk.FL_NO_BOX)
         self.textbox.labelsize(28)
         self.textbox.labelfont(fltk.FL_BOLD)
+
+        # set text
         self.avgIou = fltk.Fl_Output(225,40,300,25,"Average IoU : ")
         self.avgIou.labelfont(fltk.FL_BOLD)
         self.avgIou.box(fltk.FL_NO_BOX) 
+
+        # if finish testing average iou log will have value
         if self.log["avgIou"] != None and self.log["modelPerSec"]!=None:
             self.avgIou.value(str(round(self.log["avgIou"],2)))
             self.modelPerSec = fltk.Fl_Output(225,70,300,25,"Model Per sec : ")
+            # set text
             self.modelPerSec.labelfont(fltk.FL_BOLD)
             self.modelPerSec.box(fltk.FL_NO_BOX) 
             self.modelPerSec.value(str(round(self.log["modelPerSec"],2)))

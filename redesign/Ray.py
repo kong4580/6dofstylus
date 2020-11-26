@@ -49,14 +49,9 @@ class Ray:
     def intersects(self,p):
         w = self.p0 - p.Position
         norm = p.Normal
-        # self.vec[2] += 0.000001
         checkParallel = np.dot(norm,w)
-        # print(round(checkParallel,0),"intwersect")
         if round(checkParallel,0) ==0:
-            # print(self.vec,norm,"no intersect")
             return np.asarray([None,None,None])
-        # else:
-            # print(self.vec,norm,"intersect")
         pNormal = p.Normal.copy()
         D = pNormal[0]*p.Position[0] + pNormal[1]*p.Position[1] + pNormal[2]*p.Position[2]
 
@@ -67,12 +62,8 @@ class Ray:
         y = self.p1[1] + (self.vec[1]*t)
         z = self.p1[2] + (self.vec[2]*t)
 
-        # print(pNormal,self.vec)
         I = np.asarray([x,y,z])
-        # print(I)
-        # if round(y,8) == 5.00000026:
-        # #     print("Noneeeee")
-        #     print("Noneeeee")
+
         return I
 
     def sphereIntersect(self,center,radius):
