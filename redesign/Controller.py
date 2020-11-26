@@ -1072,7 +1072,7 @@ class MouseController(CommonController):
                 matDir = r.as_rotvec()
 
                 # set angle  ratio
-                ratio = 0.11
+                ratio = 0.04
 
                 # get rotation matrix
                 if rotationAxis == 'rotX':
