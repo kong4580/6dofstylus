@@ -390,8 +390,11 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
             print("average IoU: ",self.log["avgIou"])
             print("total time: ",self.log["totalTime"])
             print("ModelPerSec: ",self.log["modelPerSec"])
-        
-        self.modelDicts['runModelIdx'] = self.testNumber % 2
+        if self.modelType == 'rig':
+                self.modelDicts['runModelIdx'] = self.testNumber % 2
+        else:
+            self.modelDicts['runModelIdx'] = 0
+        # self.modelDicts['runModelIdx'] = self.testNumber % 2
         
     # snap opengl window image
     def snap(self,name, save = True, binary = False):
