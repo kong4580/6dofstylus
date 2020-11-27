@@ -632,7 +632,7 @@ class Joint(Model):
             GL.glColor4fv(tuple(color))
             
             if not self.flags['showModelWireframe']:
-                    color = drawFunc.YellowColorVector
+                    color = drawFunc.WhiteColorVector
                     color = list(color).copy()
                     color.append(self.opacityValue)
                     
@@ -716,7 +716,7 @@ class Joint(Model):
                     GL.glLoadName(9999)
                 
                 if not self.flags['showModelWireframe']:
-                    color = drawFunc.YellowColorVector
+                    color = drawFunc.WhiteColorVector
                     color = list(color).copy()
                     color.append(self.opacityValue)
                     
