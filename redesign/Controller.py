@@ -40,12 +40,9 @@ class MainController(Handler):
                 ctl.resetKey()
                 ctl.keyHold = None
             elif event == fltk.FL_SHORTCUT and fltk.Fl.event_alt():
-                
-                
                 ctl.keyHold = fltk.Fl.event_key()
             
             if event == fltk.FL_KEYUP:
-                # print(fltk.Fl.event_key())
                 ctl.keyCha = fltk.Fl.event_key()
                 
             ctl.runEvent(event)
@@ -304,7 +301,7 @@ class CommonController(Handler):
                     -ratio/self.cameraValue[0]-ratio*self.cameraValue[2], 
                     ratio/self.cameraValue[0]-ratio*self.cameraValue[2],
                      1, 100)
-        # print(self.cameraValue)
+        
         GL.glTranslatef(0,0,-35)
 
         #offset camera view
@@ -447,11 +444,10 @@ class StylusController(CommonController):
                     # if model is selected
                 if model.isSelected:
                     speed = 1
-                    # print(self.fineTran)
+
                     # move model follow cursor
                     # now use only newM because use transform matrix to draw model
                     newM = self.followCursor(model,self.cursor)
-                    # print(newM)
                     self.updateModelPose(model,newM,artiModel)
                     
                         
@@ -473,37 +469,12 @@ class StylusController(CommonController):
 
                             # set new matrix model
                             newM = model.startWorldToLocal
-                            # print(model.name)
                             # move model to the new matrix model
                             self.updateModelPose(model,newM,artiModel)
                     model.cursorM = None
                     model.cursorPose = None
-                    newM = model.currentM
-                    # self.updateModelPose(model,newM,artiModel)
-                    
-                    
-                # # model.moveModel(newM)
-                # # self.addHistory(self.old,newM,model)
-                #     # reset value from model
-                #     model.cursorM = None
-                #     model.cursorPose = None
-                    
-                #     # if reset mode trigger
-                #     if self.flags['resetModelTransform']:
-                #         for m in self.modelDicts['model']:
-                            
-                #             # set model position to home position ( identity )
-                #             m.currentM = np.eye(4)
-                            
-                #             # turn off reset flags
-                #             self.flags['resetModelTransform'] = False
-                #         self.addHistory(m.currentM)
-                        
-                #     # model position is remain position
-                #     newM = model.currentM
-                
-                # model.moveModel(newM)
-                # print(model.name)
+                    newM = model.currentM   
+    
         if event >= 1000: # check button status
             
             # Get button key
@@ -655,7 +626,7 @@ class StylusController(CommonController):
                 
                 # remember model transform matrix when first clicked
                 model.startclickM = model.currentM.copy()
-            # print(cursor.currentM)
+            
             # calcualte delta TRANSFORM of cursor that first clicked and current cursor transform
             deltaTransform = np.dot(cursor.currentM,np.linalg.inv(model.cursorM))
             
@@ -711,7 +682,7 @@ class StylusController(CommonController):
             # Find hCnC0 wuth split inverse
             rotC0CnM = np.dot(rotcn,np.linalg.inv(rotc0))
             tranC0CnM = np.dot(trancn,np.linalg.inv(tranc0))
-            # print(self.cursorSpeed,tranC0CnM)
+            
             
             rotvec = R.from_matrix(rotC0CnM[0:3,0:3])
             angle = rotvec.magnitude()
@@ -728,7 +699,7 @@ class StylusController(CommonController):
             tranC0CnM[2,3] = tranC0CnM[2,3].copy() * self.cursorSpeed
             
             
-            # print(self.cursorSpeed,tranC0CnM)
+            
             hCnC0M = np.dot(tranC0CnM,rotC0CnM)
             
             # Cal NewM
@@ -741,7 +712,7 @@ class StylusController(CommonController):
                 newM[1,3] = model.startclickM[1,3]
                 newM[2,3] = model.startclickM[2,3]
             elif self.fineTran:
-                # print("s",self.fineTran)
+                
                 newM[0:3,0:3] = model.startclickM[0:3,0:3]
                 # sys.exit()
             
@@ -815,8 +786,7 @@ class MouseController(CommonController):
                 # store model position after release mouse# model is selected
                 if event == fltk.FL_RELEASE:
                     self.addHistory(self.old,newM,model)
-                     # print(self.history)
-            # print(newM)
+                 
             # move model with new matrix
             self.updateModelPose(model,newM,artiModel)
             
@@ -840,7 +810,7 @@ class MouseController(CommonController):
 
                 # set new matrix model
                 newM = model.startWorldToLocal
-                # print(model.name)
+                
 
                 # move model to the new matrix model
                 self.updateModelPose(model,newM,artiModel)
@@ -907,12 +877,10 @@ class MouseController(CommonController):
                     for i in selectModel:
                         i.isSelected = False
                         selectModel.remove(i)
-                # print(selectModel,"select")
                 selectModel.append(model)
 
             elif mouseSelectedCheck == 201:
                 self.rotationAxis = 'rotX'
-                # print(model.isSelected)
                 if model.isSelected:
                     model.isSelected = True
                     selectModel.append(model)
@@ -932,7 +900,6 @@ class MouseController(CommonController):
 
             elif mouseSelectedCheck == 101:
                 self.translationAxis = 'transX'
-                # print(model.isSelected)
                 if model.isSelected:
                     model.isSelected = True
                     selectModel.append(model)
@@ -971,7 +938,6 @@ class MouseController(CommonController):
 
                 #model is deselected
                 model.isSelected = False
-        # print(selectModel)
         return selectModel
 
     # mouse click selection checking
@@ -1112,7 +1078,6 @@ class MouseController(CommonController):
                 axis[0] = last[1]*cur[2] - last[2]*cur[1]
                 axis[1] = last[2]*cur[0] - last[0]*cur[2]
                 axis[2] = last[0]*cur[1] - last[1]*cur[0]
-                # print("angle: ",angle,axis)
                 matrix = self.matrixM(angle*0.0005,-axis[0],-axis[1],-axis[2])
                 newMatrix = np.dot(matrix,newN[0:3,0:3])
                 newN[0:3,0:3] = newMatrix
@@ -1195,7 +1160,6 @@ class MouseController(CommonController):
                     newPoint1 = self.pointProjectOnLine(lineIntersect,newIntersect1)
                     oldPoint1 = self.pointProjectOnLine(lineIntersect,oldIntersect1)
                     norm1 = round(math.sqrt(np.linalg.norm(newIntersect1)),0)
-                    # print("norm1",int(math.sqrt(np.linalg.norm(newIntersect1))))
 
                 if newIntersect2[0] != None and oldIntersect2[0] != None:
 
@@ -1203,18 +1167,17 @@ class MouseController(CommonController):
                     newPoint2 = self.pointProjectOnLine(lineIntersect,newIntersect2)
                     oldPoint2 = self.pointProjectOnLine(lineIntersect,oldIntersect2)
                     norm2 = round(math.sqrt(np.linalg.norm(newIntersect2)),0)
-                    # print("norm2",int(math.sqrt(np.linalg.norm(newIntersect2))))
                 # choose the moving point
                 # choose the lower norm (the closest)
                 if newPoint1[0] != None and newPoint2[0] != None:
                     if norm1>=norm2:
                         newPoint = newPoint2
                         oldPoint = oldPoint2
-                        # print("norm2")
+            
                     elif norm1<norm2:
                         newPoint = newPoint1
                         oldPoint = oldPoint1
-                        # print("norm1")
+                        
                 # if one have no intersect choose another
                 elif newPoint1[0] != None and newPoint2[0] == None:
                     newPoint = newPoint1
@@ -1222,7 +1185,7 @@ class MouseController(CommonController):
                 elif newPoint1[0] == None and newPoint2[0] != None:
                     newPoint = newPoint2
                     oldPoint = oldPoint2
-        # print(norm1,norm2)
+        
 
         elif translationAxis == 'transXY' or translationAxis == 'transYZ' or translationAxis == 'transXZ':
             if translationAxis == 'transXY':
@@ -1381,12 +1344,10 @@ class StylusController2(StylusController):
         cursorTransform[1,3] = cursorTransform[1,3].copy() * 0.2
         cursorTransform[2,3] = cursorTransform[2,3].copy() * 0.3
         
-        # print(cursorTransform)
         # offset home position
         cursorTransform[0,3] -= self.cfg["homeCfg"][0]
         cursorTransform[1,3] -= self.cfg["homeCfg"][1]
         cursorTransform[2,3] -= self.cfg["homeCfg"][2]
-        # print(cursorTransform)
         
         # cursorTransform[0:3,3] = cursorTransform[0:3,3].copy() * 1
         
@@ -1420,25 +1381,3 @@ class StylusController2(StylusController):
             hWorldToImu[0:3,0:3] = r.as_matrix()
             self.imuTrans = np.dot(self.hBaseToWorld,hWorldToImu)
             
-    # def leftClick(self):
-    #     # Check select model
-    #     if self.selectedModel == []:
-    #         self.selectedModel = self.selectModel(mode = "buffer")
-    #         if self.selectedModel != []:
-    #             self.old=self.selectedModel[0].currentM.copy()
-    #     else:
-    #         model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
-    #         artiModel = self.modelDicts['model'][self.modelDicts['runModelIdx']]
-    #         modelList = artiModel.getSubModel()
-    #         # for model in modelList:
-    #         #     if model.isSelected:
-    #         if self.selectedModel != []:
-                
-    #             self.addHistory(self.old,self.selectedModel[0].currentM,self.selectedModel[0])
-                    
-    #             # Release model
-    #         self.releaseModel()
-    #     print("left click!")
-        
-    # def rightClick(self):
-    #     pass

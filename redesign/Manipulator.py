@@ -23,11 +23,9 @@ class Manipulator:
             self.drawFrame(drawFunc.drawSquareZ,303,selectedMode)
         if moveMode == 'rot':
             self.drawFrame(drawFunc.drawCircleX,201,selectedMode)
-
             self.drawFrame(drawFunc.drawCircleY,202,selectedMode)
-
             self.drawFrame(drawFunc.drawCircleZ,203,selectedMode)
-        # print(camera)
+        
     def drawFrame(self,drawFrameFunc,frameId,selectedMode=False):
         GL.glMatrixMode(GL.GL_MODELVIEW)
         GL.glPushMatrix()
@@ -35,7 +33,6 @@ class Manipulator:
         GL.glLoadMatrixf(self.currentM)
         GL.glDisable(GL.GL_LIGHTING)
         if selectedMode:
-            # pass
             GL.glLoadName(frameId)
         ratio = (0.6/self.cameravalue[0])+0.4
         drawFrameFunc(ratio = ratio,selectedMode = selectedMode)
