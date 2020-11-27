@@ -157,7 +157,7 @@ def openGUI(conn,samplingRate = 0.005):
         jointA = Joint('A',1,'torus')
         jointB = Joint('B',2,'torus')
         
-        jointC = Joint('C',3,'torus')
+        jointC = Joint('C',3,'teapot')
         if modelMode =='fk':
             gui.addModel('Arti1',6,objType = 'joint',listOfJoint=[jointA,jointB,jointC],showTarget = False,showPole = False)
         elif modelMode == 'ik':
