@@ -157,7 +157,7 @@ def openGUI(conn,samplingRate = 0.005):
         jointA = Joint('A',1,'torus')
         jointB = Joint('B',2,'torus')
         
-        jointC = Joint('C',3,'torus')
+        jointC = Joint('C',3,'teapot')
         if modelMode =='fk':
             gui.addModel('Arti1',6,objType = 'joint',listOfJoint=[jointA,jointB,jointC],showTarget = False,showPole = False)
         elif modelMode == 'ik':
@@ -225,6 +225,10 @@ if __name__ == '__main__':
         print("Please enter model move mode type !!")
         print("### device name = fk,ik ###")
         sys.exit()
+    elif len(sys.argv) == 5:
+        ikMode = sys.argv[4]
+    else:
+        ikMode = 'nomal'
     # get input mode from terminal
     controllerMode = sys.argv[1]
     modelType = sys.argv[2]
@@ -252,12 +256,13 @@ if __name__ == '__main__':
                 'height':gui.openglWindow.h(),
                 'width':gui.openglWindow.w(),
                 'camera':gui.openglWindow.cameravalue,
-                'modelMode':modelMode
+                'modelMode':modelMode,
+                'ikMode':ikMode
                 }
         deviceController = MouseController(packData)
 
     elif controllerMode == 'stylus':
-         # declare port
+        # declare port
         # port = '/dev/pts/2' # ubuntu port
         port = '/dev/ttyUSB0' # arduino port
         
@@ -281,7 +286,9 @@ if __name__ == '__main__':
                 'height':gui.openglWindow.h(),
                 'width':gui.openglWindow.w(),
                 'camera':gui.openglWindow.cameravalue,
-                'modelMode':modelMode}
+                'modelMode':modelMode,
+                'ikMode':ikMode
+                }
         deviceController = StylusController(packData)
         
     elif controllerMode == 'stylus2':
@@ -311,7 +318,9 @@ if __name__ == '__main__':
                 'height':gui.openglWindow.h(),
                 'width':gui.openglWindow.w(),
                 'camera':gui.openglWindow.cameravalue,
-                'modelMode':modelMode}
+                'modelMode':modelMode,
+                'ikMode':ikMode
+                }
         deviceController = StylusController2(packData)
     mainController.registerController(deviceController)
     device = mainController.getController()

@@ -66,6 +66,7 @@ class CommonController(Handler):
         self.fineRot = False
         self.fineTran = False
         self.modelMode = packData['modelMode']
+        self.ikMode = packData['ikMode']
     
     def updateModelPose(self,model,transform,artiModel,mode = 'fk'):
         if self.modelMode =='fk':
@@ -160,11 +161,12 @@ class CommonController(Handler):
                     
                     artiModel.listOfJoint[0].moveModel(tt,mode="relative")
                 
-                newGbOrientationEF = np.eye(4)
-                gbOrientationEF = np.dot(np.linalg.inv(artiModel.listOfJoint[1].worldToLocal[0:3,0:3]),artiModel.target.worldToLocal[0:3,0:3])
-                newGbOrientationEF[0:3,0:3] = artiModel.target.worldToLocal[0:3,0:3].copy()
-                newGbOrientationEF[0:3,3] = artiModel.listOfJoint[2].worldToLocal[0:3,3].copy()
-                artiModel.listOfJoint[2].moveModel(newGbOrientationEF,mode="absolute")
+                if self.ikMode == 'global':
+                    newGbOrientationEF = np.eye(4)
+                    gbOrientationEF = np.dot(np.linalg.inv(artiModel.listOfJoint[1].worldToLocal[0:3,0:3]),artiModel.target.worldToLocal[0:3,0:3])
+                    newGbOrientationEF[0:3,0:3] = artiModel.target.worldToLocal[0:3,0:3].copy()
+                    newGbOrientationEF[0:3,3] = artiModel.listOfJoint[2].worldToLocal[0:3,3].copy()
+                    artiModel.listOfJoint[2].moveModel(newGbOrientationEF,mode="absolute")
             
     def getVectorAngle(self,v1,v2):
         if not np.equal(v1,v2).all():

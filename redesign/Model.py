@@ -673,6 +673,9 @@ class Joint(Model):
                     GLUT.glutSolidSphere(.74,10,10)
                 elif self.drawFunction == 'torus':
                     GLUT.glutSolidTorus(0.2,0.74,10,10)
+                elif self.drawFunction == 'teapot':
+                    GLUT.glutSolidTeapot(1)
+                    
             else:
                 GL.glEnable(GL.GL_CULL_FACE)
                 GL.glCullFace(GL.GL_BACK)
@@ -680,7 +683,8 @@ class Joint(Model):
                     GLUT.glutWireSphere(.74,10,10)
                 elif self.drawFunction == 'torus':
                     GLUT.glutWireTorus(0.2,0.74,10,10)
-            
+                elif self.drawFunction == 'teapot':
+                    GLUT.glutWireTeapot(1)
             if not self.flags['enableLight']:
                 # turn on lighting
                 GL.glEnable(GL.GL_LIGHTING)
