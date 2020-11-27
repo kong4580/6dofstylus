@@ -178,13 +178,11 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
                     -ratio/self.cameravalue[0]-ratio*self.cameravalue[2], 
                     ratio/self.cameravalue[0]-ratio*self.cameravalue[2], 
                     1, 100)
-        # GLU.gluPerspective(30,self.w()/self.h(),1,100)
         
         GL.glTranslatef(0,0,-35)
 
         #offset camera view
         GL.glTranslatef(0,-5,0)
-        # GL.glTranslatef(0,0,-10)
         
         
         GL.glMatrixMode(GL.GL_MODELVIEW)
@@ -228,7 +226,6 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
             model.flags['showModelFrame'] = self.flags['showModelFrame']
             model.flags['snapMode'] = self.flags['snapMode']
             # draw model with transform matrix
-            # model.drawMatrixModel(showFrame=self.flags['showModelFrame'],wireFrame = self.flags['showModelWireframe'], opacity = self.flags['opacityMode'],mode=self.flags['mouseMode'])
             model.drawMatrixModel(mode=self.flags['mouseMode'],coordinate = self.flags['coordinate'],camera = self.cameravalue[0:3])
             
             
@@ -242,7 +239,6 @@ class OpenGLWindow(fltk.Fl_Gl_Window):
     def handle(self,event):
         self.ctl.setWindowWidthHeight(self.w(),self.h())
         self.ctl.readEvent(event)
-        # return fltk.Fl_Gl_Window.handle(self, event)
         if fltk.Fl.event_key() == ord(' ') and self.flags['snapMode']:
                 
                 # set backdrop file name

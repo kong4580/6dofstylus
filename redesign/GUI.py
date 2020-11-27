@@ -553,7 +553,7 @@ class Gui():
         self.avgIou.labelfont(fltk.FL_BOLD)
         self.avgIou.box(fltk.FL_NO_BOX) 
 
-        # if finish testing average iou log will have value
+        # if finish testing get  average iou and model per sec log
         if self.log["avgIou"] != None and self.log["modelPerSec"]!=None:
             self.avgIou.value(str(round(self.log["avgIou"],2)))
             self.modelPerSec = fltk.Fl_Output(225,70,300,25,"Model Per sec : ")
@@ -561,6 +561,8 @@ class Gui():
             self.modelPerSec.labelfont(fltk.FL_BOLD)
             self.modelPerSec.box(fltk.FL_NO_BOX) 
             self.modelPerSec.value(str(round(self.log["modelPerSec"],2)))
+
+            # show finish window after finish testing
             self.scoreWindow.show()
         self.scoreWindow.end()
 
@@ -569,24 +571,43 @@ class Gui():
         x = 150
         # set window x position, y position, width, height
         self.logWindow = fltk.Fl_Window(int(self.window.x() + self.window.w()/2-500/2),int(self.window.y()+self.window.h()/2-200/2),500,200)
-        self.name = fltk.Fl_Input(x,10,300,25,"Name                  ")
-        self.department = fltk.Fl_Input(x,40,300,25,"Department       ")
-        self.Hand = fltk.Fl_Choice(x,70,300,25,"Dominant Hand")
+
+        # input log Name and Department
+        self.name = fltk.Fl_Input(x,10,300,25,"Name\t")
+        self.department = fltk.Fl_Input(x,40,300,25,"Department\t")
+
+        # dominant hand choice selection Right or Left
+        self.Hand = fltk.Fl_Choice(x,70,300,25,"Dominant Hand\t")
         self.Hand.add("Right")
         self.Hand.add("Left")
+
+        # default choice Right
         self.Hand.value(0)
-        self.Maya = fltk.Fl_Choice(x,100,300,25,"Maya Familiar   ")
+
+        # maya familiar choice selection 0-10
+        self.Maya = fltk.Fl_Choice(x,100,300,25,"Maya Familiar\t")
         for i in range(11):
             self.Maya.add(str(i))
+
+        # default choice 0
         self.Maya.value(0)
+
+        # confirm button after finish submit log
         button = fltk.Fl_Button(200,150,100,25,"Confirm")
+
+        # confirm button callback
+        # close log window after click confirm
         button.callback(self.buttonCB,1)
         self.logWindow.show()
         self.logWindow.end()
 
     # buttin callback from log window
     def buttonCB(self,widget,v):
+
+        # close log window after click button
         self.logWindow.hide()
+
+        # save log information in log dictionary 
         self.log["name"] = self.name.value()
         self.log["department"] = self.department.value()
         self.log["mayaFamiliar"] = self.Maya.value()
@@ -596,9 +617,6 @@ class Gui():
         if self.Hand.value() ==1:
             strhand = "Left"
         self.log["dominantHand"] = strhand
-        # print(self.log)
-        self.createScoreWindow()
-        
                 
     # main call back update ui
     def updateUI(self):
@@ -619,27 +637,23 @@ class Gui():
             self.openglWindow.cameravalue=[1,0,0,1,1,1]
             self.openglWindow.flags['cursorSpeed'] = 1.0
             self.openglWindow.redraw()
-            # fltk.Fl_wait(0.5)
+
             # calculate iou
-            
             score = self.openglWindow.checkIoU()
             
             # update flags states from flags buffer
-            
             # reset checkIoU flags
             self.openglWindow.flags['checkIoU'] = False
+
             # if in test mode
             if self.openglWindow.flags['lineupTestMode']:
-               
-                # reset model position
-                # self.openglWindow.flags['resetModelTransform'] = True         
                 
                 # add iou score to buffer
                 self.openglWindow.iouScore = np.append(self.openglWindow.iouScore,score)
                 
-                # print(self.openglWindow.testNumber,self.openglWindow.log['testNumber'])
                 # check that test all model or not
                 self.openglWindow.testMode(self.openglWindow.log['testNumber'])
+
                 # update test number
                 self.openglWindow.testNumber += 1
                 
@@ -655,20 +669,10 @@ class Gui():
             print("Enable test mode\nNumber of test: ",self.openglWindow.log['testNumber'])
             print(self.openglWindow.modelType)
             self.openglWindow.testMode(self.openglWindow.log['testNumber'])
-            # print( self.openglWindow.flags['testMode'])
             
             self.openglWindow.flags['testMode'] = False
             
         fltk.Fl_check()
-    
-    
-    # update output function
-    def updateOutput(self,pos):
-        for i in range(6):
-            a=float("{:.2f}".format(pos[i]))
-            self.outputWidgetStorage[i].value(str(a))
-    
-    
     
     # add model to opengl window class
     def addModel(self,name,modelId,drawFunction = None,position=(0,0,0),rotation=(0,0,0),obj=None,objType = 'model',listOfJoint=[],showTarget = False,showPole = False):
