@@ -289,19 +289,17 @@ class CommonController(Handler):
         GLU.gluPickMatrix(xPos, vp[3] - yPos, 1, 1, vp)
 
         # set viewport for select mode
-        # GLU.gluPerspective(30,self.windowWidth/self.windowHeight,1,100)
-        
-        
+        # implement zoom and tramslate view
+        # minX, maxX, minY, maxY, minZ, maxZ
+        # fov = 30
+        # so the ratio is 0.2679491924311227 for frustum
         ratio = 0.2679491924311227
-        # ratio = 0.5773502691896257
-
         
         GL.glFrustum(((-ratio*(self.windowWidth/self.windowHeight))/self.cameraValue[0])-ratio*self.cameraValue[1], 
                     ((ratio*(self.windowWidth/self.windowHeight))/self.cameraValue[0])-ratio*self.cameraValue[1], 
                     -ratio/self.cameraValue[0]-ratio*self.cameraValue[2], 
                     ratio/self.cameraValue[0]-ratio*self.cameraValue[2],
                      1, 100)
-        
         GL.glTranslatef(0,0,-35)
 
         #offset camera view
@@ -843,7 +841,6 @@ class MouseController(CommonController):
             
         # drag to rotate
         elif self.flags['mouseMode'] == 'rot':
-            # if self.rotationAxis != 'None':
             newM = self.mouseRotate(self.xMousePosition,self.yMousePosition,self.rotationAxis,self.flags['coordinate'])
 
         # return homogenous matrix
