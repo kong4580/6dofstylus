@@ -11,49 +11,56 @@ from scipy.spatial.transform import Rotation as R
 from Manipulator import Manipulator
 import drawFunc 
 from Obb import OBB
+
 class Transform():
+    
     def __init__(self):
+        
+        # init parent child
         self.parent = []
         self.child = []
         self.parentToLocal = np.eye(4)
         self.startWorldToLocal = np.eye(4)
+        
+        # init manipulator
         self.manipulator = Manipulator()
-        # self.tt = np.eye(4)
+        
     @property
     def worldToLocal(self):
+        
+        # if has parent
         if len(self.parent) > 0:
-            # for i in self.parent:
+            
+            # Calculate WorldToLocal Transformation from parent
             wTL = np.dot(self.parent[0].worldToLocal , self.parentToLocal )
-            # wTL = np.dot(wTL ,self.tt)
+            
                 
         else:
             
-            # wTL = np.dot(self.parentToLocal,self.tt )
+            # Calculate WorldToLocal Transformation
             wTL = self.parentToLocal
             
-        
+        # return WorldToLocal
         return wTL
 
-    
-    
-    
+    # apply relative transform
     def apply(self,transform):
         
+        # split rotate and translate
         rotM = np.eye(4)
         tranM = np.eye(4)
-        
         
         rotM[0:3,0:3] = transform[0:3,0:3]
         tranM[0:3,3] = transform[0:3,3]
         
+        # get local transform and split rotate and translate
         oldttT = np.eye(4)
         oldttR = np.eye(4)
         
         oldttT[0:3,3] = self.parentToLocal[0:3,3]
         oldttR[0:3,0:3] = self.parentToLocal[0:3,0:3]
-        
-        # newT = np.dot(tranM,self.worldToLocal)
-        # newT = np.dot(self.parentToLocal,transform)
+
+        # Calculate new transform
         newT = np.eye(4)
         newttT = np.dot(oldttT,tranM)
         newttR = np.dot(oldttR,rotM)
@@ -61,23 +68,15 @@ class Transform():
         newT[0:3,3] = newttT[0:3,3]
         newT[0:3,0:3] = newttR[0:3,0:3]
         
-        
-        # newT = np.dot(newT,rotM)
-        
-        if len(self.parent) > 0:
-            
-            oldTParent =np.linalg.inv(self.parent[0].worldToLocal)
-        else:
-            oldTParent = np.eye(4)
-            
-        # self.parentToLocal = np.dot(oldTParent,newT)
+        # set parentToLocal to new transform
         self.parentToLocal = newT
       
-    
+    # set parent child
     def goUnder(self,transform):
         self.parent.append(transform)
         transform.child.append(self)
     
+    # change absolute transform to relative transform
     def goTo(self, matrix):
         
         
@@ -107,6 +106,7 @@ class Transform():
             return np.eye(4)
         else:
             return newM
+        
         
 class Model(Transform):
     
@@ -164,31 +164,29 @@ class Model(Transform):
                       'snapMode':False
                       }
         
+        
     def updateFlags(self, flags,data):
         self.flags[flags] = data
     
     def resetFlags(self):
         self.flags = {
                       'showModel':True,
-                      
-                      
                       'showModelWireframe':False,
-                      
                       'opacityMode':False,
-                      
                       'enableLight': True,
-                      
                       'showModelFrame':False,
                       'snapMode':False
                       }
-        
+    
+    # set argument ## not use ##    
     @property
     def argv(self):
         return 0
     
     # draw model with transform matrix
     def drawMatrixModel(self, showFrame=True, enableLight = True,wireFrame = False, opacity = False,mode = 'trans',selectedMode = False,coordinate = True,camera = [1,0,0]):
-        # if model is obj firl
+        
+        # if model is obj file
         if self.obj!=None:
             
             # if model show flags is true
@@ -298,16 +296,20 @@ class Model(Transform):
         # if model is not obj file    
         else:
             pass
-
+    
+    # update child transform of model
     def updateChild(self):
+        
         if len(self.child) > 0:
             
             for c in self.child:
-                c.currentM = c.worldToLocal
                 
+                c.currentM = c.worldToLocal
                 c.updateChild()
         else:
             pass
+        
+    # draw Model frame
     def drawFrame(self,drawFrameFunc,frameId,selectedMode=False):
         GL.glMatrixMode(GL.GL_MODELVIEW)
         GL.glPushMatrix()
@@ -323,36 +325,41 @@ class Model(Transform):
         GL.glEnable(GL.GL_LIGHTING)
         GL.glPopMatrix()
         
+    # move and rotate model
     def moveModel(self,matrix,mode='absolute'):
-        
-        
-        
-        if mode == 'absolute':
-            
 
+        # move model with absolute method
+        if mode == 'absolute':
+        
+            # get relative transform
             transform = self.goTo(matrix)
             
+            # apply transform
             self.apply(transform)
+        
+        # move model with relative method
         else:
+            
+            # apply transform
             self.apply(matrix)
             
+        # set current render matrix to worldToLocal
         self.currentM = self.worldToLocal
             
-        
+        # update model child
         self.updateChild()
-        # set current model matrix from modelview matrix
+        
         # set model center position
         self.centerPosition = self.currentM[0:3,3]
                 
     @property
     def renderM(self):
         return self.currentM.copy()
+    
     # update model position
     ### now not use ###
     def __updatePosition(self,position=(0,0,0),rotation=(0,0,0)):
         self.centerPosition = position
-        
-            
         self.rotation = rotation
 
     # get model name
@@ -465,12 +472,13 @@ class Model(Transform):
         if self.obj != None:
             self.centerPosition -=self.obb.current_centroid
     
+    # get sub model
     def getSubModel(self):
         
         return [self]
         
         
-        
+# read and create object from .obj file       
 class OBJ():
     def __init__(self, filename, swap_yz=False,scale=1):
         self.vertices = []
@@ -586,8 +594,9 @@ class OBJ():
         
         glEndList()
         
-
+# Joint Model
 class Joint(Model):
+    
     def __init__(self,name,modelId,drawFunction = None,position=(0,0,0),rotation=(0,0,0),obj=None,m =np.eye(4)):
         super().__init__(name,modelId,drawFunction,position,rotation,obj,m)
         
@@ -643,7 +652,7 @@ class Joint(Model):
             else:
                 color = drawFunc.SkyColorVector
                 color = list(color).copy()
-                # color.append(self.opacityValue)
+                
                 
                 # set model color
                 GL.glColor3fv(tuple(color))
@@ -656,16 +665,16 @@ class Joint(Model):
             GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
             
             # if disable lighting
-            
             if not self.flags['enableLight']:
                 # turn off lighting
                 GL.glDisable(GL.GL_LIGHTING)
             
-            
+            # draw model in selection buffer
             if selectedMode:
                 GL.glLoadName(self.modelId)
             
             
+            # draw Model
             if not self.flags['showModelWireframe']:
                 GL.glDisable(GL.GL_CULL_FACE)
                 
@@ -677,6 +686,7 @@ class Joint(Model):
                     GLUT.glutSolidTeapot(1)
                     
             else:
+                
                 GL.glEnable(GL.GL_CULL_FACE)
                 GL.glCullFace(GL.GL_BACK)
                 if self.drawFunction == 'sphere':
@@ -685,6 +695,7 @@ class Joint(Model):
                     GLUT.glutWireTorus(0.2,0.74,10,10)
                 elif self.drawFunction == 'teapot':
                     GLUT.glutWireTeapot(1)
+                    
             if not self.flags['enableLight']:
                 # turn on lighting
                 GL.glEnable(GL.GL_LIGHTING)
@@ -695,6 +706,7 @@ class Joint(Model):
             GL.glPopAttrib()
             GL.glPopMatrix()
             
+            # draw link from model point to parent
             if not np.equal(self.renderM, self.worldToLocal).all():
                 GL.glMatrixMode(GL.GL_MODELVIEW)
                 GL.glPushMatrix()
@@ -747,10 +759,13 @@ class Joint(Model):
                 # disable light to draw model frame
                 GL.glDisable(GL.GL_LIGHTING)
                 GL.glEnable(GL.GL_LIGHTING)
-                
+    
+    # get argument to draw link
     @property
     def argv(self):
         return self.getDist
+    
+    # get point to parent transform
     @property
     def pointTo(self):
         if len(self.parent) > 0:
@@ -789,6 +804,7 @@ class Joint(Model):
             print(self.name)
             return self.worldToLocal
     
+    # get distance from parent to joint
     @property
     def getDist(self):
         np.seterr(divide='ignore', invalid='ignore')
@@ -831,7 +847,8 @@ class Joint(Model):
     def initModel(self,matrixView):
         
         pass
-    
+
+# object for move articulate model with ik
 class ArticulateObj(Model):
     
     def drawMatrixModel(self, showFrame=True, enableLight = True,wireFrame = False, opacity = False,mode = 'trans',selectedMode = False,coordinate = True,camera = [1,0,0]):
@@ -897,6 +914,7 @@ class ArticulateObj(Model):
                 GL.glPopAttrib()
                 GL.glPopMatrix()
     
+# create articulate model
 class ArticulateModel(Model):
     def __init__(self,name,modelId,listOfJoint,showTarget = False,showPole = False):
         super().__init__(name,modelId)
@@ -957,7 +975,8 @@ class ArticulateModel(Model):
     
     def getSubModel(self):
         return self.modelLists
-    
+
+# stylus cursor class
 class Cursor(Model):
     
     def drawMatrixModel(self, showFrame=True, enableLight = True,wireFrame = False, opacity = False,mode = 'trans',selectedMode = False,coordinate = True,camera = [1,0,0]):
