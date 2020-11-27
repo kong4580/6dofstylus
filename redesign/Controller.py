@@ -1060,8 +1060,8 @@ class MouseController(CommonController):
             else:
                 print("no intersect out")
                 newMatrix = newN[0:3,0:3]
+                
             # set current ray for the next ray 
-            # self.oldRay = newRay
             newN[0:3,0:3] = newMatrix
         else:
             center = [newM[0][3],newM[1][3],newM[2][3]]
