@@ -987,13 +987,16 @@ class MouseController(CommonController):
             array = np.asarray([0.,1.,0.])
         elif rotationAxis == 'rotZ':
             axis = 2
-            array = np.asarray([0.,0.,1.])   
+            array = np.asarray([0.,0.,1.])  
+
         # get model currentM
         # model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
         model = self.selectedModel[0]
         newM = model.currentM.copy()
         newN = model.currentM.copy()
+
         if rotationAxis != 'None':
+
             # rotate in world coordinate
             if mode == False:
                 newM[0:3,0:3] = np.eye(3)
@@ -1060,24 +1063,39 @@ class MouseController(CommonController):
             else:
                 print("no intersect out")
                 newMatrix = newN[0:3,0:3]
-                
-            # set current ray for the next ray 
+
             newN[0:3,0:3] = newMatrix
         else:
+
+            # rotate 2 axis
             center = [newM[0][3],newM[1][3],newM[2][3]]
             newRay = Ray(x,y)
+
+            # find point on sphere
             cur = newRay.sphereIntersect(center,20)
             last = self.oldRay.sphereIntersect(center,20)
+
+            # calculate angle
             if cur[0]!= None and last[0] != None:
                 diff = cur - last
+
+                # calculate angle
                 angle = 90 * math.sqrt(diff[0]*diff[0] + diff[1]*diff[1] + diff[2]*diff[2])
+
+                # calculate axis normal
                 axis = [0,0,0]
                 axis[0] = last[1]*cur[2] - last[2]*cur[1]
                 axis[1] = last[2]*cur[0] - last[0]*cur[2]
                 axis[2] = last[0]*cur[1] - last[1]*cur[0]
+
+                # get rotation matrix
                 matrix = self.matrixM(angle*0.0005,-axis[0],-axis[1],-axis[2])
+
+                # get new matrix that apply rotation
                 newMatrix = np.dot(matrix,newN[0:3,0:3])
                 newN[0:3,0:3] = newMatrix
+
+        # set current ray for the next ray 
         self.oldRay = newRay
         return newN
 
@@ -1093,6 +1111,7 @@ class MouseController(CommonController):
         oldPoint = np.asarray([0,0,0])
         norm1 = 0
         norm2 = 0
+
         # get model currentM
         # model = self.modelDicts['model'][self.modelDicts['runModelIdx']]
         model = self.selectedModel[0]
@@ -1164,6 +1183,7 @@ class MouseController(CommonController):
                     newPoint2 = self.pointProjectOnLine(lineIntersect,newIntersect2)
                     oldPoint2 = self.pointProjectOnLine(lineIntersect,oldIntersect2)
                     norm2 = round(math.sqrt(np.linalg.norm(newIntersect2)),0)
+
                 # choose the moving point
                 # choose the lower norm (the closest)
                 if newPoint1[0] != None and newPoint2[0] != None:
@@ -1179,22 +1199,33 @@ class MouseController(CommonController):
                 elif newPoint1[0] != None and newPoint2[0] == None:
                     newPoint = newPoint1
                     oldPoint = oldPoint1
+
                 elif newPoint1[0] == None and newPoint2[0] != None:
                     newPoint = newPoint2
                     oldPoint = oldPoint2
         
-
+        # translate 2 axis
         elif translationAxis == 'transXY' or translationAxis == 'transYZ' or translationAxis == 'transXZ':
+
+            # plane XY
+            # Z axis - normal
             if translationAxis == 'transXY':
                 axis = 2
 
+            # plane YZ
+            # X axis - normal
             if translationAxis == 'transYZ':
                 axis = 0
             
+            # plane XZ
+            # Y axis - normal
             if translationAxis == 'transXZ':
                 axis = 1
 
+            # init plane Normal and Position
             plane = Plane([newM[0][axis],newM[1][axis],newM[2][axis]],center)
+
+            # get plane and ray intersection
             newPoint = newRay.intersects(plane)
             oldPoint = self.oldRay.intersects(plane)
             
@@ -1207,16 +1238,20 @@ class MouseController(CommonController):
             # point that the ray intersect on the plane
             newPoint = newRay.intersects(plane)
             oldPoint = self.oldRay.intersects(plane)
+
         else:
             newPoint = np.asarray([0,0,0])
             oldPoint = np.asarray([0,0,0])
+
         #  distant vector
         distant = newPoint - oldPoint
+
         # set current ray for the next ray
         self.oldRay = newRay
         
-
+        # return translation
         return distant
+        
     def productAngle(self,vector1,vector2):
 
         # get angle from dot product equation
