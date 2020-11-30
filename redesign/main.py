@@ -215,6 +215,7 @@ def openGUI(conn,samplingRate = 0.005):
 if __name__ == '__main__':
     if len(sys.argv) < 2:
         print("Please enter device name !!")
+        print("main.py <mouse,stylus,stylus2> <rig,articulate> <fk,ik> <nomal,global>")
         print("### device name = mouse, stylus, stylus2 ###")
         sys.exit()
     elif len(sys.argv) < 3:
