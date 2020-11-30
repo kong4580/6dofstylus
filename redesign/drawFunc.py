@@ -332,3 +332,28 @@ def drawSquareX(**kwargs):
     GL.glRotatef(90,0,0,1)
     halfside = ratio*0.5
     drawSqure(halfside)
+
+def coordinate():
+    
+    GL.glColor3f(0.0,1.0,0.0) # green y
+    GL.glBegin(GL.GL_LINES)
+    # x aix
+    GL.glVertex3f(0, 0, 0.0)
+    GL.glVertex3f(0.0, 4.0, 0.0)
+    GL.glEnd()
+    
+    
+    # y 
+    GL.glColor3f(0.0,0.0,1.0) # blue z
+    GL.glBegin(GL.GL_LINES)
+    GL.glVertex3f(0.0, 0, 0.0)
+    GL.glVertex3f(0.0, 0.0, 4.0)
+    GL.glEnd()
+ 
+    # z 
+    GL.glColor3f(1.0,0.0,0.0) # red x
+    GL.glBegin(GL.GL_LINES)
+    GL.glVertex3f(0.0, 0.0 ,0 )
+    GL.glVertex3f(4.0, 0.0 ,0.0 )
+    GL.glEnd()
+    GL.glLineWidth(1)
